@@ -1,0 +1,57 @@
+﻿@model AdminIndexViewModel
+
+@{
+    ViewData["Title"] = "Admin";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mt-3">
+            <div class="card-header">
+                System Settings
+            </div>
+            <div class="card-body">
+                <form method="post" asp-controller="Admin" asp-action="SaveSystemSettings">
+                    <div class="mb-3 row">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="enableUserRegister" id="enableUserRegister" value=""/>
+                            <label class="form-check-label" for="enableUserRegister">
+                                Enable User Registrations
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="embedEnable" id="embedEnable" value=""/>
+                            <label class="form-check-label" for="embedEnable">
+                                Embed Media
+                            </label>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="mb-3 row">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="quotaEnable" id="quotaEnable" value=""/>
+                            <label class="form-check-label" for="quotaEnable">
+                                Enable user quota (upload and storage)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label" for="defaultUploadQuota">Default User Upload Quota</label>
+                        <input type="text" class="form-control" id="defaultUploadQuota" name="defaultUploadQuota" />
+                        <div id="defaultUploadQuotaHelp" class="form-text">500KB, 500K, 512M, 5G, 1T, etc...</div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label" for="defaultStorageQuota">Default User Storage Quota</label>
+                        <input type="text" class="form-control" id="defaultStorageQuota" name="defaultStorageQuota"/>
+                        <div id="defaultStorageQuotaHelp" class="form-text">500KB, 500K, 512M, 5G, 1T, etc...</div>
+                    </div>
+                    <button class="btn btn-outline-success mt-3" type="submit">Save</button>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>

@@ -1,0 +1,6 @@
+﻿services:
+  kate.fileshare:
+    image: kate.fileshare
+    build:
+      context: .
+      dockerfile: kate.FileShare/Dockerfile
