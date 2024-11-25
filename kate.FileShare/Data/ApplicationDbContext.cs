@@ -18,7 +18,6 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
         return new(_ops);
     }
     
-    public DbSet<UserModel> Users { get; set; }
     public DbSet<UserLimitModel> UserLimits { get; set; }
     public DbSet<PreferencesModel> Preferences { get; set; }
     public DbSet<FileModel> Files { get; set; }
