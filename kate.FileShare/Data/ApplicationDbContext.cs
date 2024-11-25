@@ -49,6 +49,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
         builder.Entity<FileModel>()
             .ToTable(FileModel.TableName)
             .HasKey(e => e.Id);
+        builder.Entity<FileModel>().HasIndex(e => e.CreatedByUserId).IsUnique(false);
         builder.Entity<S3FileInformationModel>()
             .ToTable(S3FileInformationModel.TableName)
             .HasKey(e => e.Id);
@@ -59,11 +60,11 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
             .ToTable(ChunkUploadSessionModel.TableName)
             .HasKey(e => e.Id);
 
-        // builder.Entity<FileModel>()
-        //     .HasOne(e => e.CreatedByUser)
-        //     .WithOne()
-        //     .HasForeignKey<UserModel>(e => e.Id)
-        //     .IsRequired(false);
+        builder.Entity<FileModel>()
+            .HasOne(e => e.CreatedByUser)
+            .WithOne()
+            .HasForeignKey<FileModel>(e => e.CreatedByUserId)
+            .IsRequired(false);
 
         builder.Entity<FileModel>()
             .HasOne(e => e.S3FileInformation)
@@ -76,16 +77,21 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
             .WithOne(e => e.S3FileInformation)
             .HasForeignKey(e => e.FileId)
             .IsRequired(true);
+        builder.Entity<S3FileInformationModel>()
+            .HasOne(e => e.File)
+            .WithOne()
+            .HasForeignKey<S3FileInformationModel>(e => e.Id);
         
-        // builder.Entity<ChunkUploadSessionModel>()
-        //     .HasOne(e => e.User)
-        //     .WithOne()
-        //     .HasForeignKey<UserModel>(e => e.Id)
-        //     .IsRequired(false);
-        // builder.Entity<ChunkUploadSessionModel>()
-        //     .HasOne(e => e.File)
-        //     .WithOne()
-        //     .HasForeignKey<FileModel>(e => e.Id)
-        //     .IsRequired(true);
+        builder.Entity<ChunkUploadSessionModel>()
+            .HasOne(e => e.User)
+            .WithMany()
+            .HasForeignKey(e => e.UserId)
+            .IsRequired(false);
+        builder.Entity<ChunkUploadSessionModel>()
+            .HasOne(e => e.File)
+            .WithMany()
+            .HasForeignKey(e => e.FileId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(true);
     }
 }

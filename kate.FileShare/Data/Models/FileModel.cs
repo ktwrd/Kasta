@@ -19,7 +19,6 @@ public class FileModel
     public string? MimeType { get; set; }
     public long Size { get; set; }
 
-    [ForeignKey(nameof(CreatedByUser))]
     public string? CreatedByUserId { get; set; }
     public UserModel? CreatedByUser { get; set; }
 

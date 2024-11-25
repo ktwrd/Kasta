@@ -12,11 +12,9 @@ public class ChunkUploadSessionModel
     }
     public string Id { get; set; }
 
-    [ForeignKey(nameof(User))]
     public string? UserId { get; set; }
     public UserModel? User { get; set; }
 
-    [ForeignKey(nameof(File))]
     public string FileId { get; set; }
     public FileModel File { get; set; }
 
