@@ -1,5 +1,6 @@
 ﻿using kate.FileShare.Data.Models;
 using kate.FileShare.Data.Models.Audit;
+using kate.FileShare.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +28,13 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
 
     public DbSet<AuditModel> Audit { get; set; }
     public DbSet<AuditEntryModel> AuditEntries { get; set; }
+
+    public async Task<SystemSettingsParams> GetSystemSettings()
+    {
+        var instance = new SystemSettingsParams();
+
+        return instance;
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
