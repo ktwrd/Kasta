@@ -31,7 +31,10 @@ public class Program
             .AddScoped<UploadService>()
             .AddScoped<ShortUrlService>()
             .AddScoped<FileService>();
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllersWithViews(options =>
+        {
+            options.Filters.Add(new BlockUserRegisterAttribute());
+        });
 
         var app = builder.Build();
 
@@ -54,6 +57,7 @@ public class Program
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
+            
         app.MapRazorPages();
 
         app.Run();
