@@ -2,11 +2,13 @@ using kate.FileShare.Data;
 using kate.FileShare.Data.Models;
 using kate.FileShare.Data.Models.Audit;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 
 namespace kate.FileShare.Services;
 
 public class FileService
 {
+    private readonly Logger _log = LogManager.GetCurrentClassLogger();
     private readonly ApplicationDbContext _db;
     public FileService(IServiceProvider services)
     {
@@ -89,46 +91,94 @@ public class FileService
     
         return (auditModel, entries);
     }
-    private async Task InsertAuditData((AuditModel, List<AuditEntryModel>) data)
+    private async Task InsertAuditData(ApplicationDbContext db, (AuditModel, List<AuditEntryModel>) data)
     {
-        await _db.Audit.AddAsync(data.Item1);
-        await _db.AuditEntries.AddRangeAsync(data.Item2.ToArray());
+        await db.Audit.AddAsync(data.Item1);
+        await db.AuditEntries.AddRangeAsync(data.Item2.ToArray());
     }
-    private async Task InsertAuditData(List<(AuditModel, List<AuditEntryModel>)> data)
+    private async Task InsertAuditData(ApplicationDbContext db, List<(AuditModel, List<AuditEntryModel>)> data)
     {
         foreach (var i in data)
         {
-            await InsertAuditData(i);
+            await InsertAuditData(db, i);
         }
     }
     public async Task DeleteFile(UserModel user, FileModel file)
     {
-        await InsertAuditData(GenerateDeleteAudit(user, file, (e) => e.Id, FileModel.TableName));
+        using var ctx = _db.CreateSession();
+        using var transaction = ctx.Database.BeginTransaction();
+        try
+        {
+            await InsertAuditData(ctx, GenerateDeleteAudit(user, file, (e) => e.Id, FileModel.TableName));
 
-        await InsertAuditData(
-            GenerateDeleteAudit(
-                user,
-                _db.ChunkUploadSessions.Where(e => e.FileId == file.Id),
-                e => e.Id,
-                ChunkUploadSessionModel.TableName));
-        await InsertAuditData(
-            GenerateDeleteAudit(
-                user,
-                _db.S3FileChunks.Where(e => e.FileId == file.Id),
-                e => e.Id,
-                S3FileChunkModel.TableName));
-        await InsertAuditData(
-            GenerateDeleteAudit(
-                user,
-                _db.S3FileInformations.Where(e => e.Id == file.Id),
-                e => e.Id,
-                S3FileInformationModel.TableName));
+            await InsertAuditData(ctx, 
+                GenerateDeleteAudit(
+                    user,
+                    _db.ChunkUploadSessions.Where(e => e.FileId == file.Id),
+                    e => e.Id,
+                    ChunkUploadSessionModel.TableName));
+            await InsertAuditData(ctx, 
+                GenerateDeleteAudit(
+                    user,
+                    _db.S3FileChunks.Where(e => e.FileId == file.Id),
+                    e => e.Id,
+                    S3FileChunkModel.TableName));
+            await InsertAuditData(ctx, 
+                GenerateDeleteAudit(
+                    user,
+                    _db.S3FileInformations.Where(e => e.Id == file.Id),
+                    e => e.Id,
+                    S3FileInformationModel.TableName));
 
-        await _db.ChunkUploadSessions.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
-        await _db.S3FileChunks.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
-        await _db.S3FileInformations.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
-        await _db.Files.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+            await ctx.ChunkUploadSessions.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
+            await ctx.S3FileChunks.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
+            await ctx.S3FileInformations.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+            await ctx.Files.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
 
-        await _db.SaveChangesAsync();
+            await ctx.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            _log.Error($"Failed to delete file {file.Id} ({file.RelativeLocation}) for user {user.UserName} ({user.Id})\n{ex}");
+            await transaction.RollbackAsync();
+        }
+    }
+
+    public async Task RecalculateSpaceUsed(UserModel user)
+    {
+        using (var ctx = _db.CreateSession())
+        {
+            using var transaction = ctx.Database.BeginTransaction();
+
+            try
+            {
+                var files = await ctx.Files.Where(e => e.CreatedByUserId == user.Id).Select(e => e.Size).ToListAsync();
+                long size = 0;
+                foreach (var i in files)
+                {
+                    size += Math.Max(i, 0);
+                }
+
+                var limitModel = await ctx.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
+                if (limitModel == null)
+                {
+                    limitModel = new()
+                    {
+                        UserId = user.Id
+                    };
+                    await ctx.UserLimits.AddAsync(limitModel);
+                }
+                limitModel.SpaceUsed = size;
+                await ctx.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failed to recalculate storage space for user: {ex}");
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }
