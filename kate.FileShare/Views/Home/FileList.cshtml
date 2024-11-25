@@ -1,0 +1,79 @@
+@using Microsoft.AspNetCore.Identity
+@using kate.FileShare.Data
+@using kate.FileShare.Data.Models
+@inject ApplicationDbContext _db
+@inject SignInManager<UserModel> SignInManager
+@inject UserManager<UserModel> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var userModel = await UserManager.GetUserAsync(User);
+    if (userModel != null)
+    {
+        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th colspan="2">Filename</th>
+                    <th>Created At</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                @foreach (var file in _db.Files.Where(v => v.CreatedByUserId == userModel.Id).OrderBy(v => v.CreatedAt))
+                {
+                    var relativeFileUrl = $"/f/{file.Id}";
+                    if (!string.IsNullOrEmpty(file.ShortUrl))
+                    {
+                        relativeFileUrl = $"/f/{file.ShortUrl}";
+                    }
+                    <tr>
+                        @if (file.MimeType?.StartsWith("image/") ?? false)
+                        {
+                            <td>
+                                <img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px"/>
+                            </td>
+                            <td>
+                                <a href="@relativeFileUrl">
+                                    @if (string.IsNullOrEmpty(file.Filename))
+                                    {
+                                        @file.Id
+                                    }
+                                    else
+                                    {
+                                        @file.Filename
+                                    }
+                                </a>
+                            </td>
+                        }
+                        else
+                        {
+                            <td colspan="2">
+                                <a href="@relativeFileUrl">
+                                    @if (string.IsNullOrEmpty(file.Filename))
+                                    {
+                                        @file.Id
+                                    }
+                                    else
+                                    {
+                                        @file.Filename
+                                    }
+                                </a>
+                            </td>
+                        }
+                        <td>
+                            @file.CreatedAt
+                        </td>
+                        <td>
+                            <a class="btn btn-danger"
+                               asp-controller="Home"
+                               asp-action="DeleteFile"
+                               asp-route-id="@file.Id">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}

@@ -5,6 +5,7 @@ namespace kate.FileShare.Data.Models;
 
 public class PreferencesModel
 {
+    public const string TableName = "Preferences";
     [Required]
     [MaxLength(100)]
     public string Key { get; set; }

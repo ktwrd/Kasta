@@ -1,0 +1,11 @@
+@model NotFoundViewModel
+@{
+    ViewData["Title"] = "Not Found";
+    Layout = "_Layout";
+}
+<h1>Not Found</h1>
+<p>The file or page you requested for could not be found.</p>
+@if (!string.IsNullOrEmpty(Model?.Message))
+{
+    <p>@(Model!.Message)</p>
+}

@@ -6,33 +6,57 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace kate.FileShare.Controllers;
 
+[Route("~/Admin")]
 public class AdminController : Controller
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly SignInManager<UserModel> _signInManager;
+    private readonly UserManager<UserModel> _userManager;
     
     public AdminController(IServiceProvider services)
         : base()
     {
         _dbContext = services.GetRequiredService<ApplicationDbContext>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
+        _userManager = services.GetRequiredService<UserManager<UserModel>>();
     }
 
-    [HttpGet("/Admin")]
-    public async Task<IActionResult> Index()
+    [AuthRequired]
+    [HttpGet]
+    public IActionResult Home()
     {
-        if (!_signInManager.IsSignedIn(User))
+        var user = _userManager.GetUserAsync(User).Result;
+        if (user == null || !user.IsAdmin)
         {
-            return RedirectToPage("Index", "Home");
+            return new RedirectToActionResult("Index", "Home", null);
         }
         var model = new AdminIndexViewModel();
 
         return View("Index", model);
     }
 
-    [HttpPost("/Admin/Settings/Save")]
+    [AuthRequired]
+    [HttpGet("Audit")]
+    public async Task<IActionResult> AuditIndex()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null || !user.IsAdmin)
+        {
+            return new RedirectToActionResult("Index", "Home", null);
+        }
+
+        return View();
+    }
+
+    [AuthRequired]
+    [HttpPost("Settings/Save")]
     public async Task<IActionResult> SaveSystemSettings()
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null || !user.IsAdmin)
+        {
+            return new RedirectToActionResult("Index", "Home", null);
+        }
         throw new NotImplementedException();
     }
 }

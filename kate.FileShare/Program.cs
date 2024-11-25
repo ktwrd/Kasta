@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using kate.FileShare.Data;
 using kate.FileShare.Data.Models;
+using kate.FileShare.Services;
 
 namespace kate.FileShare;
 
@@ -25,6 +26,11 @@ public class Program
                     options.SignIn.RequireConfirmedPhoneNumber = false;
                 })
             .AddEntityFrameworkStores<ApplicationDbContext>();
+        builder.Services.AddMvc();
+        builder.Services.AddScoped<S3Service>()
+            .AddScoped<UploadService>()
+            .AddScoped<ShortUrlService>()
+            .AddScoped<FileService>();
         builder.Services.AddControllersWithViews();
 
         var app = builder.Build();

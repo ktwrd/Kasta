@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = "Upload";
+    Layout = "_Layout";
+}
+
+<form asp-controller="Home" asp-action="UploadPost" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <input class="form-control" type="file" id="formFile" name="file"/>
+    </div>
+    <button type="submit" class="btn btn-success">Upload</button>
+</form>

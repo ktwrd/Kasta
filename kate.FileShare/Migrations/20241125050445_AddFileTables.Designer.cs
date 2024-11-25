@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using kate.FileShare.Data;
@@ -11,9 +12,11 @@ using kate.FileShare.Data;
 namespace kate.FileShare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241125050445_AddFileTables")]
+    partial class AddFileTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,59 +159,6 @@ namespace kate.FileShare.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("kate.FileShare.Data.Models.Audit.AuditEntryModel", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AuditId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PropertyName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuditId");
-
-                    b.ToTable("AuditEntry", (string)null);
-                });
-
-            modelBuilder.Entity("kate.FileShare.Data.Models.Audit.AuditModel", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EntityName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<byte>("Kind")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("PrimaryKey")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.ToTable("Audit", (string)null);
                 });
 
             modelBuilder.Entity("kate.FileShare.Data.Models.ChunkUploadSessionModel", b =>
@@ -465,28 +415,6 @@ namespace kate.FileShare.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("kate.FileShare.Data.Models.Audit.AuditEntryModel", b =>
-                {
-                    b.HasOne("kate.FileShare.Data.Models.Audit.AuditModel", "Audit")
-                        .WithMany("Entries")
-                        .HasForeignKey("AuditId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Audit");
-                });
-
-            modelBuilder.Entity("kate.FileShare.Data.Models.Audit.AuditModel", b =>
-                {
-                    b.HasOne("kate.FileShare.Data.Models.UserModel", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CreatedByUser");
-                });
-
             modelBuilder.Entity("kate.FileShare.Data.Models.ChunkUploadSessionModel", b =>
                 {
                     b.HasOne("kate.FileShare.Data.Models.FileModel", "File")
@@ -540,11 +468,6 @@ namespace kate.FileShare.Migrations
                         .HasForeignKey("kate.FileShare.Data.Models.UserLimitModel", "UserId");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("kate.FileShare.Data.Models.Audit.AuditModel", b =>
-                {
-                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("kate.FileShare.Data.Models.FileModel", b =>
