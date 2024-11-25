@@ -2,5 +2,5 @@
 
 public class AdminIndexViewModel
 {
-    
+    public SystemSettingsParams SystemSettings { get; set; } = new();
 }

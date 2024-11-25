@@ -12,10 +12,10 @@
                 System Settings
             </div>
             <div class="card-body">
-                <form method="post" asp-controller="Admin" asp-action="SaveSystemSettings">
+                <form method="post" asp-controller="Admin" asp-action="SaveSystemSettings" enctype="multipart/form-data">
                     <div class="mb-3 row">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" name="enableUserRegister" id="enableUserRegister" value=""/>
+                            <input type="checkbox" class="form-check-input" name="enableUserRegister" id="enableUserRegister" value="true"/>
                             <label class="form-check-label" for="enableUserRegister">
                                 Enable User Registrations
                             </label>
@@ -23,7 +23,7 @@
                     </div>
                     <div class="mb-3 row">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" name="embedEnable" id="embedEnable" value=""/>
+                            <input type="checkbox" class="form-check-input" name="embedEnable" id="embedEnable" value="true" checked="@Model.SystemSettings.EnableEmbeds" />
                             <label class="form-check-label" for="embedEnable">
                                 Embed Media
                             </label>
@@ -32,7 +32,24 @@
                     <hr/>
                     <div class="mb-3 row">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" name="quotaEnable" id="quotaEnable" value=""/>
+                            <input type="checkbox" class="form-check-input" name="customBrandEnable" id="customBrandEnable" value="true" checked="@Model.SystemSettings.EnableCustomBranding" />
+                            <label class="form-check-label" for="customBrandEnable">
+                                Enable Custom Branding
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label" for="customBrandFooter">Footer Text</label>
+                        <input type="text" class="form-control" id="customBrandFooter" name="customBrandFooter" placeholder="Powered by kate.FileShare" value="@Model.SystemSettings.CustomBrandingFooter"/>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label" for="customBrandTitle">Title/App Name</label>
+                        <input type="text" class="form-control" id="customBrandTitle" name="customBrandTitle" value="@Model.SystemSettings.CustomBrandingTitle" />
+                    </div>
+                    <hr/>
+                    <div class="mb-3 row">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="quotaEnable" id="quotaEnable" value="true" checked="@Model.SystemSettings.EnableQuota" />
                             <label class="form-check-label" for="quotaEnable">
                                 Enable user quota (upload and storage)
                             </label>
@@ -40,12 +57,12 @@
                     </div>
                     <div class="mb-3 row">
                         <label class="form-label" for="defaultUploadQuota">Default User Upload Quota</label>
-                        <input type="text" class="form-control" id="defaultUploadQuota" name="defaultUploadQuota" />
+                        <input type="text" class="form-control" id="defaultUploadQuota" name="defaultUploadQuota" value="@Model.SystemSettings.DefaultUploadQuota" />
                         <div id="defaultUploadQuotaHelp" class="form-text">500KB, 500K, 512M, 5G, 1T, etc...</div>
                     </div>
                     <div class="mb-3 row">
                         <label class="form-label" for="defaultStorageQuota">Default User Storage Quota</label>
-                        <input type="text" class="form-control" id="defaultStorageQuota" name="defaultStorageQuota"/>
+                        <input type="text" class="form-control" id="defaultStorageQuota" name="defaultStorageQuota" value="@Model.SystemSettings.DefaultStorageQuota" />
                         <div id="defaultStorageQuotaHelp" class="form-text">500KB, 500K, 512M, 5G, 1T, etc...</div>
                     </div>
                     <button class="btn btn-outline-success mt-3" type="submit">Save</button>

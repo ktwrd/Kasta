@@ -9,21 +9,21 @@ namespace kate.FileShare.Controllers;
 [Route("~/Admin")]
 public class AdminController : Controller
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly ApplicationDbContext _db;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly UserManager<UserModel> _userManager;
     
     public AdminController(IServiceProvider services)
         : base()
     {
-        _dbContext = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<ApplicationDbContext>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
     }
 
-    [AuthRequired]
     [HttpGet]
-    public IActionResult Home()
+    [AuthRequired]
+    public async Task<IActionResult> Home()
     {
         var user = _userManager.GetUserAsync(User).Result;
         if (user == null || !user.IsAdmin)
@@ -31,6 +31,7 @@ public class AdminController : Controller
             return new RedirectToActionResult("Index", "Home", null);
         }
         var model = new AdminIndexViewModel();
+        model.SystemSettings = await _db.GetSystemSettings();
 
         return View("Index", model);
     }
@@ -50,13 +51,32 @@ public class AdminController : Controller
 
     [AuthRequired]
     [HttpPost("Settings/Save")]
-    public async Task<IActionResult> SaveSystemSettings()
+    public async Task<IActionResult> SaveSystemSettings(
+        [FromForm] SystemSettingsParams data)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null || !user.IsAdmin)
         {
             return new RedirectToActionResult("Index", "Home", null);
         }
-        throw new NotImplementedException();
+
+        using (var ctx = _db.CreateSession())
+        {
+            using var transaction = ctx.Database.BeginTransaction();
+
+            try
+            {
+                data.InsertOrUpdate(ctx);
+                ctx.SaveChanges();
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        return new RedirectToActionResult(nameof(Home), "Admin", null);
     }
 }
