@@ -7,9 +7,15 @@ namespace kate.FileShare.Data;
 
 public class ApplicationDbContext : IdentityDbContext<UserModel>
 {
+    private readonly DbContextOptions<ApplicationDbContext> _ops;
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
-    { }
+    { _ops = options; }
+
+    public ApplicationDbContext CreateSession()
+    {
+        return new(_ops);
+    }
     
     public DbSet<UserModel> Users { get; set; }
     public DbSet<UserLimitModel> UserLimits { get; set; }
