@@ -5,6 +5,7 @@ using kate.FileShare.Services;
 using kate.FileShare.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using kate.FileShare.Data;
+using kate.FileShare.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace kate.FileShare.Controllers;
@@ -31,11 +32,19 @@ public class HomeController : Controller
         _fileService = fileService;
     }
 
-    public IActionResult Index()
+    public IActionResult Index([FromQuery] string? search = null, [FromQuery] int? page = 1)
     {
         if (User.Identity?.IsAuthenticated ?? false)
         {
-            return View("FileList");
+            var viewModel = new FileListViewModel()
+            {
+                SearchQuery = string.IsNullOrEmpty(search) ? null : search
+            };
+            if (page.HasValue && page.Value >= 1)
+            {
+                viewModel.Page = page.Value;
+            }
+            return View("FileList", viewModel);
         }
         else
         {

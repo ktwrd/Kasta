@@ -6,121 +6,138 @@
 @inject ApplicationDbContext _db
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
+@model FileListViewModel
 
 @{
     ViewData["Title"] = "Files";
+    var userModel = await UserManager.GetUserAsync(User);
 }
 
-@if (SignInManager.IsSignedIn(User))
+@if (SignInManager.IsSignedIn(User) && userModel != null)
 {
-    var userModel = await UserManager.GetUserAsync(User);
-    if (userModel != null)
-    {
-        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
-        var userQuota = await _db.UserLimits.Where(e => e.UserId == userModel.Id).FirstOrDefaultAsync();
-        var systemSettings = _db.GetSystemSettings();
-        
-        <table class="table-inline">
-            <tr>
+    
+    var userQuota = await _db.UserLimits.Where(e => e.UserId == userModel.Id).FirstOrDefaultAsync();
+    var systemSettings = _db.GetSystemSettings();
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table-inline">
+                <tr>
                 <th>Space Used</th>
                 <td>@SizeHelper.BytesToString(userQuota?.SpaceUsed ?? 0)</td>
-            @if (systemSettings.EnableQuota)
-            {
-                if (userQuota?.MaxStorage >= 0)
+                @if (systemSettings.EnableQuota)
                 {
-                    <th>Space Available</th>
-                    <td>@SizeHelper.BytesToString(Math.Max((userQuota.MaxStorage - userQuota.SpaceUsed) ?? 0, 0))</td>
+                    if (userQuota?.MaxStorage >= 0)
+                    {
+                        <th>Space Available</th>
+                        <td>@SizeHelper.BytesToString(Math.Max((userQuota.MaxStorage - userQuota.SpaceUsed) ?? 0, 0))</td>
+                    }
+                    else if (systemSettings?.DefaultStorageQuotaReal >= 0)
+                    {
+                        <th>Space Available</th>
+                        <td>
+                            @if (userQuota == null)
+                            {
+                                @SizeHelper.BytesToString(systemSettings.DefaultStorageQuotaReal ?? 0)
+                            }
+                            else
+                            {
+                                @SizeHelper.BytesToString(Math.Max((systemSettings?.DefaultStorageQuotaReal - userQuota.SpaceUsed) ?? 0, 0))
+                            }
+                        </td>
+                    }
                 }
-                else if (systemSettings?.DefaultStorageQuotaReal >= 0)
-                {
-                    <th>Space Available</th>
-                    <td>
-                        @if (userQuota == null)
-                        {
-                            @SizeHelper.BytesToString(systemSettings.DefaultStorageQuotaReal ?? 0)
-                        }
-                        else
-                        {
-                            @SizeHelper.BytesToString(Math.Max((systemSettings?.DefaultStorageQuotaReal - userQuota.SpaceUsed) ?? 0, 0))
-                        }
-                    </td>
-                }
-            }
-        </table>
-        
-        <table class="table">
-            <thead>
+            </table>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
+                    <form class="mr-1" asp-controller="Home" asp-action="Index">
+                        <div class="input-group">
+                            <input class="form-control" type="text" name="search"/>
+                            <button class="btn btn-secondary" type="submit">Search</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center">
+                </div>
+                <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
+                    <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
+                </div>
+            </div>
+
+            <table class="table">
+                <thead>
                 <tr>
                     <th colspan="2">Filename</th>
                     <th>Size</th>
                     <th>Created At</th>
                     <th></th>
                 </tr>
-            </thead>
-            <tbody>
-                
-                @foreach (var file in _db.Files.Where(v => v.CreatedByUserId == userModel.Id).OrderByDescending(v => v.CreatedAt).Include(fileModel => fileModel.Preview))
+                </thead>
+                <tbody>
+                @foreach (var file in _db.SearchFiles(Model.SearchQuery, userModel.Id).OrderByDescending(v => v.CreatedAt).Include(fileModel => fileModel.Preview))
                 {
-                    var relativeFileUrl = $"/f/{file.Id}";
-                    if (!string.IsNullOrEmpty(file.ShortUrl))
-                    {
-                        relativeFileUrl = $"/f/{file.ShortUrl}";
-                    }
-                    var linkUrl = relativeFileUrl;
-
-                    if (file.Preview != null && file.Preview.RelativeLocation != file.RelativeLocation)
-                    {
-                        relativeFileUrl += "?preview=true";
-                    }
-                    <tr>
-                        @if (file.MimeType?.StartsWith("image/") ?? false || file.Preview?.RelativeLocation != file.RelativeLocation)
-                        {
-                            <td>
-                                <img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px" alt="Preview of image."/>
-                            </td>
-                            <td>
-                                <a href="@linkUrl">
-                                    @if (string.IsNullOrEmpty(file.Filename))
-                                    {
-                                        @file.Id
-                                    }
-                                    else
-                                    {
-                                        @file.Filename
-                                    }
-                                </a>
-                            </td>
-                        }
-                        else
-                        {
-                            <td colspan="2">
-                                <a href="@linkUrl">
-                                    @if (string.IsNullOrEmpty(file.Filename))
-                                    {
-                                        @file.Id
-                                    }
-                                    else
-                                    {
-                                        @file.Filename
-                                    }
-                                </a>
-                            </td>
-                        }
-                        <td>
-                            @SizeHelper.BytesToString(file.Size)
-                        </td>
-                        <td>
-                            @file.CreatedAt
-                        </td>
-                        <td>
-                            <a class="btn btn-danger"
-                               asp-controller="Home"
-                               asp-action="DeleteFile"
-                               asp-route-id="@file.Id">Delete</a>
-                        </td>
-                    </tr>
+                var relativeFileUrl = $"/f/{file.Id}";
+                if (!string.IsNullOrEmpty(file.ShortUrl))
+                {
+                relativeFileUrl = $"/f/{file.ShortUrl}";
                 }
-            </tbody>
-        </table>
-    }
+                var linkUrl = relativeFileUrl;
+
+                if (file.Preview != null && file.Preview.RelativeLocation != file.RelativeLocation)
+                {
+                relativeFileUrl += "?preview=true";
+                }
+                <tr>
+                    @if (file.MimeType?.StartsWith("image/") ?? false || file.Preview?.RelativeLocation != file.RelativeLocation)
+                    {
+                    <td>
+                        <img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px" alt="Preview of image."/>
+                    </td>
+                    <td>
+                        <a href="@linkUrl">
+                            @if (string.IsNullOrEmpty(file.Filename))
+                            {
+                            @file.Id
+                            }
+                            else
+                            {
+                            @file.Filename
+                            }
+                        </a>
+                    </td>
+                    }
+                    else
+                    {
+                    <td colspan="2">
+                        <a href="@linkUrl">
+                            @if (string.IsNullOrEmpty(file.Filename))
+                            {
+                            @file.Id
+                            }
+                            else
+                            {
+                            @file.Filename
+                            }
+                        </a>
+                    </td>
+                    }
+                    <td>
+                        @SizeHelper.BytesToString(file.Size)
+                    </td>
+                    <td>
+                        @file.CreatedAt
+                    </td>
+                    <td>
+                        <a class="btn btn-danger"
+                           asp-controller="Home"
+                           asp-action="DeleteFile"
+                           asp-route-id="@file.Id">Delete</a>
+                    </td>
+                </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
