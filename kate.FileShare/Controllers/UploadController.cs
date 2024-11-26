@@ -33,26 +33,37 @@ public class UploadController : Controller
     }
 
     [HttpGet("~/f/{value}")]
-    public async Task<IActionResult> GetFile(string value)
+    public async Task<IActionResult> GetFile(string value, [FromQuery] bool preview = false)
     {
-        var model = await _db.Files.Where(v => v.Id == value).FirstOrDefaultAsync();
-        model ??= await _db.Files.Where(v => v.ShortUrl == value).FirstOrDefaultAsync();
+        var model = await _db.Files.Where(v => v.Id == value).Include(fileModel => fileModel.Preview).FirstOrDefaultAsync();
+        model ??= await _db.Files.Where(v => v.ShortUrl == value).Include(fileModel => fileModel.Preview).FirstOrDefaultAsync();
         if (model == null)
         {
             HttpContext.Response.StatusCode = 404;
             return View("NotFound");
         }
-        var obj = await _s3.GetObject(model.RelativeLocation);
+
+        string relativeLocation = model.RelativeLocation;
+        string filename = model.Filename;
+        string? mimeType = model.MimeType;
+        if (model.Preview != null && preview)
+        {
+            relativeLocation = model.Preview.RelativeLocation;
+            filename = model.Preview.Filename;
+            mimeType = model.Preview.MimeType;
+        }
+        var obj = await _s3.GetObject(relativeLocation);
         if (obj == null)
         {
             HttpContext.Response.StatusCode = 404;
             return View("NotFound");
         }
-
+        
         HttpContext.Response.StatusCode = 200;
-        return new FileStreamResult(obj.ResponseStream, model.MimeType ?? "application/octet-stream")
+        return new FileStreamResult(obj.ResponseStream, mimeType ?? "application/octet-stream")
         {
-            FileDownloadName = model.Filename
+            FileDownloadName = filename,
+            LastModified = new DateTimeOffset(obj.LastModified)
         };
     }
 
@@ -68,7 +79,6 @@ public class UploadController : Controller
         FileModel data;
         using (var stream = file.OpenReadStream())
         {
-            var length = file.Length;
             data = await _uploadService.UploadBasicAsync(user, stream, file.FileName, file.Length);
         }
 
