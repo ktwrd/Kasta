@@ -1,4 +1,4 @@
-using kate.FileShare.Data;
+﻿using kate.FileShare.Data;
 using kate.FileShare.Data.Models;
 using kate.FileShare.Models;
 using kate.FileShare.Services;
@@ -9,19 +9,18 @@ using Microsoft.EntityFrameworkCore;
 namespace kate.FileShare.Controllers;
 
 [ApiController]
-[Route("/api/v1/Upload")]
-public class UploadController : Controller
+public class ApiFileController : Controller
 {
     private readonly S3Service _s3;
     private readonly UploadService _uploadService;
-    private readonly ILogger<UploadController> _logger;
+    private readonly ILogger<ApiFileController> _logger;
     private readonly ApplicationDbContext _db;
     private readonly UserManager<UserModel> _userManager;
 
-    public UploadController(
+    public ApiFileController(
         S3Service s3,
         UploadService uploadService,
-        ILogger<UploadController> logger,
+        ILogger<ApiFileController> logger,
         ApplicationDbContext db,
         UserManager<UserModel> userManager)
     {
@@ -33,6 +32,15 @@ public class UploadController : Controller
     }
 
     [HttpGet("~/f/{value}")]
+    public IActionResult GetFileShort(string value, [FromQuery] bool preview = false)
+    {
+        var s = "";
+        if (preview)
+            s = "?preview=true";
+        return Redirect($"/api/v1/File/{value}/Download{s}");
+    }
+    
+    [HttpGet("~/api/v1/File/{value}/Download")]
     public async Task<IActionResult> GetFile(string value, [FromQuery] bool preview = false)
     {
         var model = await _db.Files.Where(v => v.Id == value).Include(fileModel => fileModel.Preview).FirstOrDefaultAsync();
@@ -66,9 +74,9 @@ public class UploadController : Controller
             LastModified = new DateTimeOffset(obj.LastModified)
         };
     }
-
+    
     [AuthRequired]
-    [HttpPost("Form")]
+    [HttpPost("~/api/v1/File/Upload/Form")]
     public async Task<IActionResult> UploadBasic(IFormFile file)
     {
         var user = await _userManager.GetUserAsync(HttpContext.User);
@@ -91,9 +99,10 @@ public class UploadController : Controller
             CreatedAtTimestamp = data.CreatedAt.ToUnixTimeSeconds()
         });
     }
-
+    
+    
     [AuthRequired]
-    [HttpPost("Chunk/StartSession")]
+    [HttpPost("~/api/v1/File/Upload/Chunk/StartSession")]
     public async Task<IActionResult> StartSession(
         [FromForm] CreateSessionParams sessionParams)
     {
