@@ -66,4 +66,22 @@ public class S3Service
 
         return await GetObject(location);
     }
+
+    public async Task<DeleteObjectResponse> DeleteObject(string location)
+    {
+        // Create a DeleteObject request
+        var request = new DeleteObjectRequest()
+        {
+            BucketName = FeatureFlags.S3BucketName,
+            Key = location
+        };
+        
+        // Issue request and remember to dispose of the response
+        var c = _client;
+        DeleteObjectResponse response = await c.DeleteObjectAsync(request);
+        if (response.HttpStatusCode == HttpStatusCode.NotFound)
+            throw new Exception("NotFound");
+        return response;
+        
+    }
 }
