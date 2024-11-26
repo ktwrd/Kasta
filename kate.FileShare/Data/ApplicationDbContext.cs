@@ -36,6 +36,32 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
         return instance;
     }
 
+    public IQueryable<FileModel> SearchFiles(string? query, string? userId = null)
+    {
+        if (string.IsNullOrEmpty(query))
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Files;
+            }
+            else
+            {
+                return Files.Where(e => e.CreatedByUserId == userId);
+            }
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Files.Where(e => e.SearchVector.Matches(query));
+            }
+            else
+            {
+                return Files.Where(e => e.SearchVector.Matches(query) && e.CreatedByUserId == userId);
+            }
+        }
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -55,65 +81,80 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
             .ToTable(PreferencesModel.TableName)
             .HasKey(b => b.Key);
 
-        builder.Entity<UserModel>().HasOne(e => e.Limit)
-            .WithOne(e => e.User)
-            .HasForeignKey<UserLimitModel>(e => e.UserId)
-            .IsRequired(false);
+        builder.Entity<UserModel>(
+            b =>
+            {
+                b.HasOne(e => e.Limit)
+                    .WithOne(e => e.User)
+                    .HasForeignKey<UserLimitModel>(e => e.UserId)
+                    .IsRequired(false);
+            });
 
-        builder.Entity<FileModel>()
-            .ToTable(FileModel.TableName)
-            .HasKey(e => e.Id);
-        builder.Entity<FileModel>().HasIndex(e => e.CreatedByUserId).IsUnique(false);
+        builder.Entity<FileModel>(
+            b =>
+            {
+                b.ToTable(FileModel.TableName);
+                b.HasKey(e => e.Id);
+                b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
+                b.HasIndex(e => e.Filename).IsUnique(false);
+
+                b.HasGeneratedTsVectorColumn(
+                        p => p.SearchVector, "english", p => new
+                        {
+                            p.Filename
+                        })
+                    .HasIndex(p => p.SearchVector).HasMethod("GIN");
+
+                b.HasOne(e => e.CreatedByUser)
+                    .WithOne()
+                    .HasForeignKey<FileModel>(e => e.CreatedByUserId)
+                    .IsRequired(false);
+                
+                b.HasOne(e => e.Preview)
+                    .WithOne(e => e.File)
+                    .HasForeignKey<FilePreviewModel>(e => e.Id)
+                    .IsRequired(false);
+                
+                b.HasOne(e => e.S3FileInformation)
+                    .WithOne(e => e.File)
+                    .HasForeignKey<S3FileInformationModel>(e => e.Id)
+                    .IsRequired(false);
+            });
+        builder.Entity<S3FileInformationModel>(
+            b =>
+            {
+                b.ToTable(S3FileInformationModel.TableName);
+                b.HasKey(e => e.Id);
+                
+                b.HasMany(e => e.Chunks)
+                    .WithOne(e => e.S3FileInformation)
+                    .HasForeignKey(e => e.FileId)
+                    .IsRequired(true);
+                b.HasOne(e => e.File)
+                    .WithOne()
+                    .HasForeignKey<S3FileInformationModel>(e => e.Id);
+            });
+        builder.Entity<ChunkUploadSessionModel>(
+            b =>
+            {
+                b.ToTable(ChunkUploadSessionModel.TableName);
+                b.HasKey(e => e.Id);
+                
+                b.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .IsRequired(false);
+                b.HasOne(e => e.File)
+                    .WithMany()
+                    .HasForeignKey(e => e.FileId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(true);
+            });
         builder.Entity<FilePreviewModel>()
             .ToTable(FilePreviewModel.TableName)
-            .HasKey(e => e.Id);
-        builder.Entity<S3FileInformationModel>()
-            .ToTable(S3FileInformationModel.TableName)
             .HasKey(e => e.Id);
         builder.Entity<S3FileChunkModel>()
             .ToTable(S3FileChunkModel.TableName)
             .HasKey(e => e.Id);
-        builder.Entity<ChunkUploadSessionModel>()
-            .ToTable(ChunkUploadSessionModel.TableName)
-            .HasKey(e => e.Id);
-
-        builder.Entity<FileModel>()
-            .HasOne(e => e.CreatedByUser)
-            .WithOne()
-            .HasForeignKey<FileModel>(e => e.CreatedByUserId)
-            .IsRequired(false);
-        builder.Entity<FileModel>()
-            .HasOne(e => e.Preview)
-            .WithOne(e => e.File)
-            .HasForeignKey<FilePreviewModel>(e => e.Id)
-            .IsRequired(false);
-
-        builder.Entity<FileModel>()
-            .HasOne(e => e.S3FileInformation)
-            .WithOne(e => e.File)
-            .HasForeignKey<S3FileInformationModel>(e => e.Id)
-            .IsRequired(false);
-
-        builder.Entity<S3FileInformationModel>()
-            .HasMany(e => e.Chunks)
-            .WithOne(e => e.S3FileInformation)
-            .HasForeignKey(e => e.FileId)
-            .IsRequired(true);
-        builder.Entity<S3FileInformationModel>()
-            .HasOne(e => e.File)
-            .WithOne()
-            .HasForeignKey<S3FileInformationModel>(e => e.Id);
-        
-        builder.Entity<ChunkUploadSessionModel>()
-            .HasOne(e => e.User)
-            .WithMany()
-            .HasForeignKey(e => e.UserId)
-            .IsRequired(false);
-        builder.Entity<ChunkUploadSessionModel>()
-            .HasOne(e => e.File)
-            .WithMany()
-            .HasForeignKey(e => e.FileId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(true);
     }
 }

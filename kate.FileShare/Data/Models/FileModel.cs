@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using NpgsqlTypes;
 
 namespace kate.FileShare.Data.Models;
 
@@ -27,4 +28,6 @@ public class FileModel
     public DateTimeOffset CreatedAt { get; set; }
 
     public S3FileInformationModel? S3FileInformation { get; set; }
+    
+    public NpgsqlTsVector SearchVector { get; set; }
 }
