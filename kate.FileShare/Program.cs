@@ -24,6 +24,7 @@ public class Program
                 {
                     options.SignIn.RequireConfirmedAccount = false;
                     options.SignIn.RequireConfirmedPhoneNumber = false;
+                    options.Password.RequireNonAlphanumeric = false;
                 })
             .AddEntityFrameworkStores<ApplicationDbContext>();
         builder.Services.AddMvc();
@@ -47,6 +48,16 @@ public class Program
         else
         {
             app.UseExceptionHandler("/Error");
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                var context = services.GetRequiredService<ApplicationDbContext>();
+                if (context.Database.GetPendingMigrations().Any())
+                {
+                    context.Database.Migrate();
+                }
+            }
         }
 
         app.UseStaticFiles();
