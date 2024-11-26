@@ -166,6 +166,10 @@ public class FileService
             await _s3.DeleteObject(previewLocation);
         }
         await _s3.DeleteObject(file.RelativeLocation);
+        if (file.CreatedByUser != null)
+        {
+            await RecalculateSpaceUsed(file.CreatedByUser);
+        }
     }
 
     public async Task RecalculateSpaceUsed(UserModel user)
