@@ -170,38 +170,39 @@ public class FileService
 
     public async Task RecalculateSpaceUsed(UserModel user)
     {
-        using (var ctx = _db.CreateSession())
+        await using var ctx = _db.CreateSession();
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
+
+        try
         {
-            using var transaction = ctx.Database.BeginTransaction();
-
-            try
+            var files = await ctx.Files.Where(e => e.CreatedByUserId == user.Id)
+                .Include(e => e.Preview)
+                .Select(e => e.Size + (e.Preview == null ? 0 : e.Preview.Size))
+                .ToListAsync();
+            long size = 0;
+            foreach (var i in files)
             {
-                var files = await ctx.Files.Where(e => e.CreatedByUserId == user.Id).Select(e => e.Size).ToListAsync();
-                long size = 0;
-                foreach (var i in files)
-                {
-                    size += Math.Max(i, 0);
-                }
+                size += Math.Max(i, 0);
+            }
 
-                var limitModel = await ctx.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
-                if (limitModel == null)
-                {
-                    limitModel = new()
-                    {
-                        UserId = user.Id
-                    };
-                    await ctx.UserLimits.AddAsync(limitModel);
-                }
-                limitModel.SpaceUsed = size;
-                await ctx.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex)
+            var limitModel = await ctx.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
+            if (limitModel == null)
             {
-                _log.Error($"Failed to recalculate storage space for user: {ex}");
-                await transaction.RollbackAsync();
-                throw;
+                limitModel = new()
+                {
+                    UserId = user.Id
+                };
+                await ctx.UserLimits.AddAsync(limitModel);
             }
+            limitModel.SpaceUsed = size;
+            await ctx.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            _log.Error($"Failed to recalculate storage space for user: {ex}");
+            await transaction.RollbackAsync();
+            throw;
         }
     }
 
