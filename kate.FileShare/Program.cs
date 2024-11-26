@@ -30,7 +30,8 @@ public class Program
         builder.Services.AddScoped<S3Service>()
             .AddScoped<UploadService>()
             .AddScoped<ShortUrlService>()
-            .AddScoped<FileService>();
+            .AddScoped<FileService>()
+            .AddScoped<PreviewService>();
         builder.Services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new BlockUserRegisterAttribute());
