@@ -1,3 +1,4 @@
+using Amazon.S3.Model;
 using kate.FileShare.Data;
 using kate.FileShare.Data.Models;
 using kate.FileShare.Data.Models.Audit;
@@ -10,9 +11,11 @@ public class FileService
 {
     private readonly Logger _log = LogManager.GetCurrentClassLogger();
     private readonly ApplicationDbContext _db;
+    private readonly S3Service _s3;
     public FileService(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
+        _s3 = services.GetRequiredService<S3Service>();
     }
     private List<(AuditModel, List<AuditEntryModel>)> GenerateDeleteAudit<T>(UserModel user, IEnumerable<T> data, Func<T, string> pkSelect, string tableName)
     {
@@ -106,7 +109,8 @@ public class FileService
     public async Task DeleteFile(UserModel user, FileModel file)
     {
         using var ctx = _db.CreateSession();
-        using var transaction = ctx.Database.BeginTransaction();
+        using var transaction = await ctx.Database.BeginTransactionAsync();
+        string? previewLocation = null;
         try
         {
             await InsertAuditData(ctx, GenerateDeleteAudit(user, file, (e) => e.Id, FileModel.TableName));
@@ -153,7 +157,15 @@ public class FileService
         {
             _log.Error($"Failed to delete file {file.Id} ({file.RelativeLocation}) for user {user.UserName} ({user.Id})\n{ex}");
             await transaction.RollbackAsync();
+            throw new ApplicationException(
+                $"Failed to delete file {file.RelativeLocation} ({file.Id}) for user {user.UserName} ({user.Id})", ex);
         }
+
+        if (previewLocation != null && previewLocation != file.RelativeLocation)
+        {
+            await _s3.DeleteObject(previewLocation);
+        }
+        await _s3.DeleteObject(file.RelativeLocation);
     }
 
     public async Task RecalculateSpaceUsed(UserModel user)
