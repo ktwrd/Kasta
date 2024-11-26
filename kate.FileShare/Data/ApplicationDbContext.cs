@@ -21,6 +21,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
     public DbSet<UserLimitModel> UserLimits { get; set; }
     public DbSet<PreferencesModel> Preferences { get; set; }
     public DbSet<FileModel> Files { get; set; }
+    public DbSet<FilePreviewModel> FilePreviews { get; set; }
     public DbSet<S3FileInformationModel> S3FileInformations { get; set; }
     public DbSet<S3FileChunkModel> S3FileChunks { get; set; }
     public DbSet<ChunkUploadSessionModel> ChunkUploadSessions { get; set; } 
@@ -63,6 +64,9 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
             .ToTable(FileModel.TableName)
             .HasKey(e => e.Id);
         builder.Entity<FileModel>().HasIndex(e => e.CreatedByUserId).IsUnique(false);
+        builder.Entity<FilePreviewModel>()
+            .ToTable(FilePreviewModel.TableName)
+            .HasKey(e => e.Id);
         builder.Entity<S3FileInformationModel>()
             .ToTable(S3FileInformationModel.TableName)
             .HasKey(e => e.Id);
@@ -77,6 +81,11 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
             .HasOne(e => e.CreatedByUser)
             .WithOne()
             .HasForeignKey<FileModel>(e => e.CreatedByUserId)
+            .IsRequired(false);
+        builder.Entity<FileModel>()
+            .HasOne(e => e.Preview)
+            .WithOne(e => e.File)
+            .HasForeignKey<FilePreviewModel>(e => e.Id)
             .IsRequired(false);
 
         builder.Entity<FileModel>()
