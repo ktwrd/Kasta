@@ -12,6 +12,7 @@ public class UploadService
     private readonly ShortUrlService _shortUrlService;
     private readonly FileService _fileService;
     private readonly S3Service _s3;
+    private readonly PreviewService _previewService;
 
     public UploadService(IServiceProvider services)
     {
@@ -19,6 +20,7 @@ public class UploadService
         _shortUrlService = services.GetRequiredService<ShortUrlService>();
         _fileService = services.GetRequiredService<FileService>();
         _s3 = services.GetRequiredService<S3Service>();
+        _previewService = services.GetRequiredService<PreviewService>();
     }
 
     public const int ChunkLimit = 1024 * 1024;
@@ -37,7 +39,7 @@ public class UploadService
         fileModel.RelativeLocation = $"{fileModel.Id}/{fileModel.Filename}";
 
         using var ctx = _db.CreateSession();
-        using var transaction = ctx.Database.BeginTransaction();
+        using var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {
             Stream s3UploadSource = stream;
@@ -57,14 +59,20 @@ public class UploadService
             await _db.Files.AddAsync(fileModel);
             if (s3UploadSource != stream)
             {
-                s3UploadSource.Dispose();
+                await s3UploadSource.DisposeAsync();
                 if (!string.IsNullOrEmpty(tmpFilename))
                 {
                     File.Delete(tmpFilename);
                 }
             }
-            await _db.SaveChangesAsync();
 
+            await _db.SaveChangesAsync();
+            if (_previewService.PreviewSupported(fileModel))
+            {
+                await _previewService.Create(ctx, fileModel);
+            }
+
+            await _db.SaveChangesAsync();
             await transaction.CommitAsync();
         }
         catch (Exception ex)
