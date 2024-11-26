@@ -204,4 +204,12 @@ public class FileService
             }
         }
     }
+
+    public MemoryStream GetMemoryStream(FileModel file, out GetObjectResponse res)
+    {
+        res = _s3.GetObject(file.RelativeLocation).Result;
+        var ms = new MemoryStream();
+        res.ResponseStream.CopyTo(ms);
+        return ms;
+    }
 }
