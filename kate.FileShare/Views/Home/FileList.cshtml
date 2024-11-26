@@ -31,21 +31,27 @@
             <thead>
                 <tr>
                     <th colspan="2">Filename</th>
+                    <th>Size</th>
                     <th>Created At</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 
-                @foreach (var file in _db.Files.Where(v => v.CreatedByUserId == userModel.Id).OrderBy(v => v.CreatedAt))
+                @foreach (var file in _db.Files.Where(v => v.CreatedByUserId == userModel.Id).OrderByDescending(v => v.CreatedAt).Include(fileModel => fileModel.Preview))
                 {
                     var relativeFileUrl = $"/f/{file.Id}";
                     if (!string.IsNullOrEmpty(file.ShortUrl))
                     {
                         relativeFileUrl = $"/f/{file.ShortUrl}";
                     }
+
+                    if (file.Preview != null && file.Preview.RelativeLocation != file.RelativeLocation)
+                    {
+                        relativeFileUrl += "?preview=true";
+                    }
                     <tr>
-                        @if (file.MimeType?.StartsWith("image/") ?? false)
+                        @if (file.MimeType?.StartsWith("image/") ?? false || file.Preview?.RelativeLocation != file.RelativeLocation)
                         {
                             <td>
                                 <img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px"/>
@@ -78,6 +84,9 @@
                                 </a>
                             </td>
                         }
+                        <td>
+                            @SizeHelper.BytesToString(file.Size)
+                        </td>
                         <td>
                             @file.CreatedAt
                         </td>
