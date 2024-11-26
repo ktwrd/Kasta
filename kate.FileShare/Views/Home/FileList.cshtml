@@ -1,6 +1,8 @@
 @using Microsoft.AspNetCore.Identity
 @using kate.FileShare.Data
 @using kate.FileShare.Data.Models
+@using kate.FileShare.Helpers
+@using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext _db
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
@@ -11,6 +13,20 @@
     if (userModel != null)
     {
         <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
+        var userQuota = await _db.UserLimits.Where(e => e.UserId == userModel.Id).FirstOrDefaultAsync();
+        var systemSettings = await _db.GetSystemSettings();
+        
+        <div class="row mb-3" style="margin-left:0.125rem;">
+            <div class="col col-auto">
+                <div class="row" style="font-weight: bold;">
+                    Space Used
+                </div>
+                <div class="row">
+                    @SizeHelper.BytesToString(userQuota?.SpaceUsed ?? 0)
+                </div>
+            </div>
+        </div>
+        
         <table class="table">
             <thead>
                 <tr>
