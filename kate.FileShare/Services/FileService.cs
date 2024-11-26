@@ -129,10 +129,21 @@ public class FileService
                     _db.S3FileInformations.Where(e => e.Id == file.Id),
                     e => e.Id,
                     S3FileInformationModel.TableName));
+            await InsertAuditData(
+                ctx,
+                GenerateDeleteAudit(
+                    user,
+                    _db.FilePreviews.Where(e => e.Id == file.Id),
+                    e => e.Id,
+                    FilePreviewModel.TableName));
+
+            previewLocation = await ctx.FilePreviews.Where(e => e.Id == file.Id).Select(e => e.RelativeLocation)
+                .FirstOrDefaultAsync();
 
             await ctx.ChunkUploadSessions.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
             await ctx.S3FileChunks.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
             await ctx.S3FileInformations.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+            await ctx.FilePreviews.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
             await ctx.Files.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
 
             await ctx.SaveChangesAsync();
