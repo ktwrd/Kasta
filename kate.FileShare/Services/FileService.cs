@@ -32,6 +32,7 @@ public class FileService
         {
             CreatedBy = user.Id,
             CreatedAt = DateTimeOffset.UtcNow,
+            Kind = AuditEventKind.Delete,
             EntityName = tableName,
             PrimaryKey = pkSelect(obj)
         };

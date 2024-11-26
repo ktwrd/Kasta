@@ -3,9 +3,40 @@
     Layout = "_Layout";
 }
 
-<form asp-controller="Home" asp-action="UploadPost" method="post" enctype="multipart/form-data">
-    <div class="mb-3">
-        <input class="form-control" type="file" id="formFile" name="file"/>
-    </div>
-    <button type="submit" class="btn btn-success">Upload</button>
-</form>
+<div class="mb-3">
+    <form asp-controller="Home" asp-action="UploadPost" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <input class="form-control" type="file" id="formFile" name="file"/>
+        </div>
+        <button type="submit" class="btn btn-success">Upload</button>
+        <br/>
+    </form>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        (function (win, doc) {
+            'use strict';
+            if (!doc.querySelectorAll || !win.addEventListener) {
+                // doesn't cut the mustard.
+                return;
+            }
+            var forms = doc.querySelectorAll('form[method="post"]'),
+                formcount = forms.length,
+                i,
+                submitting = false,
+                checkForm = function (ev) {
+                    if (submitting) {
+                        ev.preventDefault();
+                    } else {
+                        submitting = true;
+                        this.appendChild(doc.createElement('progress'));
+                    }
+                };
+            for (i = 0; i < formcount; i = i + 1) {
+                forms[i].addEventListener('submit', checkForm, false);
+            }
+        }(this, this.document));
+    </script>
+}

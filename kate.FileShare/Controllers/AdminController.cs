@@ -31,7 +31,7 @@ public class AdminController : Controller
             return new RedirectToActionResult("Index", "Home", null);
         }
         var model = new AdminIndexViewModel();
-        model.SystemSettings = await _db.GetSystemSettings();
+        model.SystemSettings = _db.GetSystemSettings();
 
         return View("Index", model);
     }
@@ -60,21 +60,19 @@ public class AdminController : Controller
             return new RedirectToActionResult("Index", "Home", null);
         }
 
-        using (var ctx = _db.CreateSession())
-        {
-            using var transaction = ctx.Database.BeginTransaction();
+        using var ctx = _db.CreateSession();
+        using var transaction = await ctx.Database.BeginTransactionAsync();
 
-            try
-            {
-                data.InsertOrUpdate(ctx);
-                ctx.SaveChanges();
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+        try
+        {
+            data.InsertOrUpdate(ctx);
+            await ctx.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
         }
 
         return new RedirectToActionResult(nameof(Home), "Admin", null);

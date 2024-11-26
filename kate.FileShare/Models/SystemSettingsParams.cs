@@ -23,6 +23,22 @@ public class SystemSettingsParams
     public string DefaultUploadQuota {get; set; } = "";
     [DefaultValue("")]
     public string DefaultStorageQuota { get; set; } = "";
+
+    public long? DefaultUploadQuotaReal
+    {
+        get
+        {
+            return SizeHelper.ParseToByteCount(DefaultUploadQuota);
+        }
+    }
+
+    public long? DefaultStorageQuotaReal
+    {
+        get
+        {
+            return SizeHelper.ParseToByteCount(DefaultStorageQuota);
+        }
+    }
     private PreferencesModel GetPreferenceModel(ApplicationDbContext db, string key)
     {
         var d = db.Preferences.FirstOrDefault(e => e.Key == key);

@@ -20,3 +20,6 @@ html {
 body {
   margin-bottom: 60px;
 }
+.table-inline td {
+  padding-right: 1.5rem;
+}

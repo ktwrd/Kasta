@@ -29,10 +29,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
     public DbSet<AuditModel> Audit { get; set; }
     public DbSet<AuditEntryModel> AuditEntries { get; set; }
 
-    public async Task<SystemSettingsParams> GetSystemSettings()
+    public SystemSettingsParams GetSystemSettings()
     {
         var instance = new SystemSettingsParams();
-
+        instance.Get(this);
         return instance;
     }
 

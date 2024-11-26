@@ -44,14 +44,14 @@ public class HomeController : Controller
     }
 
     [AuthRequired]
-    [HttpGet]
+    [HttpGet("~/Upload")]
     public IActionResult Upload()
     {
         return View();
     }
 
     [AuthRequired]
-    [HttpPost]
+    [HttpPost("~/Upload")]
     public async Task<IActionResult> UploadPost(IFormFile file)
     {
         var user = await _userManager.GetUserAsync(HttpContext.User);
@@ -77,8 +77,8 @@ public class HomeController : Controller
         {
             throw new InvalidOperationException($"Unable to fetch User model even though user is logged in?");
         }
-        var file = await _db.Files.Where(v => v.Id == id).FirstOrDefaultAsync();
-        file ??= await _db.Files.Where(v => v.ShortUrl == id).FirstOrDefaultAsync();
+        var file = await _db.Files.Where(v => v.Id == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
+        file ??= await _db.Files.Where(v => v.ShortUrl == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
         if (file == null)
         {
             return View("NotFound");
@@ -95,6 +95,7 @@ public class HomeController : Controller
         return new RedirectToActionResult(nameof(Index), "Home", null);
     }
 
+    [Route("~/Error")]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

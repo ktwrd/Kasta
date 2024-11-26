@@ -7,6 +7,10 @@
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
 
+@{
+    ViewData["Title"] = "Files";
+}
+
 @if (SignInManager.IsSignedIn(User))
 {
     var userModel = await UserManager.GetUserAsync(User);
@@ -14,18 +18,35 @@
     {
         <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
         var userQuota = await _db.UserLimits.Where(e => e.UserId == userModel.Id).FirstOrDefaultAsync();
-        var systemSettings = await _db.GetSystemSettings();
+        var systemSettings = _db.GetSystemSettings();
         
-        <div class="row mb-3" style="margin-left:0.125rem;">
-            <div class="col col-auto">
-                <div class="row" style="font-weight: bold;">
-                    Space Used
-                </div>
-                <div class="row">
-                    @SizeHelper.BytesToString(userQuota?.SpaceUsed ?? 0)
-                </div>
-            </div>
-        </div>
+        <table class="table-inline">
+            <tr>
+                <th>Space Used</th>
+                <td>@SizeHelper.BytesToString(userQuota?.SpaceUsed ?? 0)</td>
+            @if (systemSettings.EnableQuota)
+            {
+                if (userQuota?.MaxStorage >= 0)
+                {
+                    <th>Space Available</th>
+                    <td>@SizeHelper.BytesToString(Math.Max((userQuota.MaxStorage - userQuota.SpaceUsed) ?? 0, 0))</td>
+                }
+                else if (systemSettings?.DefaultStorageQuotaReal >= 0)
+                {
+                    <th>Space Available</th>
+                    <td>
+                        @if (userQuota == null)
+                        {
+                            @SizeHelper.BytesToString(systemSettings.DefaultStorageQuotaReal ?? 0)
+                        }
+                        else
+                        {
+                            @SizeHelper.BytesToString(Math.Max((systemSettings?.DefaultStorageQuotaReal - userQuota.SpaceUsed) ?? 0, 0))
+                        }
+                    </td>
+                }
+            }
+        </table>
         
         <table class="table">
             <thead>
@@ -45,6 +66,7 @@
                     {
                         relativeFileUrl = $"/f/{file.ShortUrl}";
                     }
+                    var linkUrl = relativeFileUrl;
 
                     if (file.Preview != null && file.Preview.RelativeLocation != file.RelativeLocation)
                     {
@@ -54,10 +76,10 @@
                         @if (file.MimeType?.StartsWith("image/") ?? false || file.Preview?.RelativeLocation != file.RelativeLocation)
                         {
                             <td>
-                                <img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px"/>
+                                <img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px" alt="Preview of image."/>
                             </td>
                             <td>
-                                <a href="@relativeFileUrl">
+                                <a href="@linkUrl">
                                     @if (string.IsNullOrEmpty(file.Filename))
                                     {
                                         @file.Id
@@ -72,7 +94,7 @@
                         else
                         {
                             <td colspan="2">
-                                <a href="@relativeFileUrl">
+                                <a href="@linkUrl">
                                     @if (string.IsNullOrEmpty(file.Filename))
                                     {
                                         @file.Id
