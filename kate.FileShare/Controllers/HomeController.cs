@@ -59,11 +59,39 @@ public class HomeController : Controller
         {
             throw new InvalidOperationException($"Unable to fetch User model even though user is logged in?");
         }
-        FileModel data;
+        
+        var userLimit = await _db.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
+        var systemSettings = _db.GetSystemSettings();
+        if (systemSettings.EnableQuota)
+        {
+            long spaceUsed = userLimit?.SpaceUsed ?? 0;
+            var spaceAllocated = userLimit?.MaxStorage ?? systemSettings.DefaultStorageQuotaReal ?? 0;
+            if ((spaceUsed + file.Length) > spaceAllocated)
+            {
+                HttpContext.Response.StatusCode = 401;
+                return View(
+                    "NotAuthorized", new NotAuthorizedViewModel()
+                    {
+                        Message =
+                            $"You don't have enough space to upload file (file size: {SizeHelper.BytesToString(file.Length)}, storage: {SizeHelper.BytesToString(spaceAllocated)})",
+                    });
+            }
+
+            var maxFileSize = userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal ?? long.MaxValue;
+            if (file.Length > maxFileSize)
+            {
+                HttpContext.Response.StatusCode = 400;
+                return View(
+                    "NotAuthorized", new NotAuthorizedViewModel()
+                    {
+                        Message = $"Provided file exceeds maximum file size ({SizeHelper.BytesToString(maxFileSize)})"
+                    });
+            }
+        }
+
         using (var stream = file.OpenReadStream())
         {
-            var length = file.Length;
-            data = await _uploadService.UploadBasicAsync(user, stream, file.FileName, file.Length);
+            await _uploadService.UploadBasicAsync(user, stream, file.FileName, file.Length);
         }
         return new RedirectToActionResult(nameof(Index), "Home", null);
     }
