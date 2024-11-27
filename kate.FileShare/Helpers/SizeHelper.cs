@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 
 namespace kate.FileShare.Helpers;
@@ -19,23 +20,51 @@ public static class SizeHelper
         var match = actualRegex.Match(value.Trim());
         var t = match.Groups[match.Groups.Count - 1].Value.ToLower();
         long result = 0;
-        if (long.TryParse(match.Groups[1].Value, out var a))
+        if (match.Groups[1].Value.Contains("."))
         {
-            if (t == "k" || t == "kb")
+            if (decimal.TryParse(match.Groups[1].Value, out var a))
             {
-                result = a * 1024;
+                var x = a;
+                if (t == "k" || t == "kb")
+                {
+                    x = a * 1024;
+                }
+                else if (t == "m" || t == "mb")
+                {
+                    x = a * 1024 * 1024;
+                }
+                else if (t == "g" || t == "gb")
+                {
+                    x = a * 1024 * 1024 * 1024;
+                }
+                else if (t == "t" || t == "tb")
+                {
+                    x = a * 1024 * 1024 * 1024 * 1024;
+                }
+
+                result = Convert.ToInt64(Math.Max(Math.Round(x), 0));
             }
-            else if (t == "m" || t == "mb")
+        }
+        else
+        {
+            if (long.TryParse(match.Groups[1].Value, out var b))
             {
-                result = a * 1024 * 1024;
-            }
-            else if (t == "g" || t == "gb")
-            {
-                result = a * 1024 * 1024 * 1024;
-            }
-            else if (t == "t" || t == "tb")
-            {
-                result = a * 1024 * 1024 * 1024 * 1024;
+                if (t == "k" || t == "kb")
+                {
+                    result = b * 1024;
+                }
+                else if (t == "m" || t == "mb")
+                {
+                    result = b * 1024 * 1024;
+                }
+                else if (t == "g" || t == "gb")
+                {
+                    result = b * 1024 * 1024 * 1024;
+                }
+                else if (t == "t" || t == "tb")
+                {
+                    result = b * 1024 * 1024 * 1024 * 1024;
+                }
             }
         }
         return result;

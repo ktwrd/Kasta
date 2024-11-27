@@ -1,0 +1,33 @@
+﻿@using kate.FileShare.Data.Models
+@model UserModel
+
+@{
+    ViewBag.Title = "Profile";
+    Layout = "_Layout";
+
+    var themeValues = new List<(string, string)>()
+    {
+        ("", "None Selected"),
+        ("dark", "Dark"),
+        ("light", "Light"),
+        ("2010", "2010 Theme"),
+    };
+}
+
+<form asp-controller="Profile" asp-action="Save" enctype="multipart/form-data">
+    <select name="ThemeName">
+        @foreach (var (k, v) in themeValues)
+        {
+            if (v == @Model.ThemeName || (string.IsNullOrEmpty(Model.ThemeName) && k == ""))
+            {
+                <option value="@k" selected>@v</option>
+            }
+            else
+            {
+                <option value="@k" >@v</option>
+            }
+        }
+    </select>
+    <hr/>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form> 

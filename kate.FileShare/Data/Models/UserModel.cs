@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
 namespace kate.FileShare.Data.Models;
@@ -10,4 +11,7 @@ public class UserModel : IdentityUser
 
     [DefaultValue(false)]
     public bool IsAdmin { get; set; }
+
+    [MaxLength(100)]
+    public string? ThemeName { get; set; }
 }

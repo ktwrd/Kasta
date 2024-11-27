@@ -61,7 +61,7 @@
                 <div class="col-md-4 d-flex justify-content-center">
                 </div>
                 <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
-                    <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
+                    <a class="btn btn-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
                 </div>
             </div>
 
@@ -77,64 +77,65 @@
                 <tbody>
                 @foreach (var file in _db.SearchFiles(Model.SearchQuery, userModel.Id).OrderByDescending(v => v.CreatedAt).Include(fileModel => fileModel.Preview))
                 {
-                var relativeFileUrl = $"/f/{file.Id}";
-                if (!string.IsNullOrEmpty(file.ShortUrl))
-                {
-                relativeFileUrl = $"/f/{file.ShortUrl}";
-                }
-                var linkUrl = relativeFileUrl;
+                    var relativeFileUrl = $"/f/{file.Id}";
+                    if (!string.IsNullOrEmpty(file.ShortUrl))
+                    {
+                        relativeFileUrl = $"/f/{file.ShortUrl}";
+                    }
 
-                if (file.Preview != null && file.Preview.RelativeLocation != file.RelativeLocation)
-                {
-                relativeFileUrl += "?preview=true";
-                }
-                <tr>
-                    @if (file.MimeType?.StartsWith("image/") ?? false || file.Preview?.RelativeLocation != file.RelativeLocation)
+                    var showPreview = false;
+                    var linkUrl = relativeFileUrl;
+
+                    if (file.Preview != null && file.Preview.RelativeLocation != file.RelativeLocation)
                     {
-                    <td>
-                        <img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px" alt="Preview of image."/>
-                    </td>
-                    <td>
-                        <a href="@linkUrl">
-                            @if (string.IsNullOrEmpty(file.Filename))
-                            {
-                            @file.Id
-                            }
-                            else
-                            {
-                            @file.Filename
-                            }
-                        </a>
-                    </td>
+                        relativeFileUrl += "?preview=true";
+                        showPreview = true;
                     }
-                    else
-                    {
-                    <td colspan="2">
-                        <a href="@linkUrl">
-                            @if (string.IsNullOrEmpty(file.Filename))
-                            {
-                            @file.Id
-                            }
-                            else
-                            {
-                            @file.Filename
-                            }
-                        </a>
-                    </td>
-                    }
-                    <td>
-                        @SizeHelper.BytesToString(file.Size)
-                    </td>
-                    <td>
-                        @file.CreatedAt
-                    </td>
-                    <td>
-                        <a class="btn btn-danger"
-                           asp-controller="Home"
-                           asp-action="DeleteFile"
-                           asp-route-id="@file.Id">Delete</a>
-                    </td>
-                </tr>
+                    <tr>
+                        @if (showPreview)
+                        {
+                            <td>
+                                <center><img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px" alt="Preview of image."/></center>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <center>
+                                    @if (file.MimeType?.StartsWith("video/") ?? false)
+                                    {
+                                        <i class="bi bi-film"></i>
+                                    }
+                                </center>
+                            </td>
+                        }
+                        <td>
+                            <a href="@linkUrl">
+                                @if (string.IsNullOrEmpty(file.Filename))
+                                {
+                                    @file.Id
+                                }
+                                else
+                                {
+                                    @file.Filename
+                                }
+                            </a>
+                        </td>
+                        <td>
+                            @SizeHelper.BytesToString(file.Size)
+                        </td>
+                        <td>
+                            @file.CreatedAt
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-danger"
+                               asp-controller="Home"
+                               asp-action="DeleteFile"
+                               asp-route-id="@file.Id">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
                 }
                 </tbody>
             </table>
