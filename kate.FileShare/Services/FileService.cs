@@ -40,7 +40,7 @@ public class FileService
         foreach (var prop in typeof(T).GetProperties())
         {
             var propTypeStr = prop.PropertyType.ToString();
-            if (propTypeStr.StartsWith("System.Collections") || propTypeStr.StartsWith("kate.FileShare.Data.Models"))
+            if (propTypeStr.StartsWith("System.Collections") || propTypeStr.StartsWith("kate.FileShare.Data.Models") || propTypeStr.StartsWith(nameof(NpgsqlTypes)))
                 continue;
             var value = prop.GetValue(obj);
 
@@ -217,5 +217,11 @@ public class FileService
         var ms = new MemoryStream();
         res.ResponseStream.CopyTo(ms);
         return ms;
+    }
+
+    public Stream GetStream(FileModel file, out GetObjectResponse res)
+    {
+        res = _s3.GetObject(file.RelativeLocation).Result;
+        return res.ResponseStream;
     }
 }

@@ -42,35 +42,27 @@ public class UploadService
         using var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {
-            Stream s3UploadSource = stream;
-            string? tmpFilename = null;
-            if (stream.Length != length)
+            var tmpFilename = Path.GetTempFileName();
+            using (var fs = File.Open(tmpFilename, FileMode.OpenOrCreate, FileAccess.Write))
             {
-                tmpFilename = Path.GetTempFileName();
-                using (var fs = File.Open(tmpFilename, FileMode.OpenOrCreate, FileAccess.Write))
-                {
-                    await stream.CopyToAsync(fs);
-                }
-                s3UploadSource = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, System.IO.FileShare.Read);
+                await stream.CopyToAsync(fs);
             }
+            var s3UploadSource = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, System.IO.FileShare.Read);
 
             var obj = await _s3.UploadObject(s3UploadSource, fileModel.RelativeLocation);
             fileModel.Size = obj.ContentLength;
             await _db.Files.AddAsync(fileModel);
-            if (s3UploadSource != stream)
-            {
-                await s3UploadSource.DisposeAsync();
-                if (!string.IsNullOrEmpty(tmpFilename))
-                {
-                    File.Delete(tmpFilename);
-                }
-            }
 
             await _db.SaveChangesAsync();
+            await s3UploadSource.DisposeAsync();
             if (_previewService.PreviewSupported(fileModel))
             {
-                await _previewService.Create(ctx, fileModel);
+                await s3UploadSource.DisposeAsync();
+                s3UploadSource = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, System.IO.FileShare.Read);
+                await _previewService.Create(ctx, fileModel, s3UploadSource);
             }
+
+            File.Delete(tmpFilename);
 
             await _db.SaveChangesAsync();
             await transaction.CommitAsync();

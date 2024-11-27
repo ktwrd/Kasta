@@ -17,6 +17,14 @@ public class PreviewService
 
     public bool PreviewSupported(FileModel file)
     {
+        if (PreviewImageSupported(file))
+            return true;
+        else
+            return false;
+    }
+
+    public bool PreviewImageSupported(FileModel file)
+    {
         if (file.MimeType?.StartsWith("image/") ?? false)
         {
             if (file.MimeType == "image/svg+xml" || file.MimeType.StartsWith("image/svg"))
@@ -30,25 +38,39 @@ public class PreviewService
         return false;
     }
 
-    public async Task<FilePreviewModel?> Create(ApplicationDbContext db, FileModel file)
+    public bool PreviewVideoSupported(FileModel file)
     {
-        if (PreviewSupported(file))
+        if (file.MimeType?.StartsWith("video/mp4") ?? false)
         {
-            if (file.MimeType?.StartsWith("image/") ?? false)
-            {
-                return await CreateImagePreview(db, file);
-            }
+            return true;
         }
+
+        return false;
+    }
+    public async Task<FilePreviewModel?> Create(ApplicationDbContext db, FileModel file, Stream inputStream)
+    {
+        if (PreviewImageSupported(file))
+        {
+            return await RegisterPreviewAction(db, file, inputStream, CreateImagePreview);
+        }
+        /*else if (PreviewVideoSupported(file))
+        {
+            return await RegisterPreviewAction(db, file, inputStream, CreateVideoPreview);
+        }*/
 
         return null;
     }
 
-    public async Task<FilePreviewModel?> CreateImagePreview(ApplicationDbContext db, FileModel file)
+    public async Task<FilePreviewModel?> RegisterPreviewAction(
+        ApplicationDbContext db,
+        FileModel file,
+        Stream inputStream,
+        Func<FileModel, Stream, Task<FilePreviewModel?>> action)
     {
         FilePreviewModel? preview = null;
         try
         {
-            preview = await CreateImagePreview(file);
+            preview = await action(file, inputStream);
         }
         catch (ArgumentException)
         {
@@ -64,81 +86,157 @@ public class PreviewService
         await db.SaveChangesAsync();
         return preview;
     }
+
     public async Task<FilePreviewModel?> CreateImagePreview(FileModel file)
     {
-        if (!(file.MimeType?.StartsWith("image/") ?? false))
-        {
-            throw new ArgumentException(
-                $"Cannot process file since it is not an image. MIME type reports {file.MimeType}. (id: {file.Id}, filename: {file.Filename})", nameof(file));
-        }
-
-        // SVG thumbnails are not supported
-        if (file.MimeType.Contains("svg"))
+        if (!PreviewImageSupported(file))
         {
             return null;
         }
-        
 
-        using var imageStream = _fileService.GetMemoryStream(file, out var originalS3Object);
+        using var stream = _fileService.GetStream(file, out var r);
         try
         {
-            imageStream.Seek(0, SeekOrigin.Begin);
-            var info = new MagickImageInfo(imageStream);
-            if (info.Width < 600 && info.Height < 600)
-            {
-                return new FilePreviewModel()
-                {
-                    Id = file.Id,
-                    RelativeLocation = file.RelativeLocation,
-                    Size = file.Size,
-                    MimeType = file.MimeType,
-                };
-            }
+            var result = await CreateImagePreview(file, stream);
+            r.Dispose();
+            return result;
+        }
+        catch
+        {
+            r.Dispose();
+            throw;
+        }
+    }
+    public async Task<FilePreviewModel?> CreateVideoPreview(FileModel file)
+    {
+        if (!PreviewVideoSupported(file))
+        {
+            return null;
+        }
 
-            var img = new MagickImage(imageStream);
-            var size = new MagickGeometry(600, 600)
-            {
-                IgnoreAspectRatio = false
-            };
-            img.Resize(size);
+        using var stream = _fileService.GetStream(file, out var r);
+        try
+        {
+            var result = await CreateVideoPreview(file, stream);
+            r.Dispose();
+            return result;
+        }
+        catch
+        {
+            r.Dispose();
+            throw;
+        }
+    }
+    public async Task<FilePreviewModel?> CreateImagePreview(FileModel file, Stream inputStream)
+    {
+        if (!PreviewImageSupported(file))
+        {
+            return null;
+        }
+
+        try
+        {
+            inputStream.Seek(0, SeekOrigin.Begin);
+            var img = new MagickImage(inputStream);
             var resultStream = new MemoryStream();
-            await img.WriteAsync(resultStream, MagickFormat.Png24);
-            resultStream.Seek(0, SeekOrigin.Begin);
 
-            var model = new FilePreviewModel()
-            {
-                Id = file.Id,
-                RelativeLocation = $"{file.Id}-preview/",
-                Filename = "preview.png",
-                Size = resultStream.Length,
-                MimeType = "image/png"
-            };
-            var originalFilename = Path.GetFileName(file.Filename);
-            if (!string.IsNullOrEmpty(originalFilename))
-            {
-                var fn = Path.GetFileNameWithoutExtension(originalFilename);
-                if (string.IsNullOrEmpty(fn))
-                {
-                    model.Filename = "preview.png";
-                }
-                else
-                {
-                    model.Filename = $"{fn}-preview.png";
-                }
-            }
-            model.RelativeLocation += model.Filename;
-            
-            var uploadResult = await _s3.UploadObject(resultStream, model.RelativeLocation);
-            uploadResult.Dispose();
+            await GeneratePreview(img, resultStream);
+            var model = await UploadFile(file, resultStream);
+
             await resultStream.DisposeAsync();
-            originalS3Object.Dispose();
             return model;
         }
         catch (Exception ex)
         {
-            originalS3Object.Dispose();
+            inputStream.Seek(0, SeekOrigin.Begin);
             throw new ApplicationException($"Failed to generate preview for file {file.Filename} (id: {file.Id})", ex);
         }
 
+    }
+
+    /// <summary>
+    /// Generate preview (<see cref="MagickFormat.Png24"/>) of the image provided, and downscale to a maximum size of 600x600 (respects aspect ratio)
+    /// </summary>
+    /// <param name="image">Image to generate a preview for.</param>
+    /// <param name="resultStream">Stream to write the PNG to.</param>
+    public async Task GeneratePreview(IMagickImage image, Stream resultStream)
+    {
+        if (image.Width > 600 || image.Height > 600)
+        {
+            var size = new MagickGeometry(600, 600)
+            {
+                IgnoreAspectRatio = false
+            };
+            image.Resize(size);
+        }
+        await image.WriteAsync(resultStream, MagickFormat.Png24);
+    }
+
+    /// <summary>
+    /// Generate instance of <see cref="FilePreviewModel"/>, then upload via <see cref="S3Service"/>
+    /// </summary>
+    /// <param name="parentFile">File that the preview was generated for</param>
+    /// <param name="imageStream">Stream containing preview that was written to in <see cref="GeneratePreview"/></param>
+    public async Task<FilePreviewModel> UploadFile(FileModel parentFile, Stream imageStream)
+    {
+        var model = new FilePreviewModel()
+        {
+            Id = parentFile.Id,
+            RelativeLocation = $"{parentFile.Id}-preview/",
+            Filename = "preview.png",
+            Size = imageStream.Length,
+            MimeType = "image/png"
+        };
+                
+        var originalFilename = Path.GetFileName(parentFile.Filename);
+        if (!string.IsNullOrEmpty(originalFilename))
+        {
+            var fn = Path.GetFileNameWithoutExtension(originalFilename);
+            if (string.IsNullOrEmpty(fn))
+            {
+                model.Filename = "preview.png";
+            }
+            else
+            {
+                model.Filename = $"{fn}-preview.png";
+            }
+        }
+        model.RelativeLocation += model.Filename;
+                
+        using var uploadResult = await _s3.UploadObject(imageStream, model.RelativeLocation);
+        return model;
+    }
+    
+    public async Task<FilePreviewModel?> CreateVideoPreview(FileModel file, Stream inputStream)
+    {
+        if (!PreviewVideoSupported(file))
+            return null;
+
+        try
+        {
+            using var resultStream = new MemoryStream();
+            using (var videoFrames = new MagickImageCollection(inputStream, MagickFormat.Mp4))
+            {
+                if (videoFrames.Count < 1)
+                {
+                    throw new InvalidDataException($"Cannot generate preview since there are no frames!");
+                }
+                
+                // get frame that is 10% into the video
+                var target = Convert.ToInt32(Math.Round(Math.Max(videoFrames.Count * (decimal)0.10f, 0)));
+                if (target > videoFrames.Count)
+                    target = 0;
+
+                var targetImage = videoFrames[target];
+                await GeneratePreview(targetImage, resultStream);
+            }
+
+            var model = await UploadFile(file, resultStream);
+            return model;
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Failed to generate preview for file {file.Filename} (id: {file.Id})", ex);
+        }
     }
 }
