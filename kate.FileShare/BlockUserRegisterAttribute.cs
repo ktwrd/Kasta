@@ -28,8 +28,8 @@ public class BlockUserRegisterFilter : IAuthorizationFilter
             if (context.HttpContext.Request.Path.Value.ToString().StartsWith("/Identity/Account/Register"))
             {
                 var db = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
-                var value = db.Preferences.Where(e => e.Key == "enableUserRegister").FirstOrDefault();
-                if (value?.GetBool(false) ?? false)
+                var settings = db.GetSystemSettings();
+                if (!settings.EnableUserRegister)
                 {
                     context.Result = new RedirectResult("/Identity/Account/Login");
                 }
