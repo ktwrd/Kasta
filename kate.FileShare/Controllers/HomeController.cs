@@ -89,7 +89,7 @@ public class HomeController : Controller
             var maxFileSize = userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal ?? long.MaxValue;
             if (file.Length > maxFileSize)
             {
-                HttpContext.Response.StatusCode = 400;
+                HttpContext.Response.StatusCode = 413;
                 return View(
                     "NotAuthorized", new NotAuthorizedViewModel()
                     {
