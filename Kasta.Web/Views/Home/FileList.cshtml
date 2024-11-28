@@ -112,7 +112,7 @@
 
                                     <center>
                                         <i class="bi bi-@ident"></i>
-                                </center>
+                                    </center>
                                 }
                             </td>
                         }
@@ -135,6 +135,14 @@
                             @file.CreatedAt
                         </td>
                         <td>
+                            <div class="btn-group">
+                                <a class="btn btn-sm btn-secondary"
+                                   asp-controller="File"
+                                   asp-action="Details"
+                                   asp-route-id="@targetId"
+                                   title="View Details">
+                                    <i class="bi bi-info-circle"></i>
+                                </a>
                                 <a class="btn btn-sm btn-success"
                                     href="javascript:void(0)"
                                     title="Copy Link"
@@ -147,13 +155,13 @@
                                    title="Download">
                                     <i class="bi bi-cloud-download"></i>
                                 </a>
-                            <a class="btn btn-sm btn-danger"
-                               asp-controller="Home"
-                               asp-action="DeleteFile"
+                                <a class="btn btn-sm btn-danger"
+                                   asp-controller="Home"
+                                   asp-action="DeleteFile"
                                    asp-route-id="@file.Id"
                                    title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
