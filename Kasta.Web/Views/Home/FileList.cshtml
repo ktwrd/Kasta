@@ -135,12 +135,26 @@
                             @file.CreatedAt
                         </td>
                         <td>
+                                <a class="btn btn-sm btn-success"
+                                    href="javascript:void(0)"
+                                    title="Copy Link"
+                                    data-clipboard-text="@file.GetDetailsUrl()">
+                                    <i class="bi bi-link-45deg"></i>
+                                </a>
+                                <a class="btn btn-sm btn-primary"
+                                   href="@file.GetDownloadUrl()"
+                                   target="_blank"
+                                   title="Download">
+                                    <i class="bi bi-cloud-download"></i>
+                                </a>
                             <a class="btn btn-sm btn-danger"
                                asp-controller="Home"
                                asp-action="DeleteFile"
-                               asp-route-id="@file.Id">
+                                   asp-route-id="@file.Id"
+                                   title="Delete">
                                 <i class="bi bi-trash"></i>
                             </a>
+                            </div>
                         </td>
                     </tr>
                 }
