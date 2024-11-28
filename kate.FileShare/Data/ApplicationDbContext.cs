@@ -36,6 +36,26 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
         return instance;
     }
 
+    public List<T> Paginate<T>(IQueryable<T> query, int page, int pageSize, out bool lastPage)
+    {
+        var count = query.Count();
+        var lastPageIndex = Convert.ToInt32(Math.Ceiling(count / (double)pageSize));
+        int skip = 0;
+        if (page > 1)
+        {
+            skip = (page - 1) * pageSize;
+        }
+
+        var result = query
+            .Skip(skip)
+            .Take(pageSize)
+            .ToList();
+        
+        lastPage = result.Count < pageSize || page >= lastPageIndex;
+
+        return result;
+    }
+
     public IQueryable<FileModel> SearchFiles(string? query, string? userId = null)
     {
         if (string.IsNullOrEmpty(query))

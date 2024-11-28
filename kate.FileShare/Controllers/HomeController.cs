@@ -36,6 +36,11 @@ public class HomeController : Controller
     {
         if (User.Identity?.IsAuthenticated ?? false)
         {
+            var userModel = _userManager.GetUserAsync(User).Result;
+            if (userModel == null)
+            {
+                throw new InvalidOperationException($"User Model cannot be null when authenticated");
+            }
             var viewModel = new FileListViewModel()
             {
                 SearchQuery = string.IsNullOrEmpty(search) ? null : search
@@ -44,6 +49,35 @@ public class HomeController : Controller
             {
                 viewModel.Page = page.Value;
             }
+            var query = _db
+                .SearchFiles(viewModel.SearchQuery, userModel.Id)
+                .OrderByDescending(v => v.CreatedAt)
+                .Include(fileModel => fileModel.Preview);
+            viewModel.Files = _db.Paginate(query, viewModel.Page, 25, out bool lastPage);
+            viewModel.IsLastPage = lastPage;
+
+            var systemSettings = _db.GetSystemSettings();
+            var userQuota = _db.UserLimits.Where(e => e.UserId == userModel.Id).FirstOrDefault();
+            viewModel.SpaceUsed = SizeHelper.BytesToString(userQuota?.SpaceUsed ?? 0);
+            if (systemSettings.EnableQuota)
+            {
+                if (userQuota?.MaxStorage >= 0)
+                {
+                    viewModel.SpaceAvailable = SizeHelper.BytesToString(Math.Max((userQuota.MaxStorage - userQuota.SpaceUsed) ?? 0, 0));
+                }
+                else if (systemSettings?.DefaultStorageQuotaReal >= 0)
+                {
+                    if (userQuota == null)
+                    {
+                        viewModel.SpaceAvailable = SizeHelper.BytesToString(systemSettings.DefaultStorageQuotaReal ?? 0);
+                    }
+                    else
+                    {
+                        viewModel.SpaceAvailable = SizeHelper.BytesToString(Math.Max((systemSettings?.DefaultStorageQuotaReal - userQuota.SpaceUsed) ?? 0, 0));
+                    }
+                }
+            }
+
             return View("FileList", viewModel);
         }
         else
@@ -61,7 +95,7 @@ public class HomeController : Controller
 
     [AuthRequired]
     [HttpPost("~/Upload")]
-    public async Task<IActionResult> UploadPost(IFormFile file)
+    public async Task<IActionResult> UploadPost(IFormFile file, [FromQuery] bool returnJson = false)
     {
         var user = await _userManager.GetUserAsync(HttpContext.User);
         if (user == null)
@@ -78,29 +112,45 @@ public class HomeController : Controller
             if ((spaceUsed + file.Length) > spaceAllocated)
             {
                 HttpContext.Response.StatusCode = 401;
-                return View(
-                    "NotAuthorized", new NotAuthorizedViewModel()
-                    {
-                        Message =
-                            $"You don't have enough space to upload file (file size: {SizeHelper.BytesToString(file.Length)}, storage: {SizeHelper.BytesToString(spaceAllocated)})",
-                    });
+                var vm = new NotAuthorizedViewModel()
+                {
+                    Message = $"You don't have enough space to upload file (file size: {SizeHelper.BytesToString(file.Length)}, storage: {SizeHelper.BytesToString(spaceAllocated)})",
+                };
+                if (returnJson)
+                {
+                    return Json(vm);
+                }
+                return View("NotAuthorized", vm);
             }
 
             var maxFileSize = userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal ?? long.MaxValue;
             if (file.Length > maxFileSize)
             {
                 HttpContext.Response.StatusCode = 413;
-                return View(
-                    "NotAuthorized", new NotAuthorizedViewModel()
-                    {
-                        Message = $"Provided file exceeds maximum file size ({SizeHelper.BytesToString(maxFileSize)})"
-                    });
+                var vm = new NotAuthorizedViewModel()
+                {
+                    Message = $"Provided file exceeds maximum file size ({SizeHelper.BytesToString(maxFileSize)})"
+                };
+                if (returnJson)
+                {
+                    return Json(vm);
+                }
+                return View("NotAuthorized", vm);
             }
         }
 
+        FileModel resultFile;
         using (var stream = file.OpenReadStream())
         {
-            await _uploadService.UploadBasicAsync(user, stream, file.FileName, file.Length);
+            resultFile = await _uploadService.UploadBasicAsync(user, stream, file.FileName, file.Length);
+        }
+        if (returnJson)
+        {
+            return Json(new Dictionary<string, object>()
+            {
+                { "message", "OK" },
+                { "url", $"/f/{resultFile.ShortUrl}" }
+            });
         }
         return new RedirectToActionResult(nameof(Index), "Home", null);
     }

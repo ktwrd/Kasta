@@ -13,39 +13,16 @@
     var userModel = await UserManager.GetUserAsync(User);
 }
 
-@if (SignInManager.IsSignedIn(User) && userModel != null)
-{
-    
-    var userQuota = await _db.UserLimits.Where(e => e.UserId == userModel.Id).FirstOrDefaultAsync();
-    var systemSettings = _db.GetSystemSettings();
-    
     <div class="card shadow-sm">
         <div class="card-body">
             <table class="table-inline">
                 <tr>
                 <th>Space Used</th>
-                <td>@SizeHelper.BytesToString(userQuota?.SpaceUsed ?? 0)</td>
-                @if (systemSettings.EnableQuota)
+                <td>@Model.SpaceUsed</td>
+                @if (!string.IsNullOrEmpty(Model.SpaceAvailable))
                 {
-                    if (userQuota?.MaxStorage >= 0)
-                    {
-                        <th>Space Available</th>
-                        <td>@SizeHelper.BytesToString(Math.Max((userQuota.MaxStorage - userQuota.SpaceUsed) ?? 0, 0))</td>
-                    }
-                    else if (systemSettings?.DefaultStorageQuotaReal >= 0)
-                    {
-                        <th>Space Available</th>
-                        <td>
-                            @if (userQuota == null)
-                            {
-                                @SizeHelper.BytesToString(systemSettings.DefaultStorageQuotaReal ?? 0)
-                            }
-                            else
-                            {
-                                @SizeHelper.BytesToString(Math.Max((systemSettings?.DefaultStorageQuotaReal - userQuota.SpaceUsed) ?? 0, 0))
-                            }
-                        </td>
-                    }
+                    <th>Space Available</th>
+                    <td>@Model.SpaceAvailable</td>
                 }
             </table>
             
@@ -53,12 +30,32 @@
                 <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
                     <form class="mr-1" asp-controller="Home" asp-action="Index">
                         <div class="input-group">
-                            <input class="form-control" type="text" name="search"/>
-                            <button class="btn btn-secondary" type="submit">Search</button>
+                            <input class="form-control" type="text" name="search" placeholder="Search"/>
+                            <button class="btn btn-secondary" type="submit"><i class="bi bi-search"></i></button>
                         </div>
                     </form>
                 </div>
                 <div class="col-md-4 d-flex justify-content-center">
+                    <nav>
+                        <ul class="pagination">
+                            @if (Model.Page > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-controller="Home" asp-action="Index" asp-route-page="@(Model.Page - 1)" asp-route-search="@Model.SearchQuery" aria-label="Previous">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            @if (!Model.IsLastPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-controller="Home" asp-action="Index" asp-route-page="@(Model.Page + 1)" asp-route-search="@Model.SearchQuery" aria-label="Next">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
                 </div>
                 <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
                     <a class="btn btn-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
@@ -75,7 +72,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (var file in _db.SearchFiles(Model.SearchQuery, userModel.Id).OrderByDescending(v => v.CreatedAt).Include(fileModel => fileModel.Preview))
+                @foreach (var file in Model.Files)
                 {
                     var relativeFileUrl = $"/f/{file.Id}";
                     if (!string.IsNullOrEmpty(file.ShortUrl))
@@ -141,4 +138,3 @@
             </table>
         </div>
     </div>
-}
