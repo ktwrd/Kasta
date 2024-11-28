@@ -1,4 +1,4 @@
-using Kasta.Data;
+﻿using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Web.Models;
 using Kasta.Web.Helpers;
@@ -23,9 +23,8 @@ public class AdminController : Controller
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
     }
 
-    [HttpGet]
     [AuthRequired]
-    public async Task<IActionResult> Home()
+    public IActionResult Index()
     {
         var user = _userManager.GetUserAsync(User).Result;
         if (user == null || !user.IsAdmin)
@@ -77,6 +76,6 @@ public class AdminController : Controller
             throw;
         }
 
-        return new RedirectToActionResult(nameof(Home), "Admin", null);
+        return new RedirectToActionResult(nameof(Index), "Admin", null);
     }
 }
