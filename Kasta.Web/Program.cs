@@ -1,3 +1,4 @@
+using Kasta.Shared;
 using Microsoft.EntityFrameworkCore;
 using Kasta.Web.Data;
 using Kasta.Web.Data.Models;

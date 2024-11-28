@@ -1,5 +1,4 @@
-﻿using Kasta.Web.Data;
-using Kasta.Web.Data.Models;
+using Kasta.Shared;
 using Kasta.Web.Models;
 using Kasta.Web.Services;
 using Microsoft.AspNetCore.Identity;

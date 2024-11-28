@@ -1,6 +1,6 @@
-﻿using Kasta.Web.Helpers;
+﻿using Kasta.Shared.Helpers;
 
-namespace Kasta.Web;
+namespace Kasta.Shared;
 
 public static class FeatureFlags
 {
