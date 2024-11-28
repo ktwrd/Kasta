@@ -1,0 +1,70 @@
+@using Kasta.Data.Models
+@using Kasta.Web.Helpers
+@model FileModel
+
+@{
+    ViewData["Title"] = $"{Model.Filename}";
+    Layout = "_Layout";
+
+    var previewUrl = Model.GetPreviewUrl();
+}
+
+<div class="row">
+    <div class="col-md-12 justify-content-center">
+        <div class="row mb-2">
+            <div class="col-md-12 text-center">
+                @if (Model.MimeType?.StartsWith("image/") ?? false)
+                {
+                    @if (!string.IsNullOrEmpty(previewUrl))
+                    {
+                        <img src="@previewUrl" class="img-thumbnail rounded mx-auto d-block" alt="@Model.Filename (Preview)" id="preview" />
+                        <img src="@(Model.GetDownloadUrl())" class="img-thumbnail rounded mx-auto d-block" alt="@Model.Filename" onload="document.getElementById('preview').remove()"/>
+                    }
+                    else
+                    {
+                        <img src="@(Model.GetDownloadUrl())" class="img-thumbnail rounded mx-auto d-block" alt="@Model.Filename"/>
+                    }
+                }
+                else if (Model.MimeType?.StartsWith("video/") ?? false)
+                {
+                    <video width="320" height="240" controls class="rounded mx-auto d-block">
+                        <source src="@Model.GetDownloadUrl()" type="@Model.MimeType" />
+                    </video>
+                }
+                else if (Model.MimeType?.StartsWith("audio/") ?? false)
+                {
+                    <audio controls class="rounded mx-auto d-block">
+                        <source src="@Model.GetDownloadUrl()" type="@Model.MimeType" />
+                    </audio>
+                }
+                else
+                {
+                    <div class="mx-auto d-block">
+                        <a class="btn btn-lg btn-primary">
+                            <i class="bi bi-cloud-download"></i>
+                            Download
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="row mt-1">
+            <div class="col-md-12 text-center">
+                <i class="bi bi-stack"></i>
+                @SizeHelper.BytesToString(Model.Size)
+            </div>
+        </div>
+        <div class="row mt-1">
+            <div class="col-md-12 text-center">
+                <i class="bi bi-file-earmark"></i>
+                @Model.Filename
+            </div>
+        </div>
+        <div class="row mt-1">
+            <div class="col-md-12 text-center">
+                <i class="bi bi-calendar"></i>
+                @Model.CreatedAt
+            </div>
+        </div>
+    </div>
+</div>
