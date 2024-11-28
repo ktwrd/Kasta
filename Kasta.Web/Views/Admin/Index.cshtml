@@ -1,0 +1,77 @@
+﻿@using Kasta.Web.Helpers
+@using Kasta.Web.Models
+@model AdminIndexViewModel
+
+@{
+    ViewData["Title"] = "Admin";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mt-3">
+            <div class="card-header">
+                System Settings
+            </div>
+            <div class="card-body">
+                <form method="post" asp-controller="Admin" asp-action="SaveSystemSettings" enctype="multipart/form-data">
+                    <div class="mb-3 row">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="enableUserRegister" value="true" checked="@Model.SystemSettings.EnableUserRegister" name="@nameof(SystemSettingsParams.EnableUserRegister)"/>
+                            <label class="form-check-label" for="enableUserRegister">
+                                Enable User Registrations
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="embedEnable" value="true" checked="@Model.SystemSettings.EnableEmbeds" name="@nameof(SystemSettingsParams.EnableEmbeds)" />
+                            <label class="form-check-label" for="embedEnable">
+                                Embed Media
+                            </label>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="mb-3 row">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="customBrandEnable" value="true" checked="@Model.SystemSettings.EnableCustomBranding" name="@nameof(SystemSettingsParams.EnableCustomBranding)"/>
+                            <label class="form-check-label" for="customBrandEnable">
+                                Enable Custom Branding
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label" for="customBrandFooter">Footer Text</label>
+                        <input type="text" class="form-control" id="customBrandFooter" placeholder="Powered by Kasta" value="@Model.SystemSettings.CustomBrandingFooter" name="@nameof(SystemSettingsParams.CustomBrandingFooter)"/>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label" for="customBrandTitle">Title/App Name</label>
+                        <input type="text" class="form-control" id="customBrandTitle" value="@Model.SystemSettings.CustomBrandingTitle" name="@nameof(SystemSettingsParams.CustomBrandingTitle)"/>
+                    </div>
+                    <hr/>
+                    <div class="mb-3 row">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="quotaEnable" value="true" checked="@Model.SystemSettings.EnableQuota" name="@nameof(SystemSettingsParams.EnableQuota)"/>
+                            <label class="form-check-label" for="quotaEnable">
+                                Enable user quota (upload and storage)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label" for="defaultUploadQuota">Default User Upload Quota</label>
+                        <input type="text" class="form-control" id="defaultUploadQuota" value="@(SizeHelper.BytesToString(Model.SystemSettings.DefaultUploadQuotaReal ?? 0))" name="@nameof(SystemSettingsParams.DefaultUploadQuota)" />
+                        <div id="defaultUploadQuotaHelp" class="form-text">500KB, 500K, 512M, 5G, 1T, etc...</div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="form-label" for="defaultStorageQuota">Default User Storage Quota</label>
+                        <input type="text" class="form-control" id="defaultStorageQuota" value="@SizeHelper.BytesToString(Model.SystemSettings.DefaultStorageQuotaReal ?? 0)" name="@nameof(SystemSettingsParams.DefaultStorageQuota)"/>
+                        <div id="defaultStorageQuotaHelp" class="form-text">500KB, 500K, 512M, 5G, 1T, etc...</div>
+                    </div>
+                    <button class="btn btn-primary mt-3" type="submit">Save</button>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>

@@ -1,0 +1,45 @@
+﻿@using Kasta.Web.Data.Models
+@model UserModel
+
+@{
+    ViewBag.Title = "Profile";
+    Layout = "_Layout";
+
+    var themeValues = new List<(string, string)>()
+    {
+        ("", "None Selected"),
+        ("dark", "Dark"),
+        ("light", "Light"),
+        ("2010", "2010 Theme"),
+    };
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-controller="Profile" asp-action="Save" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="ThemeName" class="form-label">Theme</label>
+                        <select name="ThemeName" class="form-select" id="ThemeName">
+                            @foreach (var (k, v) in themeValues)
+                            {
+                            if (v == @Model.ThemeName || (string.IsNullOrEmpty(Model.ThemeName) && k == ""))
+                            {
+                            <option value="@k" selected>@v</option>
+                            }
+                            else
+                            {
+                            <option value="@k">@v</option>
+                            }
+                            }
+                        </select>
+                    </div>
+                    <hr/>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>

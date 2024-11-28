@@ -1,0 +1,29 @@
+@using Kasta.Web.Models
+@model NotAuthorizedViewModel?
+@{
+    ViewData["Title"] = "Not Authorized";
+    Layout = "_Layout";
+}
+<h1>Unauthorized</h1>
+
+@if (string.IsNullOrEmpty(Model?.Message))
+{
+    <div class="mb-3">
+        Not Authorized to perform this action. This may happen due to one of the following reasons:
+        <ul>
+            <li>Storage Quota Reached</li>
+            <li>Not Authenticated (logged in)</li>
+            <li>Missing Permissions</li>
+        </ul>
+    </div>
+}
+else
+{
+    <div class="mb-3">
+        @Model.Message
+    </div>
+}
+@if (Model?.RequireLogin ?? false)
+{
+    <a href="~/Identity/Account/Login" class="btn btn-primary">Login</a>
+}

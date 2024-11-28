@@ -1,6 +1,5 @@
 ﻿services:
-  kate.fileshare:
-    image: kate.fileshare
+  web:
     build:
       context: .
-      dockerfile: kate.FileShare/Dockerfile
+      dockerfile: Kasta.Web/Dockerfile

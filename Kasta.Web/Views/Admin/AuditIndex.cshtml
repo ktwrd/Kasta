@@ -1,0 +1,28 @@
+@using Kasta.Web.Data
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext _db
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Table</th>
+            <th>Kind</th>
+            <th>Id</th>
+            <th>By</th>
+            <th>At</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var master in _db.Audit.Include(e => e.CreatedByUser).ToList())
+        {
+            <tr>
+                <th>@master.EntityName</th>
+                <td>@master.Kind</td>
+                <td><code>@master.PrimaryKey</code></td>
+                <td>@(master.CreatedByUser.UserName)</td>
+                <td>@(master.CreatedAt.ToString("s"))</td>
+            </tr>
+        }
+    </tbody>
+</table>
