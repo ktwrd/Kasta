@@ -74,6 +74,25 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
         }
     }
 
+    public async Task<FileModel?> GetFileAsync(string id)
+    {
+        var target = await Files.Where(e => e.Id == id).FirstOrDefaultAsync();
+        if (target == null)
+        {
+            target = await Files.Where(e => e.ShortUrl == id).FirstOrDefaultAsync();
+        }
+        return target;
+    }
+    public FileModel? GetFile(string id)
+    {
+        var target = Files.Where(e => e.Id == id).FirstOrDefault();
+        if (target == null)
+        {
+            target = Files.Where(e => e.ShortUrl == id).FirstOrDefault();
+        }
+        return target;
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
