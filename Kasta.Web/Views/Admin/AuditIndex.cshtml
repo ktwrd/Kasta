@@ -2,6 +2,11 @@
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext _db
 
+@{
+    ViewData["Title"] = "Audit - Admin";
+    Layout = "_Layout";
+}
+
 <table class="table">
     <thead>
         <tr>
@@ -22,6 +27,7 @@
                 <td><code>@master.PrimaryKey</code></td>
                 <td>@(master.CreatedByUser.UserName)</td>
                 <td>@(master.CreatedAt.ToString("s"))</td>
+                <td></td>
             </tr>
         }
     </tbody>
