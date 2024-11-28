@@ -1,4 +1,4 @@
-@using Kasta.Data
+﻿@using Kasta.Data
 @using Kasta.Data.Models
 @using Kasta.Web.Helpers
 @using Microsoft.AspNetCore.Identity
@@ -13,9 +13,11 @@
     var footer = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingFooter : "Powered by Kasta";
     string bootstrapThemeAttributeValue = "auto";
     string currentTheme = "";
+    bool isAdmin = false;
     if (SignInManager.IsSignedIn(User))
     {
         var user = await UserManager.GetUserAsync(User);
+        isAdmin = user?.IsAdmin ?? false;
         if (!string.IsNullOrEmpty(user?.ThemeName))
         {
             currentTheme = user.ThemeName!.Trim().ToLower();
@@ -88,9 +90,12 @@
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Admin" asp-action="Home">Admin</a>
-                    </li>
+                    @if (isAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Admin" asp-action="Index">Admin</a>
+                        </li>
+                    }
                 </ul>
                 <partial name="_LoginPartial"/>
             </div>
