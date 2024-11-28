@@ -1,4 +1,4 @@
-﻿namespace Kasta.Web.Models;
+﻿namespace Kasta.Web.Models.Admin;
 
 public class AdminIndexViewModel
 {
