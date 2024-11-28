@@ -10,6 +10,7 @@
 
 @{
     ViewData["Title"] = "Files";
+    Layout = "_Layout";
     var userModel = await UserManager.GetUserAsync(User);
 }
 
@@ -58,7 +59,10 @@
                     </nav>
                 </div>
                 <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
-                    <a class="btn btn-secondary" asp-controller="Home" asp-action="Upload">Upload</a>
+                    <a class="btn btn-secondary" asp-controller="Home" asp-action="Upload">
+                        <i class="bi bi-upload"></i>
+                        Upload
+                    </a>
                 </div>
             </div>
 
@@ -74,36 +78,42 @@
                 <tbody>
                 @foreach (var file in Model.Files)
                 {
-                    var relativeFileUrl = $"/f/{file.Id}";
+                    string targetId = file.Id;
                     if (!string.IsNullOrEmpty(file.ShortUrl))
                     {
-                        relativeFileUrl = $"/f/{file.ShortUrl}";
+                        targetId = file.ShortUrl;
                     }
 
-                    var showPreview = false;
-                    var linkUrl = relativeFileUrl;
+                    var previewUrl = file.GetPreviewUrl();
+                    var linkUrl = file.GetDetailsUrl();
 
-                    if (file.Preview != null && file.Preview.RelativeLocation != file.RelativeLocation)
-                    {
-                        relativeFileUrl += "?preview=true";
-                        showPreview = true;
-                    }
                     <tr>
-                        @if (showPreview)
+                        @if (previewUrl != null)
                         {
                             <td>
-                                <center><img src="@relativeFileUrl" style="max-height: 50px; max-width: 50px" alt="Preview of image."/></center>
+                                <center><img src="@previewUrl" style="max-height: 50px;" alt="Preview of image." height="50"/></center>
                             </td>
                         }
                         else
                         {
                             <td>
-                                <center>
-                                    @if (file.MimeType?.StartsWith("video/") ?? false)
+                                @if (!string.IsNullOrEmpty(file.MimeType))
+                                {
+                                    var idx = file.MimeType.IndexOf('/');
+                                    string a = file.MimeType;
+                                    string? b = null;
+                                    if (idx != -1)
                                     {
-                                        <i class="bi bi-film"></i>
+                                        a = file.MimeType.Substring(0, idx);
+                                        b = file.MimeType.Substring(idx + 1);
                                     }
+
+                                    string ident = FileHelper.GetBootstrapIcon(file);
+
+                                    <center>
+                                        <i class="bi bi-@ident"></i>
                                 </center>
+                                }
                             </td>
                         }
                         <td>

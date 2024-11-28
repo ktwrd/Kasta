@@ -26,6 +26,10 @@
         if ($('.dropzone').length > 0) {
             fileshare.initClipboardPasteUpload();
         }
+        $('a').filter(function() {return $(this).attr('data-clipboard-text')}).on('click', e => {
+            navigator.clipboard.writeText($(e.currentTarget).attr('data-clipboard-text'));
+            alert('Copied to clipboard');
+        });
     },
     initClipboardPasteUpload: function() {
         document.onpaste = function(event){
