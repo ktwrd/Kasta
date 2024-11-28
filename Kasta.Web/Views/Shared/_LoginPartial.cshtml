@@ -1,7 +1,13 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿@using Kasta.Data
 @using Kasta.Data.Models
+@using Kasta.Web.Helpers
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
+@inject ApplicationDbContext Database
+@{
+    var settings = Database.GetSystemSettings();
+}
 
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
@@ -24,9 +30,12 @@
     }
     else
     {
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
-        </li>
+        if (settings.EnableUserRegister)
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+            </li>
+        }
         <li class="nav-item">
             <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
         </li>
