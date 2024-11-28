@@ -1,0 +1,83 @@
+@using Kasta.Shared.Helpers
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Admin
+@model AdminUserListViewModel
+
+@{
+    ViewData["Title"] = "Users - Admin";
+    Layout = "_Layout";
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>2FA</th>
+                    <th>Lockout Enabled?</th>
+                    <th>Failed Login Attempts</th>
+                    @if (Model.SystemSettings.EnableQuota)
+                    {
+                        <th colspan="2"><center>Limits</center></th>
+                    }
+                    <th>Theme</th>
+                </tr>
+                @if (Model.SystemSettings.EnableQuota)
+                {
+                    <tr>
+                        <th colspan="6"></th>
+                        <th>Storage</th>
+                        <th>File Size</th>
+                        <th></th>
+                    </tr>
+                }
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td><code>@user.Id</code></td>
+                        <td>
+                            @(string.IsNullOrEmpty(user.UserName) ? "" : user.UserName)
+                        </td>
+                        <td>
+                            @(string.IsNullOrEmpty(user.Email) ? "" : user.Email)
+                        </td>
+                        <td>
+                            @(FormatHelper.ToEmoji(user.TwoFactorEnabled))
+                        </td>
+                        <td>
+                            @(FormatHelper.ToEmoji(user.LockoutEnabled))
+                            @if (user.LockoutEnd != null)
+                            {
+                                <br/>
+                                @($"Lockout ends at {user.LockoutEnd}")
+                            }
+                        </td>
+                        <td>
+                            <code>@user.AccessFailedCount</code>
+                        </td>
+                        @if (Model.SystemSettings.EnableQuota)
+                        {
+                            <td>@(user.Limit?.MaxStorage == null || user.Limit.MaxStorage < 0 ? "Default" : SizeHelper.BytesToString((long)user.Limit.MaxStorage!))</td>
+                            <td>@(user.Limit?.MaxFileSize == null || user.Limit.MaxFileSize < 0 ? "Default" : SizeHelper.BytesToString((long)user.Limit.MaxFileSize!))</td>
+                        }
+                        <td>
+                            @if (string.IsNullOrEmpty(user.ThemeName))
+                            {
+                                @("Default")
+                            }
+                            else
+                            {
+                                <code>@user.ThemeName</code>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

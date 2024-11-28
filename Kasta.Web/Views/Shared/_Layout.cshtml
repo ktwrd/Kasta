@@ -93,7 +93,16 @@
                     @if (isAdmin)
                     {
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Admin" asp-action="Index">Admin</a>
+                            <a class="nav-link" asp-controller="Admin" asp-action="Index">
+                                <i class="bi bi-gear"></i>
+                                System
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Admin" asp-action="UserList">
+                                <i class="bi bi-user"></i>
+                                Users
+                            </a>
                         </li>
                     }
                 </ul>

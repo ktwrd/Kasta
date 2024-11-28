@@ -1,10 +1,11 @@
-using Kasta.Data;
+﻿using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Web.Models;
 using Kasta.Web.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Kasta.Web.Models.Admin;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web.Controllers;
 
@@ -78,5 +79,33 @@ public class AdminController : Controller
         }
 
         return new RedirectToActionResult(nameof(Index), "Admin", null);
+    }
+
+    [AuthRequired]
+    [HttpGet("Users")]
+    public async Task<IActionResult> UserList(
+        [FromQuery] int page = 1)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null || !currentUser.IsAdmin)
+        {
+            return new RedirectToActionResult("Index", "Home", null);
+        }
+
+        if (page < 1)
+            page = 1;
+        var vm = new AdminUserListViewModel()
+        {
+            Page = page
+        };
+        vm.SystemSettings = _db.GetSystemSettings();
+        vm.Users = _db.Paginate(
+            _db.Users.OrderBy(e => e.IsAdmin).Include(e => e.Limit),
+            vm.Page,
+            50,
+            out var lastPage);
+        vm.IsLastPage = lastPage;
+
+        return View("UserList", vm);
     }
 }
