@@ -1,4 +1,4 @@
-using Kasta.Data;
+﻿using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Helpers;
@@ -15,22 +15,21 @@ public class ApiFileController : Controller
 {
     private readonly S3Service _s3;
     private readonly UploadService _uploadService;
-    private readonly ILogger<ApiFileController> _logger;
     private readonly ApplicationDbContext _db;
     private readonly UserManager<UserModel> _userManager;
 
+    private readonly ILogger<ApiFileController> _logger;
+    
     public ApiFileController(
-        S3Service s3,
-        UploadService uploadService,
-        ILogger<ApiFileController> logger,
-        ApplicationDbContext db,
-        UserManager<UserModel> userManager)
+        IServiceProvider services,
+        ILogger<ApiFileController> logger)
     {
-        _s3 = s3;
-        _uploadService = uploadService;
+        _s3 = services.GetRequiredService<S3Service>();
+        _uploadService = services.GetRequiredService<UploadService>();
+        _db = services.GetRequiredService<ApplicationDbContext>();
+        _userManager = services.GetRequiredService<UserManager<UserModel>>();
+        
         _logger = logger;
-        _db = db;
-        _userManager = userManager;
     }
 
     [HttpGet("~/f/{value}")]
@@ -132,7 +131,7 @@ public class ApiFileController : Controller
     
     [AuthRequired]
     [HttpPost("~/api/v1/File/Upload/Chunk/StartSession")]
-    public async Task<IActionResult> StartSession(
+    public IActionResult StartSession(
         [FromForm] CreateSessionParams sessionParams)
     {
         throw new NotImplementedException();
