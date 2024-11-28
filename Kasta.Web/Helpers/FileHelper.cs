@@ -161,6 +161,8 @@ public static class FileHelper
                 break;
             case "model":
                 return prefix + "box-fill";
+            case "video":
+                return prefix + "camera-reels";
             case "audio":
                 if (audio.TryGetValue(value ?? "", out var audioValue))
                 {
