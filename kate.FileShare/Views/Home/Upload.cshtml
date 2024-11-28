@@ -3,40 +3,28 @@
     Layout = "_Layout";
 }
 
-<div class="mb-3">
-    <form asp-controller="Home" asp-action="UploadPost" method="post" enctype="multipart/form-data">
-        <div class="mb-3">
-            <input class="form-control" type="file" id="formFile" name="file"/>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-10">
+                <div class="progress h-100">
+                    <div class="progress-bar progress-bar-animated progress-bar-striped" style="width: 0;" id="uploadProgess"></div>
+                </div>
+            </div>
+            <div class="col-2 text-center">
+                <button button type="button" class="btn btn-sm btn-outline-danger btn-block" onclick="Dropzone.instances[0].removeAllFiles(true)" data-toggle="tooltip" title="{{ lang('cancel') }}">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
         </div>
-        <button type="submit" class="btn btn-success">Upload</button>
-        <br/>
-    </form>
+        <div class="row">
+            <div class="col">
+                <form asp-controller="Home" asp-action="UploadPost" asp-route-returnJson="true" method="post" enctype="multipart/form-data" id="upload-dropzone" class="dropzone">
+                    <div class="fallback">
+                        <input name="file" type="file" multiple>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-
-@section Scripts
-{
-    <script type="text/javascript">
-        (function (win, doc) {
-            'use strict';
-            if (!doc.querySelectorAll || !win.addEventListener) {
-                // doesn't cut the mustard.
-                return;
-            }
-            var forms = doc.querySelectorAll('form[method="post"]'),
-                formcount = forms.length,
-                i,
-                submitting = false,
-                checkForm = function (ev) {
-                    if (submitting) {
-                        ev.preventDefault();
-                    } else {
-                        submitting = true;
-                        this.appendChild(doc.createElement('progress'));
-                    }
-                };
-            for (i = 0; i < formcount; i = i + 1) {
-                forms[i].addEventListener('submit', checkForm, false);
-            }
-        }(this, this.document));
-    </script>
-}

@@ -6,6 +6,7 @@
 @inject UserManager<UserModel> UserManager
 @inject ApplicationDbContext _db
 @{
+    UserLimitModel? userLimit = null;
     var systemSettings = _db.GetSystemSettings();
     var appTitle = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingTitle : "kate.FileShare";
     var footer = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingFooter : "Powered by kate.FileShare";
@@ -22,10 +23,24 @@
                 bootstrapThemeAttributeValue = "dark";
             }
         }
+        userLimit = user?.Limit;
 
         if (currentTheme == "dark" || currentTheme == "light")
         {
             bootstrapThemeAttributeValue = currentTheme;
+        }
+    }
+
+    string? userQuotaValue = "null";
+    if (systemSettings.EnableQuota)
+    {
+        if (userLimit?.MaxFileSize != null)
+        {
+            userQuotaValue = $"parseInt('{userLimit?.MaxFileSize}')";
+        }
+        else if (systemSettings.DefaultUploadQuotaReal > -1)
+        {
+            userQuotaValue = $"'parseInt({systemSettings.DefaultUploadQuotaReal})'";
         }
     }
 }
@@ -41,6 +56,7 @@
             @Html.Raw($"- {a}")
         }
     </title>
+    <link rel="stylesheet" href="~/lib/dropzone/css/dropzone.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
     @if (currentTheme == "2010")
@@ -48,6 +64,11 @@
         <link rel="stylesheet" href="~/css/theme-2010.css" asp-append-version="true"/>
     }
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <script type="text/javascript">
+        window.UserLimits = {
+            MaxUploadQuota: @(systemSettings.EnableQuota ? "null" : (userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal)?.ToString() ?? "null")
+        };
+    </script>
 </head>
 <body>
 <header>
@@ -91,6 +112,7 @@
 </footer>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/dropzone/js/dropzone.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
