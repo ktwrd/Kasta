@@ -1,4 +1,4 @@
-﻿using Kasta.Web.Data.Models;
+﻿using Kasta.Data.Models;
 
 namespace Kasta.Web.Models;
 

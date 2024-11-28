@@ -1,7 +1,7 @@
 using Amazon.S3.Model;
-using Kasta.Web.Data;
-using Kasta.Web.Data.Models;
-using Kasta.Web.Data.Models.Audit;
+using Kasta.Data;
+using Kasta.Data.Models;
+using Kasta.Data.Models.Audit;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 

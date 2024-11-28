@@ -1,8 +1,10 @@
+using Kasta.Data;
+using Kasta.Data.Models;
+using Kasta.Data;
+using Kasta.Data.Models;
 using Kasta.Shared;
-using Microsoft.EntityFrameworkCore;
-using Kasta.Web.Data;
-using Kasta.Web.Data.Models;
 using Kasta.Web.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web;
 

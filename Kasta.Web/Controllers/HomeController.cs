@@ -2,9 +2,9 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Kasta.Web.Models;
 using Kasta.Web.Services;
-using Kasta.Web.Data.Models;
+using Kasta.Data.Models;
 using Microsoft.AspNetCore.Identity;
-using Kasta.Web.Data;
+using Kasta.Data;
 using Kasta.Web.Helpers;
 using Microsoft.EntityFrameworkCore;
 

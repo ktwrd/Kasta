@@ -1,6 +1,6 @@
 ﻿using ImageMagick;
-using Kasta.Web.Data;
-using Kasta.Web.Data.Models;
+using Kasta.Data;
+using Kasta.Data.Models;
 
 namespace Kasta.Web.Services;
 

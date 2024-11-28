@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using Kasta.Web.Data;
-using Kasta.Web.Data.Models;
+using Kasta.Data;
+using Kasta.Data.Models;
 using Kasta.Web.Helpers;
 
 namespace Kasta.Web.Models;

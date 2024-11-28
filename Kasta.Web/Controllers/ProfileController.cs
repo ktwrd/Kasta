@@ -1,5 +1,5 @@
-﻿using Kasta.Web.Data;
-using Kasta.Web.Data.Models;
+﻿using Kasta.Data;
+using Kasta.Data.Models;
 using Kasta.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

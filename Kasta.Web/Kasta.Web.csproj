@@ -30,6 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Kasta.Data\Kasta.Data.csproj" />
       <ProjectReference Include="..\Kasta.Shared\Kasta.Shared.csproj" />
     </ItemGroup>
 
