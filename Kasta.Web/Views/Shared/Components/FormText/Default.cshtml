@@ -1,0 +1,20 @@
+@using Kasta.Web.Models.Components
+@model FormTextComponentViewModel
+
+@if (!string.IsNullOrEmpty(Model.DisplayName))
+{
+    <label class="form-label" for="@Model.Id">@Model.DisplayName</label>
+}
+<input type="text"
+        class="form-control @(Model.ExtraClass ?? string.Empty)"
+        id="@Model.Id" name="@Model.Name"
+        value="@(Model.Value ?? string.Empty)"
+        form="@Model.ParentFormId"
+        placeholder="@(Model.Placeholder ?? string.Empty)"
+        readonly="@Model.ReadOnly"
+        @(Model.Required ? "required" : "") 
+        @(Model.Disabled ? "disabled" : "") />
+@if (!string.IsNullOrEmpty(Model.HelpText))
+{
+    <div id="@(Model.Id)Help" class="form-text">@Model.HelpText</div>
+}

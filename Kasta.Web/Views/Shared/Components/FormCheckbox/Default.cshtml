@@ -1,0 +1,10 @@
+@using Kasta.Web.Models.Components
+@model FormCheckboxComponentViewModel
+
+
+<div class="@Model.CalculatedClasses">
+    <input class="form-check-input" type="checkbox" value="true" id="@Model.Id" name="@Model.Name" checked="@Model.State" form="@Model.ParentFormId" role="@Model.CheckboxRole"/>
+    <label class="form-check-label" for="@Model.Id">
+        @Model.Label
+    </label>
+</div>
