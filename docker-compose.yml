@@ -3,3 +3,25 @@
     build:
       context: .
       dockerfile: Kasta.Web/Dockerfile
+    environment:
+      DATABASE_CONNECTION_STRING: "Host=db:5432;Database=kasta;Username=kasta;Password=changeme123"
+      DeploymentEndpoint: "https://kasta.example.com"
+      S3_ServiceUrl: "http://s3.us-east-1.amazonaws.com"
+      S3_AccessKey: "xxxxxx"
+      S3_AccessSecret: "xxxxxx"
+      S3_Bucket: "my-kasta-bucket"
+    depends_on:
+      - db
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: changeme123
+      POSTGRES_USER: kasta
+      POSTGRES_DB: kasta
+    logging:
+      driver: "none"
+    restart: unless-stopped
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+volumes:
+  local_pgdata:
