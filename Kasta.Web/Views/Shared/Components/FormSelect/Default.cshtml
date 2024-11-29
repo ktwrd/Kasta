@@ -1,0 +1,53 @@
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
+@using Markdig
+@model FormSelectComponentViewModel
+
+@if (!string.IsNullOrEmpty(Model.Label))
+{
+    <label for="@Model.Id" class="form-label">@Model.Label</label>
+}
+<select name="@Model.Name" id="@Model.Id" form="@Model.ParentFormId" class="form-select" aria-label="@Model.Label"
+    @(Model.Disabled ? "disabled" : "")
+    @(Model.Required ? "required" : "")
+    @(Model.Multiple ? "multiple" : "")>
+    @foreach (var item in Model.Items)
+    {
+        if (Model.SelectedValues.Contains(item.Value))
+        {
+            if (item.Disabled)
+            {
+                <option value="@item.Value" disabled selected>
+                    @item.Label
+                </option>
+            }
+            else
+            {
+                <option value="@item.Value" selected>
+                    @item.Label
+                </option>
+            }
+        }
+        else
+        {
+            if (item.Disabled)
+            {
+                <option value="@item.Value" disabled>
+                    @item.Label
+                </option>
+            }
+            else
+            {
+                <option value="@item.Value">
+                    @item.Label
+                </option>
+            }
+        }
+    }
+</select>
+@if (!string.IsNullOrEmpty(Model.HelpText))
+{
+    <div class="form-text" id="@(Model.Id)Help">
+        @KastaWebHelper.MarkdownToHtmlBasic(Model.HelpText)
+    </div>
+}
