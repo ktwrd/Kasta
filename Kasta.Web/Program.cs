@@ -2,6 +2,7 @@ using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Services;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web;
@@ -38,6 +39,7 @@ public class Program
         {
             options.Filters.Add(new BlockUserRegisterAttribute());
         });
+        object value = builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
 
         var app = builder.Build();
 

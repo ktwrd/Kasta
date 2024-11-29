@@ -1,11 +1,12 @@
 ﻿using Kasta.Data.Models;
 using Kasta.Data.Models.Audit;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Data;
 
-public class ApplicationDbContext : IdentityDbContext<UserModel>
+public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyContext
 {
     private readonly DbContextOptions<ApplicationDbContext> _ops;
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -16,6 +17,9 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
     {
         return new(_ops);
     }
+    #region IDataProtectionKeyContext
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+    #endregion
     
     public DbSet<UserLimitModel> UserLimits { get; set; }
     public DbSet<PreferencesModel> Preferences { get; set; }
