@@ -20,7 +20,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
     #region IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     #endregion
-    
+    public DbSet<UserSettingModel> UserSettings { get; set; }
     public DbSet<UserLimitModel> UserLimits { get; set; }
     public DbSet<PreferencesModel> Preferences { get; set; }
     public DbSet<FileModel> Files { get; set; }
@@ -96,6 +96,64 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         }
         return target;
     }
+    public UserSettingModel GetUserSettings(UserModel user)
+    {
+        var r = UserSettings.Where(e => e.Id == user.Id).FirstOrDefault();
+        if (r == null)
+        {
+            using (var ctx = CreateSession())
+            {
+                using (var transaction = ctx.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        r = new UserSettingModel()
+                        {
+                            Id = user.Id
+                        };
+                        ctx.UserSettings.Add(r);
+                        ctx.SaveChanges();
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+        return r;
+    }
+    public async Task<UserSettingModel> GetUserSettingsAsync(UserModel user)
+    {
+        var r = await UserSettings.Where(e => e.Id == user.Id).FirstOrDefaultAsync();
+        if (r == null)
+        {
+            using (var ctx = CreateSession())
+            {
+                using (var transaction = ctx.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        r = new UserSettingModel()
+                        {
+                            Id = user.Id
+                        };
+                        await ctx.UserSettings.AddAsync(r);
+                        await ctx.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
+                }
+            }
+        }
+        return r;
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -112,6 +170,9 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         builder.Entity<UserLimitModel>()
             .ToTable(UserLimitModel.TableName)
             .HasKey(e => e.UserId);
+        builder.Entity<UserSettingModel>()
+            .ToTable(UserSettingModel.TableName)
+            .HasKey(e => e.Id);
         builder.Entity<PreferencesModel>()
             .ToTable(PreferencesModel.TableName)
             .HasKey(b => b.Key);
@@ -122,6 +183,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                 b.HasOne(e => e.Limit)
                     .WithOne(e => e.User)
                     .HasForeignKey<UserLimitModel>(e => e.UserId)
+                    .IsRequired(false);
+                b.HasOne(e => e.Settings)
+                    .WithOne(e => e.User)
+                    .HasForeignKey<UserSettingModel>(e => e.Id)
                     .IsRequired(false);
             });
 

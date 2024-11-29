@@ -14,4 +14,6 @@ public class UserModel : IdentityUser
 
     [MaxLength(100)]
     public string? ThemeName { get; set; }
+
+    public UserSettingModel? Settings { get; set; }
 }
