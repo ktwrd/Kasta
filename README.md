@@ -5,6 +5,7 @@ A Simple self-hostable File Sharing Service written in C#. Supports displaying m
 - User Management
 - User Registration
 - 2FA
+- Config Generator for ShareX
 - Compatible with AWS S3 and S3-Compatible Services (like Cloudflare R2 and MinIO)
 - Web File Upload
 - Audit Logging
