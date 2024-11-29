@@ -1,16 +1,33 @@
 ﻿@using Kasta.Data.Models
+@using Kasta.Web.Models.Components
 @model UserModel
 
 @{
     ViewBag.Title = "Profile";
     Layout = "_Layout";
 
-    var themeValues = new List<(string, string)>()
+    var themeValues = new List<FormSelectItem>()
     {
-        ("", "None Selected"),
-        ("dark", "Dark"),
-        ("light", "Light"),
-        ("2010", "2010 Theme"),
+        new()
+        {
+            Value = "",
+            Label = "Default"
+        },
+        new()
+        {
+            Value = "dark",
+            Label = "Dark"
+        },
+        new()
+        {
+            Value = "light",
+            Label = "Light"
+        },
+        new()
+        {
+            Value = "2010",
+            Label = "2010 Theme"
+        }
     };
 }
 
@@ -20,20 +37,15 @@
             <div class="card-body">
                 <form asp-controller="Profile" asp-action="Save" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label for="ThemeName" class="form-label">Theme</label>
-                        <select name="ThemeName" class="form-select" id="ThemeName">
-                            @foreach (var (k, v) in themeValues)
-                            {
-                                if (k == @Model.ThemeName || (string.IsNullOrEmpty(Model.ThemeName) && k == ""))
-                                {
-                                    <option value="@k" selected>@v</option>
-                                }
-                                else
-                                {
-                                    <option value="@k">@v</option>
-                                }
-                            }
-                        </select>
+                        @await Component.InvokeAsync("FormSelect", new FormSelectComponentViewModel()
+                        {
+                            Name = "ThemeName",
+                            Id = "themeName",
+                            Label = "Theme",
+                            Multiple = false,
+                            Items = themeValues,
+                            SelectedValue = string.IsNullOrEmpty(Model.ThemeName) ? "" : Model.ThemeName
+                        })
                     </div>
                     <hr/>
                     <button type="submit" class="btn btn-primary">Save</button>
