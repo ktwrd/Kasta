@@ -1,6 +1,7 @@
 ﻿@using Kasta.Data.Models
+@using Kasta.Web.Models
 @using Kasta.Web.Models.Components
-@model UserModel
+@model ProfileViewModel
 
 @{
     ViewBag.Title = "Profile";
@@ -39,14 +40,23 @@
                     <div class="mb-3">
                         @await Component.InvokeAsync("FormSelect", new FormSelectComponentViewModel()
                         {
-                            Name = "ThemeName",
+                            Name = nameof(Model.Settings.ThemeName),
                             Id = "themeName",
                             Label = "Theme",
                             Multiple = false,
                             Items = themeValues,
-                            SelectedValue = string.IsNullOrEmpty(Model.ThemeName) ? "" : Model.ThemeName
+                            SelectedValue = string.IsNullOrEmpty(Model.Settings.ThemeName) ? "" : Model.Settings.ThemeName
                         })
                     </div>
+                    @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                    {
+                        Name = nameof(Model.Settings.ShowFilePreviewInHome),
+                        Id = "showFilePreviewInHome",
+                        Label = "Show File Preview in File List",
+                        State = Model.Settings.ShowFilePreviewInHome,
+                        HelpText = "File Previews will still be generated (if possible), but preview images will not be shown in the file list.",
+                        Margin = true
+                    })
                     <hr/>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </form>

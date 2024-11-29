@@ -16,10 +16,11 @@
     if (SignInManager.IsSignedIn(User))
     {
         var user = await UserManager.GetUserAsync(User);
+        var settings = await _db.GetUserSettingsAsync(user!);
         isAdmin = user?.IsAdmin ?? false;
-        if (!string.IsNullOrEmpty(user?.ThemeName))
+        if (!string.IsNullOrEmpty(settings.ThemeName))
         {
-            currentTheme = user.ThemeName!.Trim().ToLower();
+            currentTheme = settings.ThemeName.Trim().ToLower();
             if (currentTheme == "2010")
             {
                 bootstrapThemeAttributeValue = "dark";

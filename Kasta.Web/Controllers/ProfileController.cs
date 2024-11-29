@@ -22,7 +22,17 @@ public class ProfileController : Controller
     public async Task<IActionResult> Index()
     {
         var user = await _userManager.GetUserAsync(User);
-        return View("Index", user);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"Cannot view profile when user is null");
+        }
+        var settings = await _db.GetUserSettingsAsync(user);
+        var vm = new ProfileViewModel()
+        {
+            User = user,
+            Settings = settings
+        };
+        return View("Index", vm);
     }
 
     [AuthRequired]
@@ -41,14 +51,10 @@ public class ProfileController : Controller
         var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {
-            var userModel = await ctx.Users.Where(e => e.Id == currentUser.Id).FirstAsync();
-            if (userModel == null)
-            {
-                throw new InvalidOperationException(
-                    $"User returned null from {_db.Users.GetType()} (where Id = {currentUser.Id})");
-            }
+            var settings = await ctx.GetUserSettingsAsync(currentUser);
 
-            userModel.ThemeName = data.ThemeName;
+            settings.ThemeName = data.ThemeName;
+            settings.ShowFilePreviewInHome = data.ShowFilePreviewInHome;
             
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();

@@ -12,6 +12,7 @@
     ViewData["Title"] = "Files";
     Layout = "_Layout";
     var userModel = await UserManager.GetUserAsync(User);
+    var userSetting = await _db.GetUserSettingsAsync(userModel!);
 }
 
 <div class="card shadow-sm">
@@ -25,6 +26,7 @@
                 <th>Space Available</th>
                 <td>@Model.SpaceAvailable</td>
             }
+            </tr>
         </table>
         
         <div class="row">
@@ -69,7 +71,7 @@
         <table class="table">
             <thead>
             <tr>
-                <th colspan="2">Filename</th>
+                    <th colspan="2">Filename</th>
                 <th>Size</th>
                 <th>Created At</th>
                 <th></th>
@@ -88,10 +90,12 @@
                 var linkUrl = file.GetDetailsUrl();
 
                 <tr>
-                    @if (previewUrl != null)
+                    @if (previewUrl != null && userSetting.ShowFilePreviewInHome)
                     {
                         <td>
-                            <center><img src="@previewUrl" style="max-height: 50px;" alt="Preview of image." height="50"/></center>
+                            <center>
+                                <img src="@previewUrl" style="max-height: 50px;" alt="Preview of image." height="50"/>
+                            </center>
                         </td>
                     }
                     else
