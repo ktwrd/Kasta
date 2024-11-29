@@ -1,4 +1,4 @@
-using Kasta.Data;
+﻿using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Helpers;
@@ -17,6 +17,7 @@ public class ApiFileController : Controller
     private readonly UploadService _uploadService;
     private readonly ApplicationDbContext _db;
     private readonly UserManager<UserModel> _userManager;
+    private readonly FileService _fileService;
 
     private readonly ILogger<ApiFileController> _logger;
     
@@ -28,6 +29,7 @@ public class ApiFileController : Controller
         _uploadService = services.GetRequiredService<UploadService>();
         _db = services.GetRequiredService<ApplicationDbContext>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
+        _fileService = services.GetRequiredService<FileService>();
         
         _logger = logger;
     }
@@ -145,6 +147,48 @@ public class ApiFileController : Controller
         });
     }
     
+    [HttpGet("~/api/v1/File/{id}/Delete")]
+    [HttpDelete("~/api/v1/File/{id}/Delete")]
+    [HttpPost("~/api/v1/File/{id}/Delete")]
+    public async Task<IActionResult> Delete(string id, [FromQuery] string? token = null)
+    {
+        var user = await _userManager.GetUserAsync(HttpContext.User);
+        if (user == null && !string.IsNullOrEmpty(token))
+        {
+            var u = await _db.UserApiKeys.Where(e => e.Token == token).Include(e => e.User).FirstOrDefaultAsync();
+            if (u != null)
+            {
+                user = u.User;
+            }
+        }
+        if (user == null)
+        {
+            return new JsonResult(new JsonErrorResponseModel()
+            {
+                Message = "Not Authorized"
+            });
+        }
+        var file = await _db.Files.Where(v => v.Id == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
+        file ??= await _db.Files.Where(v => v.ShortUrl == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
+        if (file == null)
+        {
+            Response.StatusCode = 404;
+            return Json(new JsonErrorResponseModel()
+            {
+                Message = "File Not Found"
+            });
+        }
+        if (file.CreatedByUserId != user.Id && !user.IsAdmin)
+        {
+            Response.StatusCode = 403;
+            return Json(new JsonErrorResponseModel()
+            {
+                Message = "Not Authorized"
+            });
+        }
+        await _fileService.DeleteFile(user, file);
+        return new EmptyResult();
+    }
     
     [AuthRequired]
     [HttpPost("~/api/v1/File/Upload/Chunk/StartSession")]
