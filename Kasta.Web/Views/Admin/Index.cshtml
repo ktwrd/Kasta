@@ -41,18 +41,21 @@
                     <div class="col-auto">
                         <table>
                             <tr>
-                                <th colspan="2">Files</th>
+                                <th>Files</th>
                             </tr>
                             <tr>
-                                <td colspan="2">@Model.FileCount</td>
+                                <td>@Model.FileCount</td>
                             </tr>
-                            @if (Model.OrphanFileCount > 0)
-                            {
-                                <tr>
-                                    <th>Orphans</th>
-                                    <td>@Model.OrphanFileCount</td>
-                                </tr>
-                            }
+                        </table>
+                    </div>
+                    <div class="col-auto">
+                        <table>
+                            <tr>
+                                <th>Orphaned Files</th>
+                            </tr>
+                            <tr>
+                                <td>@Model.OrphanFileCount</td>
+                            </tr>
                         </table>
                     </div>
                     <div class="col-auto">
