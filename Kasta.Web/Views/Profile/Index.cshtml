@@ -59,9 +59,13 @@
                     })
                     <hr/>
                     <button type="submit" class="btn btn-primary">Save</button>
+                    <hr/>
+                    <div class="btn-group">
+                        <a asp-controller="Profile" asp-action="GenerateShareXConfig" class="btn btn-primary">Get ShareX Config</a>
+                        <a asp-controller="Profile" asp-action="DeleteAllApiKeys" class="btn btn-danger">Delete all API Keys</a>
+                    </div>
                 </form>
             </div>
         </div>
-
     </div>
 </div>
