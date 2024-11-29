@@ -17,4 +17,10 @@ public class UserLimitModel
 
     [DefaultValue(0)]
     public long SpaceUsed { get; set; }
+
+    /// <summary>
+    /// Space used for file previews.
+    /// </summary>
+    [DefaultValue(0)]
+    public long PreviewSpaceUsed { get; set; }
 }

@@ -180,15 +180,16 @@ public class FileService
 
         try
         {
-            var files = await ctx.Files.Where(e => e.CreatedByUserId == user.Id)
+            var totalSpace = await ctx.Files.Where(e => e.CreatedByUserId == user.Id)
                 .Include(e => e.Preview)
                 .Select(e => e.Size + (e.Preview == null ? 0 : e.Preview.Size))
-                .ToListAsync();
-            long size = 0;
-            foreach (var i in files)
-            {
-                size += Math.Max(i, 0);
-            }
+                .SumAsync();
+            var previewSpace = await ctx.Files
+                .Where(e => e.CreatedByUserId == user.Id)
+                .Where(e => e.Preview != null)
+                .Include(e => e.Preview)
+                .Select(e => e.Preview!.Size)
+                .SumAsync();
 
             var limitModel = await ctx.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
             if (limitModel == null)
@@ -199,7 +200,8 @@ public class FileService
                 };
                 await ctx.UserLimits.AddAsync(limitModel);
             }
-            limitModel.SpaceUsed = size;
+            limitModel.SpaceUsed = totalSpace;
+            limitModel.PreviewSpaceUsed = previewSpace;
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();
         }
