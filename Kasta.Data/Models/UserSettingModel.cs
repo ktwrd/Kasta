@@ -22,5 +22,5 @@ public class UserSettingModel
     public string? ThemeName { get; set; }
 
     [DefaultValue(true)]
-    public bool ShowFilePreviewInHome { get; set; }
+    public bool ShowFilePreviewInHome { get; set; } = true;
 }
