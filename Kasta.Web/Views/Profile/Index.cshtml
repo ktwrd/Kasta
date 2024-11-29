@@ -24,14 +24,14 @@
                         <select name="ThemeName" class="form-select" id="ThemeName">
                             @foreach (var (k, v) in themeValues)
                             {
-                            if (v == @Model.ThemeName || (string.IsNullOrEmpty(Model.ThemeName) && k == ""))
-                            {
-                            <option value="@k" selected>@v</option>
-                            }
-                            else
-                            {
-                            <option value="@k">@v</option>
-                            }
+                                if (k == @Model.ThemeName || (string.IsNullOrEmpty(Model.ThemeName) && k == ""))
+                                {
+                                    <option value="@k" selected>@v</option>
+                                }
+                                else
+                                {
+                                    <option value="@k">@v</option>
+                                }
                             }
                         </select>
                     </div>
