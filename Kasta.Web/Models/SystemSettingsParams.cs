@@ -13,8 +13,6 @@ public class SystemSettingsParams
     public bool EnableEmbeds { get; set; } = true;
     [DefaultValue(false)]
     public bool EnableCustomBranding { get; set; } = false;
-    [DefaultValue("Powered by Kasta")]
-    public string CustomBrandingFooter { get; set; } = "Powered by Kasta";
     [DefaultValue("Kasta")]
     public string CustomBrandingTitle { get; set; } = "Kasta";
     [DefaultValue(false)]
@@ -63,9 +61,6 @@ public class SystemSettingsParams
         var customBrandEnable = GetPreferenceModel(db, "customBrandEnable");
         customBrandEnable.Set(EnableCustomBranding);
 
-        var customBrandFooter = GetPreferenceModel(db, "customBrandFooter");
-        customBrandFooter.Set(CustomBrandingFooter);
-
         var customBrandTitle = GetPreferenceModel(db, "customBrandTitle");
         customBrandTitle.Set(CustomBrandingTitle);
 
@@ -89,9 +84,6 @@ public class SystemSettingsParams
 
         var customBrandEnable = GetPreferenceModel(db, "customBrandEnable");
         EnableCustomBranding = customBrandEnable.GetBool(false);
-
-        var customBrandFooter = GetPreferenceModel(db, "customBrandFooter");
-        CustomBrandingFooter = customBrandFooter.GetString(null) ?? "";
 
         var customBrandTitle = GetPreferenceModel(db, "customBrandTitle");
         CustomBrandingTitle = string.IsNullOrEmpty(customBrandTitle.Value) ? "Kasta.Web" : customBrandTitle.GetString("Kasta.Web") ?? "Kasta.Web";

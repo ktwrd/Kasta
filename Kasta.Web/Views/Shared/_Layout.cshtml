@@ -10,7 +10,6 @@
     UserLimitModel? userLimit = null;
     var systemSettings = _db.GetSystemSettings();
     var appTitle = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingTitle : "Kasta";
-    var footer = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingFooter : "Powered by Kasta";
     string bootstrapThemeAttributeValue = "auto";
     string currentTheme = "";
     bool isAdmin = false;
@@ -45,6 +44,33 @@
         {
             userQuotaValue = $"'parseInt({systemSettings.DefaultUploadQuotaReal})'";
         }
+    }
+
+    string versionString = "";
+    var ver = typeof(Kasta.Web.Program).Assembly.GetName().Version;
+    if (ver != null)
+    {
+        if (ver.Revision > 0 && ver.Build > 0 && ver.Minor > 0)
+        {
+            versionString = ver.ToString();
+        }
+        else if (ver.Revision <= 0 && ver.Build > 0 && ver.Minor > 0)
+        {
+            versionString = $"{ver.Major}.{ver.Minor}.{ver.Build}";
+        }
+        else if (ver.Revision <= 0 && ver.Build <= 0 && ver.Minor > 0)
+        {
+            versionString = $"{ver.Major}.{ver.Minor}";
+        }
+        else if (ver.Revision <= 0 && ver.Build <= 0 && ver.Minor <= 0)
+        {
+            versionString = $"{ver.Major}";
+        }
+        else
+        {
+            versionString = ver.ToString();
+        }
+        versionString = $"v{versionString}";
     }
 }
 <!DOCTYPE html>
@@ -88,7 +114,10 @@
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house-door"></i>
+                            Home
+                        </a>
                     </li>
                     @if (isAdmin)
                     {
@@ -117,14 +146,13 @@
     </main>
 </div>
 
-<footer class="border-top footer text-muted">
-    <div class="container">
-        @if (!string.IsNullOrEmpty(footer))
-        {
-            @footer
-        }
+<div class="container-fluid footer">
+    <div class="text-muted">
+        Powered by <a href="https://github.com/ktwrd/Kasta">Kasta @(versionString)</a>
+        &bull;
+        <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html">GPL v2</a>
     </div>
-</footer>
+</div>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/lib/dropzone/js/dropzone.min.js"></script>
