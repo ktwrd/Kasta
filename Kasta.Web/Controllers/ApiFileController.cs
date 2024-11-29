@@ -1,4 +1,4 @@
-﻿using Kasta.Data;
+using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Helpers;
@@ -76,14 +76,24 @@ public class ApiFileController : Controller
         };
     }
     
-    [AuthRequired]
     [HttpPost("~/api/v1/File/Upload/Form")]
-    public async Task<IActionResult> UploadBasic(IFormFile file)
+    public async Task<IActionResult> UploadBasic(IFormFile file, [FromForm] string? filename = null, [FromForm] string? token = null)
     {
         var user = await _userManager.GetUserAsync(HttpContext.User);
+        if (user == null && !string.IsNullOrEmpty(token))
+        {
+            var u = await _db.UserApiKeys.Where(e => e.Token == token).Include(e => e.User).FirstOrDefaultAsync();
+            if (u != null)
+            {
+                user = u.User;
+            }
+        }
         if (user == null)
         {
-            throw new InvalidOperationException($"Unable to fetch User model even though user is logged in?");
+            return new JsonResult(new JsonErrorResponseModel()
+            {
+                Message = "Not Authorized"
+            });
         }
 
         var userLimit = await _db.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
@@ -115,13 +125,20 @@ public class ApiFileController : Controller
         FileModel data;
         using (var stream = file.OpenReadStream())
         {
-            data = await _uploadService.UploadBasicAsync(user, stream, file.FileName, file.Length);
+            string fn = file.FileName;
+            if (!string.IsNullOrEmpty(filename))
+            {
+                fn = filename;
+            }
+            data = await _uploadService.UploadBasicAsync(user, stream, fn, file.Length);
         }
 
         return Json(new FileJsonResponseModel()
         {
             Id = data.Id,
             Url = $"{FeatureFlags.Endpoint}/f/{data.ShortUrl}",
+            DetailsUrl = $"{FeatureFlags.Endpoint}/d/{data.ShortUrl}",
+            DeleteUrl = $"{FeatureFlags.Endpoint}/api/v1/File/{data.Id}/Delete",
             Filename = data.Filename,
             FileSize = data.Size,
             CreatedAtTimestamp = data.CreatedAt.ToUnixTimeSeconds()
