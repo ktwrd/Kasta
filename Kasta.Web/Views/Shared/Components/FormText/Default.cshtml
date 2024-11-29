@@ -1,4 +1,6 @@
+@using Kasta.Web.Helpers
 @using Kasta.Web.Models.Components
+@using Markdig
 @model FormTextComponentViewModel
 
 @if (!string.IsNullOrEmpty(Model.DisplayName))
@@ -16,5 +18,7 @@
         @(Model.Disabled ? "disabled" : "") />
 @if (!string.IsNullOrEmpty(Model.HelpText))
 {
-    <div id="@(Model.Id)Help" class="form-text">@Model.HelpText</div>
+    <div id="@(Model.Id)Help" class="form-text">
+        @KastaWebHelper.MarkdownToHtmlBasic(Model.HelpText)
+    </div>
 }
