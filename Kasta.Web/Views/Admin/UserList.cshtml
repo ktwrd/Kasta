@@ -6,7 +6,6 @@
 @{
     ViewData["Title"] = "Users - Admin";
     Layout = "_Layout";
-    var headerRowspan = Model.SystemSettings.EnableQuota ? "2" : "1";
 }
 
 <div class="card shadow-sm">
@@ -14,17 +13,17 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th rowspan="@headerRowspan">ID</th>
-                    <th rowspan="@headerRowspan">Username</th>
-                    <th rowspan="@headerRowspan">Email</th>
-                    <th rowspan="@headerRowspan">2FA</th>
-                    <th rowspan="@headerRowspan">Lockout Enabled?</th>
-                    <th rowspan="@headerRowspan">Failed Login Attempts</th>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>2FA</th>
+                    <th>Lockout Enabled?</th>
+                    <th>Failed Login Attempts</th>
                     @if (Model.SystemSettings.EnableQuota)
                     {
                         <th colspan="2"><center>Limits</center></th>
                     }
-                    <th rowspan="@headerRowspan">Theme</th>
+                    <th>Theme</th>
                 </tr>
                 @if (Model.SystemSettings.EnableQuota)
                 {
