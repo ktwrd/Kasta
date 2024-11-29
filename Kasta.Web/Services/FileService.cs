@@ -40,7 +40,7 @@ public class FileService
         foreach (var prop in typeof(T).GetProperties())
         {
             var propTypeStr = prop.PropertyType.ToString();
-            if (propTypeStr.StartsWith("System.Collections") || propTypeStr.StartsWith("Kasta.Web.Data.Models") || propTypeStr.StartsWith(nameof(NpgsqlTypes)))
+            if (propTypeStr.StartsWith("System.Collections") || propTypeStr.StartsWith("Kasta.Data.Models") || propTypeStr.StartsWith("Kasta.Web.Models") || propTypeStr.StartsWith(nameof(NpgsqlTypes)))
                 continue;
             var value = prop.GetValue(obj);
 
@@ -61,7 +61,8 @@ public class FileService
 
             || prop.PropertyType == typeof(float)
             || prop.PropertyType == typeof(double)
-            || prop.PropertyType == typeof(decimal))
+            || prop.PropertyType == typeof(decimal)
+            || prop.PropertyType == typeof(bool))
             {
                 stringValue = value?.ToString();
             }
