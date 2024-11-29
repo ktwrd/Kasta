@@ -1,7 +1,5 @@
 using Kasta.Data;
 using Kasta.Data.Models;
-using Kasta.Data;
-using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Services;
 using Microsoft.EntityFrameworkCore;
