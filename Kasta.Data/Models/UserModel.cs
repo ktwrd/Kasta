@@ -16,4 +16,5 @@ public class UserModel : IdentityUser
     public string? ThemeName { get; set; }
 
     public UserSettingModel? Settings { get; set; }
+    public List<UserApiKeyModel> ApiKeys { get; set; } = [];
 }

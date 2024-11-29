@@ -20,6 +20,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
     #region IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     #endregion
+    public DbSet<UserApiKeyModel> UserApiKeys { get; set; }
     public DbSet<UserSettingModel> UserSettings { get; set; }
     public DbSet<UserLimitModel> UserLimits { get; set; }
     public DbSet<PreferencesModel> Preferences { get; set; }
@@ -188,6 +189,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                     .WithOne(e => e.User)
                     .HasForeignKey<UserSettingModel>(e => e.Id)
                     .IsRequired(false);
+                b.HasMany(e => e.ApiKeys)
+                    .WithOne(e => e.User)
+                    .HasForeignKey(e => e.UserId)
+                    .IsRequired(true);
             });
 
         builder.Entity<FileModel>(
@@ -220,6 +225,18 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                     .HasForeignKey<S3FileInformationModel>(e => e.Id)
                     .IsRequired(false);
             });
+        builder.Entity<UserApiKeyModel>(b =>
+        {
+            b.ToTable(UserApiKeyModel.TableName)
+             .HasKey(e => e.Id);
+            b.HasIndex(e => e.Token).IsUnique(true);
+            b.HasIndex(e => e.UserId).IsUnique(false);
+            b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
+            b.HasOne(e => e.CreatedByUser)
+                .WithOne()
+                .HasForeignKey<UserApiKeyModel>(e => e.CreatedByUserId)
+                .IsRequired(false);
+        });
         builder.Entity<S3FileInformationModel>(
             b =>
             {

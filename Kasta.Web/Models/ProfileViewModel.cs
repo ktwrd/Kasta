@@ -6,4 +6,6 @@ public class ProfileViewModel
 {
     public UserModel User { get; set; }
     public UserSettingModel Settings { get; set; }
+
+    public List<UserApiKeyModel> ApiKeys { get; set; } = [];
 }

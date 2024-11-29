@@ -1,5 +1,8 @@
-﻿using Kasta.Data;
+﻿using System.Text;
+using System.Text.Json;
+using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Shared;
 using Kasta.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -27,10 +30,12 @@ public class ProfileController : Controller
             throw new InvalidOperationException($"Cannot view profile when user is null");
         }
         var settings = await _db.GetUserSettingsAsync(user);
+        var keys = await _db.UserApiKeys.Where(e => e.UserId == user.Id).ToListAsync();
         var vm = new ProfileViewModel()
         {
             User = user,
-            Settings = settings
+            Settings = settings,
+            ApiKeys = keys
         };
         return View("Index", vm);
     }
@@ -66,6 +71,95 @@ public class ProfileController : Controller
             throw;
         }
         
+        return new RedirectToActionResult(nameof(Index), "Profile", null);
+    }
+
+    [AuthRequired]
+    [HttpGet]
+    public async Task<IActionResult> GenerateShareXConfig()
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null)
+        {
+            throw new InvalidOperationException(
+                $"User returned null from {typeof(UserManager<UserModel>)} (method: {nameof(_userManager.GetUserAsync)})");
+        }
+
+        var apiKey = new UserApiKeyModel()
+        {
+            UserId = currentUser.Id,
+            CreatedByUserId = currentUser.Id,
+            Purpose = "Generate ShareX Config (from Profile)"
+        };
+
+        var data = new Dictionary<string, object>()
+        {
+            {"DestinationType", "ImageUploader, FileUploader"},
+            {"RequestURL", $"{FeatureFlags.Endpoint}/api/v1/File/Upload/Form"},
+            {"FileFormName", "file"},
+            {"Arguments", new Dictionary<string, object>()
+            {
+                {"filename", "$filename$"},
+                {"token", apiKey.Token}
+            }},
+            {"URL", "$json:urlDetail$"},
+            {"ThumbnailURL", "$json:url$"},
+            {"DeletionURL", "$json:urlDelete$?token=" + apiKey.Token},
+        };
+        var fileContent = JsonSerializer.Serialize(data, new JsonSerializerOptions()
+        {
+            IncludeFields = true,
+            WriteIndented = true
+        });
+        var ms = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+        using (var ctx = _db.CreateSession())
+        {
+            using (var trans = ctx.Database.BeginTransaction())
+            {
+                try
+                {
+                    await ctx.UserApiKeys.AddAsync(apiKey);
+                    trans.Commit();
+                    ctx.SaveChanges();
+                }
+                catch
+                {
+                    trans.Rollback();
+                }
+            }
+        }
+        return new FileStreamResult(ms, "application/json")
+        {
+            FileDownloadName = $"{currentUser.UserName}-ShareX.sxcu"
+        };
+    }
+
+    [AuthRequired]
+    [HttpGet]
+    public async Task<IActionResult> DeleteAllApiKeys()
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null)
+        {
+            throw new InvalidOperationException(
+                $"User returned null from {typeof(UserManager<UserModel>)} (method: {nameof(_userManager.GetUserAsync)})");
+        }
+
+        using (var ctx = _db.CreateSession())
+        {
+            using var trans = ctx.Database.BeginTransaction();
+            try
+            {
+                await ctx.UserApiKeys.Where(e => e.UserId == currentUser.Id).ExecuteDeleteAsync();
+                trans.Commit();
+                ctx.SaveChanges();
+            }
+            catch
+            {
+                trans.Rollback();
+                throw;
+            }
+        }
         return new RedirectToActionResult(nameof(Index), "Profile", null);
     }
 }
