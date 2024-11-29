@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Kasta.Web.Models.Admin;
 using Microsoft.EntityFrameworkCore;
+using Kasta.Web.Services;
 
 namespace Kasta.Web.Controllers;
 
@@ -14,6 +15,7 @@ namespace Kasta.Web.Controllers;
 public class AdminController : Controller
 {
     private readonly ApplicationDbContext _db;
+    private readonly FileService _fileService;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly UserManager<UserModel> _userManager;
     
@@ -21,6 +23,7 @@ public class AdminController : Controller
         : base()
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
+        _fileService = services.GetRequiredService<FileService>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
     }
@@ -35,6 +38,17 @@ public class AdminController : Controller
         }
         var model = new AdminIndexViewModel();
         model.SystemSettings = _db.GetSystemSettings();
+        model.UserCount = _db.Users.Count();
+
+        var spaceUsedValue = _db.UserLimits.Select(e => e.SpaceUsed).Sum();
+        model.TotalSpaceUsed = SizeHelper.BytesToString(spaceUsedValue);
+
+        var previewSpaceUsedValue = _db.UserLimits.Select(e => e.PreviewSpaceUsed).Sum();
+        model.TotalPreviewSpaceUsed = SizeHelper.BytesToString(previewSpaceUsedValue);
+
+        model.OrphanFileCount = _db.Files.Where(e => e.CreatedByUser == null).Include(e => e.CreatedByUser).Count();
+
+        model.FileCount = _db.Files.Count();
 
         return View("Index", model);
     }
@@ -53,7 +67,32 @@ public class AdminController : Controller
     }
 
     [AuthRequired]
-    [HttpPost("Settings/Save")]
+    [HttpGet("System/RecalculateStorage")]
+    public async Task<IActionResult> RecalculateStorage()
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null || !currentUser.IsAdmin)
+        {
+            return new RedirectToActionResult("Index", "Home", null);
+        }
+
+        var taskList = new List<Task>();
+        foreach (var user in _db.Users.ToList())
+        {
+            taskList.Add(new Task(delegate
+            {
+                _fileService.RecalculateSpaceUsed(user).Wait();
+            }));
+        }
+        foreach (var t in taskList)
+            t.Start();
+        await Task.WhenAll(taskList);
+
+        return new RedirectToActionResult("Index", "Admin", null);
+    }
+
+    [AuthRequired]
+    [HttpPost("System/Save")]
     public async Task<IActionResult> SaveSystemSettings(
         [FromForm] SystemSettingsParams data)
     {

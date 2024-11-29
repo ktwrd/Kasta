@@ -7,19 +7,12 @@ namespace Kasta.Web.Models;
 
 public class SystemSettingsParams
 {
-    [DefaultValue(true)]
-    public bool EnableUserRegister { get; set; } = true;
-    [DefaultValue(true)]
-    public bool EnableEmbeds { get; set; } = true;
-    [DefaultValue(false)]
-    public bool EnableCustomBranding { get; set; } = false;
-    [DefaultValue("Kasta")]
+    public bool EnableUserRegister { get; set; }
+    public bool EnableEmbeds { get; set; }
+    public bool EnableCustomBranding { get; set; }
     public string CustomBrandingTitle { get; set; } = "Kasta";
-    [DefaultValue(false)]
-    public bool EnableQuota { get; set; } = false;
-    [DefaultValue("")]
+    public bool EnableQuota { get; set; }
     public string DefaultUploadQuota {get; set; } = "";
-    [DefaultValue("")]
     public string DefaultStorageQuota { get; set; } = "";
 
     public long? DefaultUploadQuotaReal

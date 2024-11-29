@@ -1,5 +1,6 @@
 ﻿@using Kasta.Web.Helpers
 @using Kasta.Web.Models.Admin
+@using Kasta.Web.Models.Components
 @model AdminIndexViewModel
 
 @{
@@ -9,65 +10,158 @@
 
 <div class="row">
     <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-auto">
+                        <table>
+                            <tr>
+                                <th colspan="2">Space Used</th>
+                            </tr>
+                            @if (Model.TotalPreviewSpaceUsed == "0B")
+                            {
+                                <tr>
+                                    <td colspan="2">@Model.TotalSpaceUsed</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <th>Total</th>
+                                    <td>@Model.TotalSpaceUsed</td>
+                                </tr>
+                                
+                                <tr>
+                                    <th>Preview</th> 
+                                    <td>@Model.TotalPreviewSpaceUsed</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                    <div class="col-auto">
+                        <table>
+                            <tr>
+                                <th colspan="2">Files</th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">@Model.FileCount</td>
+                            </tr>
+                            @if (Model.OrphanFileCount > 0)
+                            {
+                                <tr>
+                                    <th>Orphans</th>
+                                    <td>@Model.OrphanFileCount</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                    <div class="col-auto">
+                        <table>
+                            <tr>
+                                <th>Users</th>
+                            </tr>
+                            <tr>
+                                <td>@Model.UserCount</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
         <div class="card shadow-sm mt-3">
             <div class="card-header">
                 System Settings
             </div>
             <div class="card-body">
                 <form method="post" asp-controller="Admin" asp-action="SaveSystemSettings" enctype="multipart/form-data">
+
                     <div class="mb-3 row">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="enableUserRegister" value="true" checked="@Model.SystemSettings.EnableUserRegister" name="@nameof(SystemSettingsParams.EnableUserRegister)"/>
-                            <label class="form-check-label" for="enableUserRegister">
-                                Enable User Registrations
-                            </label>
-                        </div>
+                        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                        {
+                            Id = "enableUserRegister",
+                            State = Model.SystemSettings.EnableUserRegister,
+                            Name = nameof(Model.SystemSettings.EnableUserRegister),
+                            Label = "Enable User Registrations"
+                        })
                     </div>
                     <div class="mb-3 row">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="embedEnable" value="true" checked="@Model.SystemSettings.EnableEmbeds" name="@nameof(SystemSettingsParams.EnableEmbeds)" />
-                            <label class="form-check-label" for="embedEnable">
-                                Embed Media
-                            </label>
-                        </div>
-                    </div>
-                    <hr/>
-                    <div class="mb-3 row">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="customBrandEnable" value="true" checked="@Model.SystemSettings.EnableCustomBranding" name="@nameof(SystemSettingsParams.EnableCustomBranding)"/>
-                            <label class="form-check-label" for="customBrandEnable">
-                                Enable Custom Branding
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mb-3 row">
-                        <label class="form-label" for="customBrandTitle">Title/App Name</label>
-                        <input type="text" class="form-control" id="customBrandTitle" value="@Model.SystemSettings.CustomBrandingTitle" name="@nameof(SystemSettingsParams.CustomBrandingTitle)"/>
+                        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                        {
+                            Id = "enableUserRegister",
+                            State = Model.SystemSettings.EnableEmbeds,
+                            Name = nameof(Model.SystemSettings.EnableEmbeds),
+                            Label = "Embed Media"
+                        })
                     </div>
                     <hr/>
                     <div class="mb-3 row">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="quotaEnable" value="true" checked="@Model.SystemSettings.EnableQuota" name="@nameof(SystemSettingsParams.EnableQuota)"/>
-                            <label class="form-check-label" for="quotaEnable">
-                                Enable user quota (upload and storage)
-                            </label>
-                        </div>
+                        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                        {
+                            Id = "enableCustomBranding",
+                            State = Model.SystemSettings.EnableCustomBranding,
+                            Name = nameof(Model.SystemSettings.EnableCustomBranding),
+                            Label = "Enable Custom Branding"
+                        })
                     </div>
                     <div class="mb-3 row">
-                        <label class="form-label" for="defaultUploadQuota">Default User Upload Quota</label>
-                        <input type="text" class="form-control" id="defaultUploadQuota" value="@(SizeHelper.BytesToString(Model.SystemSettings.DefaultUploadQuotaReal ?? 0))" name="@nameof(SystemSettingsParams.DefaultUploadQuota)" />
-                        <div id="defaultUploadQuotaHelp" class="form-text">500KB, 500K, 512M, 5G, 1T, etc...</div>
+                        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                        {
+                            Id = "customBrandTitle",
+                            Value = Model.SystemSettings.CustomBrandingTitle,
+                            Name = nameof(Model.SystemSettings.CustomBrandingTitle),
+                            DisplayName = "App Name"
+                        })
+                    </div>
+                    <hr/>
+                    <div class="mb-3 row">
+                        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                        {
+                            Id = "quotaEnable",
+                            State = Model.SystemSettings.EnableQuota,
+                            Name = nameof(Model.SystemSettings.EnableQuota),
+                            Label = "Enable user quota (upload and storage)"
+                        })
                     </div>
                     <div class="mb-3 row">
-                        <label class="form-label" for="defaultStorageQuota">Default User Storage Quota</label>
-                        <input type="text" class="form-control" id="defaultStorageQuota" value="@SizeHelper.BytesToString(Model.SystemSettings.DefaultStorageQuotaReal ?? 0)" name="@nameof(SystemSettingsParams.DefaultStorageQuota)"/>
-                        <div id="defaultStorageQuotaHelp" class="form-text">500KB, 500K, 512M, 5G, 1T, etc...</div>
+                        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                        {
+                            Id = "defaultUploadQuota",
+                            Value = SizeHelper.BytesToString(Model.SystemSettings.DefaultUploadQuotaReal ?? 0),
+                            Name = nameof(SystemSettingsParams.DefaultUploadQuota),
+                            DisplayName = "Default User Upload Quota",
+                            HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."
+                        })
+                    </div>
+                    <div class="mb-3 row">
+                        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                        {
+                            Id = "defaultStorageQuota",
+                            Value = SizeHelper.BytesToString(Model.SystemSettings.DefaultStorageQuotaReal ?? 0),
+                            Name = nameof(SystemSettingsParams.DefaultStorageQuota),
+                            DisplayName = "Default User Storage Quota",
+                            HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."
+                        })
                     </div>
                     <button class="btn btn-primary mt-3" type="submit">Save</button>
                 </form>
             </div>
         </div>
-        
     </div>
-    
+    <div class="col-md-4 mt-3">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-cone-striped"></i>
+                Maintenance
+            </div>
+            <div class="card-body">
+                <a asp-controller="Admin" asp-action="RecalculateStorage" class="btn btn-primary">
+                    Recalculate Storage Usage
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
