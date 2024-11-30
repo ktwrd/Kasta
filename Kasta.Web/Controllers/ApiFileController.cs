@@ -17,6 +17,7 @@ public class ApiFileController : Controller
     private readonly UploadService _uploadService;
     private readonly ApplicationDbContext _db;
     private readonly UserManager<UserModel> _userManager;
+    private readonly SignInManager<UserModel> _signInManager;
     private readonly FileService _fileService;
 
     private readonly ILogger<ApiFileController> _logger;
@@ -29,6 +30,7 @@ public class ApiFileController : Controller
         _uploadService = services.GetRequiredService<UploadService>();
         _db = services.GetRequiredService<ApplicationDbContext>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
+        _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _fileService = services.GetRequiredService<FileService>();
         
         _logger = logger;
@@ -52,6 +54,24 @@ public class ApiFileController : Controller
         {
             HttpContext.Response.StatusCode = 404;
             return View("NotFound");
+        }
+        if (!model.Public)
+        {
+            if (!_signInManager.IsSignedIn(User))
+            {
+                Response.StatusCode = 404;
+                return View("NotFound");
+            }
+            var userModel = await _userManager.GetUserAsync(User);
+
+            if ((userModel?.Id ?? "invalid") != model.CreatedByUserId)
+            {
+                if (!(userModel?.IsAdmin ?? false))
+                {
+                    Response.StatusCode = 404;
+                    return View("NotFound");
+                }
+            }
         }
 
         string relativeLocation = model.RelativeLocation;
