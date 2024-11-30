@@ -42,4 +42,5 @@ public static class FeatureFlags
     public static bool S3ForcePathStyle => ParseBool("S3_ForcePathStyle", false);
     public static string S3BucketName => ParseString("S3_Bucket", "");
     public static string Endpoint => ParseString("DeploymentEndpoint", "http://localhost:5280");
+    public static string DefaultRequestTimezone => ParseString("DefaultTimezone", "UTC");
 }

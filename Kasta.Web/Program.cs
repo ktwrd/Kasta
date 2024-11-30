@@ -5,6 +5,7 @@ using Kasta.Web.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Vivet.AspNetCore.RequestTimeZone.Extensions;
 
 namespace Kasta.Web;
 
@@ -46,7 +47,16 @@ public class Program
         {
             options.Filters.Add(new BlockUserRegisterAttribute());
         });
-        object value = builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
+        if (string.IsNullOrEmpty(FeatureFlags.DefaultRequestTimezone))
+        {
+            builder.Services.AddRequestTimeZone("UTC");
+        }
+        else
+        {
+            builder.Services.AddRequestTimeZone(FeatureFlags.DefaultRequestTimezone);
+        }
 
         var app = builder.Build();
 
@@ -69,6 +79,8 @@ public class Program
                 }
             }
         }
+
+        app.UseRequestTimeZone();
 
         app.UseStaticFiles();
 

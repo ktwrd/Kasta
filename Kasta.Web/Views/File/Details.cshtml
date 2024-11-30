@@ -1,12 +1,24 @@
 @using Kasta.Data.Models
 @using Kasta.Web.Helpers
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
 @model FileModel
+@inject IHttpContextAccessor ctx
 
 @{
     ViewData["Title"] = $"{Model.Filename}";
     Layout = "_Layout";
 
     var previewUrl = Model.GetPreviewUrl();
+    
+    TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
+    if (ctx.HttpContext != null)
+    {
+        var tz = ctx.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
 }
 
 <div class="row">
@@ -63,7 +75,7 @@
         <div class="row mt-1">
             <div class="col-md-12 text-center">
                 <i class="bi bi-calendar"></i>
-                @Model.CreatedAt
+                @TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedAt.UtcDateTime, targetTimezone)
             </div>
         </div>
     </div>
