@@ -67,6 +67,14 @@
         </td>
     }
     <td>
+        @if (Model.File.Public)
+        {
+            <i class="bi bi-unlock"></i>
+        }
+        else
+        {
+            <i class="bi bi-lock"></i>
+        }
         <a href="@linkUrl">
             @if (string.IsNullOrEmpty(Model.File.Filename))
             {
@@ -99,6 +107,28 @@
                data-clipboard-text="@linkUrl">
                 <i class="bi bi-link-45deg"></i>
             </a>
+            @if (Model.File.Public)
+            {
+                <a class="btn btn-sm btn-secondary"
+                   asp-controller="Home"
+                   asp-action="ChangeFilePublicState"
+                   asp-route-id="@Model.File.Id"
+                   asp-route-state="false"
+                   title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            }
+            else
+            {
+                <a class="btn btn-sm btn-secondary"
+                   asp-controller="Home"
+                   asp-action="ChangeFilePublicState"
+                   asp-route-id="@Model.File.Id"
+                   asp-route-state="true"
+                   title="Make file public">
+                    <i class="bi bi-unlock"></i>
+                </a>
+            }
             <a class="btn btn-sm btn-primary"
                href="@downloadUrl"
                target="_blank"

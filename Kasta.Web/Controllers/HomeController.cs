@@ -186,6 +186,57 @@ public class HomeController : Controller
         return new RedirectToActionResult(nameof(Index), "Home", null);
     }
 
+    [AuthRequired]
+    [HttpGet("~/FilePublic/{id}")]
+    public async Task<IActionResult> ChangeFilePublicState(
+        string id,
+        [FromQuery] bool value,
+        [FromQuery] string? returnUrl = null)
+    {
+        var user = await _userManager.GetUserAsync(HttpContext.User);
+        if (user == null)
+        {
+            throw new InvalidOperationException($"Unable to fetch User model even though user is logged in?");
+        }
+        var file = await _db.Files.Where(v => v.Id == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
+        file ??= await _db.Files.Where(v => v.ShortUrl == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
+        if (file == null)
+        {
+            return View("NotFound");
+        }
+        if (file.CreatedByUserId != user.Id)
+        {
+            return View("NotAuthorized", new NotAuthorizedViewModel()
+            {
+                Message = $"You did not create this file."
+            });
+        }
+
+        using (var ctx = _db.CreateSession())
+        {
+            using var trans = await ctx.Database.BeginTransactionAsync();
+            try
+            {
+                await ctx.Files.Where(e => e.Id == file.Id)
+                    .ExecuteUpdateAsync(e 
+                        => e.SetProperty(p => p.Public, value));
+                await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                throw;
+            }
+        }
+        
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            return new RedirectResult(returnUrl);
+        }
+        return new RedirectToActionResult(nameof(Index), "Home", null);
+    }
+
     [Route("~/Error")]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
