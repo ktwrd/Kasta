@@ -4,7 +4,10 @@
       context: .
       dockerfile: Kasta.Web/Dockerfile
     environment:
-      DATABASE_CONNECTION_STRING: "Host=db:5432;Database=kasta;Username=kasta;Password=changeme123"
+      DATABASE_HOST: db
+      DATABASE_USER: kasta
+      DATABASE_PASSWORD: changeme123
+      DATABASE_NAME: kasta
       DeploymentEndpoint: "https://kasta.example.com"
       S3_ServiceUrl: "http://s3.us-east-1.amazonaws.com"
       S3_AccessKey: "xxxxxx"

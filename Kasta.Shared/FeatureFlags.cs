@@ -30,7 +30,11 @@ public static class FeatureFlags
     }
     #endregion
 
-    public static string ConnectionString => ParseString("DATABASE_CONNECTION_STRING", "");
+    public static string DatabaseHost => ParseString("DATABASE_HOST", "postgres");
+    public static int DatabasePort => ParseInt("DATABASE_PORT", 5432);
+    public static string DatabaseUser => ParseString("DATABASE_USER", "postgres");
+    public static string DatabasePassword => ParseString("DATABASE_PASSWORD", "postgres");
+    public static string DatabaseName => ParseString("DATABASE_NAME", "kasta");
 
     public static string S3ServiceUrl => ParseString("S3_ServiceUrl", "");
     public static string S3AccessKeyId => ParseString("S3_AccessKey", "");

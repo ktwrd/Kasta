@@ -4,6 +4,7 @@ using Kasta.Shared;
 using Kasta.Web.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Kasta.Web;
 
@@ -17,7 +18,13 @@ public class Program
         builder.Services.AddDbContextPool<ApplicationDbContext>(
             options =>
             {
-                options.UseNpgsql(FeatureFlags.ConnectionString);
+                var b = new NpgsqlConnectionStringBuilder();
+                b.Host = FeatureFlags.DatabaseHost;
+                b.Port = FeatureFlags.DatabasePort;
+                b.Username = FeatureFlags.DatabaseUser;
+                b.Password = FeatureFlags.DatabasePassword;
+                b.Database = FeatureFlags.DatabaseName;
+                options.UseNpgsql(b.ToString());
             });
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
