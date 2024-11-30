@@ -59,41 +59,41 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         {
             if (string.IsNullOrEmpty(userId))
             {
-                return Files;
+                return Files.Include(e => e.Preview);
             }
             else
             {
-                return Files.Where(e => e.CreatedByUserId == userId);
+                return Files.Where(e => e.CreatedByUserId == userId).Include(e => e.Preview);
             }
         }
         else
         {
             if (string.IsNullOrEmpty(userId))
             {
-                return Files.Where(e => e.SearchVector.Matches(query));
+                return Files.Where(e => e.SearchVector.Matches(query)).Include(e => e.Preview);
             }
             else
             {
-                return Files.Where(e => e.SearchVector.Matches(query) && e.CreatedByUserId == userId);
+                return Files.Where(e => e.SearchVector.Matches(query) && e.CreatedByUserId == userId).Include(e => e.Preview);
             }
         }
     }
 
     public async Task<FileModel?> GetFileAsync(string id)
     {
-        var target = await Files.Where(e => e.Id == id).FirstOrDefaultAsync();
+        var target = await Files.Where(e => e.Id == id).Include(e => e.Preview).FirstOrDefaultAsync();
         if (target == null)
         {
-            target = await Files.Where(e => e.ShortUrl == id).FirstOrDefaultAsync();
+            target = await Files.Where(e => e.ShortUrl == id).Include(e => e.Preview).FirstOrDefaultAsync();
         }
         return target;
     }
     public FileModel? GetFile(string id)
     {
-        var target = Files.Where(e => e.Id == id).FirstOrDefault();
+        var target = Files.Where(e => e.Id == id).Include(e => e.Preview).FirstOrDefault();
         if (target == null)
         {
-            target = Files.Where(e => e.ShortUrl == id).FirstOrDefault();
+            target = Files.Where(e => e.ShortUrl == id).Include(e => e.Preview).FirstOrDefault();
         }
         return target;
     }
