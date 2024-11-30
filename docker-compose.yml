@@ -15,6 +15,8 @@
       S3_Bucket: "my-kasta-bucket"
     depends_on:
       - db
+    ports:
+      - "8080:8080"
   db:
     image: postgres:17-alpine
     environment:
