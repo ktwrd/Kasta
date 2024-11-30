@@ -1,0 +1,118 @@
+@using Kasta.Data.Models
+@using Kasta.Shared
+@using Kasta.Web.Models.Components
+@using Kasta.Web.Helpers
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
+@model FileListItemComponentViewModel
+@inject IHttpContextAccessor ctx
+
+@{
+    string targetId = Model.File.Id;
+    if (!string.IsNullOrEmpty(Model.File.ShortUrl))
+    {
+        targetId = Model.File.ShortUrl;
+    }
+
+    var previewUrl = Model.File.GetPreviewUrl();
+    var linkUrl = Model.File.GetDetailsUrl();
+    var downloadUrl = Model.File.GetDownloadUrl();
+
+    string returnUrl = "";
+    if (ctx.HttpContext != null)
+    {
+        returnUrl = $"{ctx.HttpContext.Request.Path}{ctx.HttpContext.Request.QueryString}";
+    }
+    
+    TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
+    if (ctx.HttpContext != null)
+    {
+        var tz = ctx.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
+}
+
+<tr data-file-id="@Model.File.Id">
+    @if (previewUrl != null && Model.UserSettings.ShowFilePreviewInHome)
+    {
+        <td>
+            <center>
+                <img src="@previewUrl" style="max-height: 50px;" alt="Preview of image." height="50"/>
+            </center>
+        </td>
+    }
+    else
+    {
+        <td>
+            @if (!string.IsNullOrEmpty(Model.File.MimeType))
+            {
+                var idx = Model.File.MimeType.IndexOf('/');
+                string a = Model.File.MimeType;
+                string? b = null;
+                if (idx != -1)
+                {
+                    a = Model.File.MimeType.Substring(0, idx);
+                    b = Model.File.MimeType.Substring(idx + 1);
+                }
+
+                string ident = FileHelper.GetBootstrapIcon(Model.File);
+
+                <center>
+                    <i class="bi bi-@ident"></i>
+                </center>
+            }
+        </td>
+    }
+    <td>
+        <a href="@linkUrl">
+            @if (string.IsNullOrEmpty(Model.File.Filename))
+            {
+                @Model.File.Id
+            }
+            else
+            {
+                @Model.File.Filename
+            }
+        </a>
+    </td>
+    <td>
+        @SizeHelper.BytesToString(Model.File.Size)
+    </td>
+    <td>
+        @TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt.UtcDateTime, targetTimezone)
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary"
+               asp-controller="File"
+               asp-action="Details"
+               asp-route-id="@targetId"
+               title="View Details">
+                <i class="bi bi-info-circle"></i>
+            </a>
+            <a class="btn btn-sm btn-success"
+               href="javascript:void(0)"
+               title="Copy Link"
+               data-clipboard-text="@linkUrl">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+            <a class="btn btn-sm btn-primary"
+               href="@downloadUrl"
+               target="_blank"
+               title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger"
+               asp-controller="Home"
+               asp-action="DeleteFile"
+               asp-route-id="@Model.File.Id"
+               asp-route-returnUrl="@returnUrl"
+               title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>

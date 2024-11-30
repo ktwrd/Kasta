@@ -2,10 +2,13 @@
 @using Kasta.Data
 @using Kasta.Data.Models
 @using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
 @using Microsoft.EntityFrameworkCore
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
 @inject ApplicationDbContext _db
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
 @model FileListViewModel
 
 @{
@@ -71,7 +74,7 @@
         <table class="table">
             <thead>
             <tr>
-                    <th colspan="2">Filename</th>
+                <th colspan="2">Filename</th>
                 <th>Size</th>
                 <th>Created At</th>
                 <th></th>
@@ -80,95 +83,11 @@
             <tbody>
             @foreach (var file in Model.Files)
             {
-                string targetId = file.Id;
-                if (!string.IsNullOrEmpty(file.ShortUrl))
+                @await Component.InvokeAsync("FileListItem", new FileListItemComponentViewModel()
                 {
-                    targetId = file.ShortUrl;
-                }
-
-                var previewUrl = file.GetPreviewUrl();
-                var linkUrl = file.GetDetailsUrl();
-
-                <tr>
-                    @if (previewUrl != null && userSetting.ShowFilePreviewInHome)
-                    {
-                        <td>
-                            <center>
-                                <img src="@previewUrl" style="max-height: 50px;" alt="Preview of image." height="50"/>
-                            </center>
-                        </td>
-                    }
-                    else
-                    {
-                        <td>
-                            @if (!string.IsNullOrEmpty(file.MimeType))
-                            {
-                                var idx = file.MimeType.IndexOf('/');
-                                string a = file.MimeType;
-                                string? b = null;
-                                if (idx != -1)
-                                {
-                                    a = file.MimeType.Substring(0, idx);
-                                    b = file.MimeType.Substring(idx + 1);
-                                }
-
-                                string ident = FileHelper.GetBootstrapIcon(file);
-
-                                <center>
-                                    <i class="bi bi-@ident"></i>
-                                </center>
-                            }
-                        </td>
-                    }
-                    <td>
-                        <a href="@linkUrl">
-                            @if (string.IsNullOrEmpty(file.Filename))
-                            {
-                                @file.Id
-                            }
-                            else
-                            {
-                                @file.Filename
-                            }
-                        </a>
-                    </td>
-                    <td>
-                        @SizeHelper.BytesToString(file.Size)
-                    </td>
-                    <td>
-                        @file.CreatedAt
-                    </td>
-                    <td>
-                        <div class="btn-group">
-                            <a class="btn btn-sm btn-secondary"
-                                asp-controller="File"
-                                asp-action="Details"
-                                asp-route-id="@targetId"
-                                title="View Details">
-                                <i class="bi bi-info-circle"></i>
-                            </a>
-                            <a class="btn btn-sm btn-success"
-                                href="javascript:void(0)"
-                                title="Copy Link"
-                                data-clipboard-text="@file.GetDetailsUrl()">
-                                <i class="bi bi-link-45deg"></i>
-                            </a>
-                            <a class="btn btn-sm btn-primary"
-                                href="@file.GetDownloadUrl()"
-                                target="_blank"
-                                title="Download">
-                                <i class="bi bi-cloud-download"></i>
-                            </a>
-                            <a class="btn btn-sm btn-danger"
-                                asp-controller="Home"
-                                asp-action="DeleteFile"
-                                asp-route-id="@file.Id"
-                                title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
+                    File = file,
+                    UserSettings = userSetting
+                })
             }
             </tbody>
         </table>

@@ -157,7 +157,7 @@ public class HomeController : Controller
 
     [AuthRequired]
     [HttpGet("~/Delete/{id}")]
-    public async Task<IActionResult> DeleteFile(string id)
+    public async Task<IActionResult> DeleteFile(string id, [FromQuery] string? returnUrl = null)
     {
         var user = await _userManager.GetUserAsync(HttpContext.User);
         if (user == null)
@@ -179,6 +179,10 @@ public class HomeController : Controller
         }
 
         await _fileService.DeleteFile(user, file);
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            return new RedirectResult(returnUrl);
+        }
         return new RedirectToActionResult(nameof(Index), "Home", null);
     }
 
