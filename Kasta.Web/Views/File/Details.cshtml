@@ -29,8 +29,19 @@
                 {
                     @if (!string.IsNullOrEmpty(previewUrl))
                     {
-                        <img src="@previewUrl" class="img-thumbnail rounded mx-auto d-block" alt="@Model.Filename (Preview)" id="preview" />
-                        <img src="@(Model.GetDownloadUrl())" class="img-thumbnail rounded mx-auto d-block" alt="@Model.Filename" onload="document.getElementById('preview').remove()"/>
+                        <div id="previewContainer" class="img-thumbnail rounded d-block">
+                            <img src="@previewUrl"
+                                 class="rounded mx-auto d-block"
+                                 alt="@Model.Filename (Preview)"
+                                 onload="document.getElementById('realImage').setAttribute('src', '@Model.GetDownloadUrl()')" />
+                            <span>Displaying Preview. Full Image is loading.</span>
+                        </div>
+                        <img src=""
+                             class="d-none"
+                             alt="@Model.Filename"
+                             onload="document.getElementById('previewContainer').remove();
+                             document.getElementById('realImage').setAttribute('class', 'img-thumbnail rounded mx-auto d-block')"
+                             id="realImage"/>
                     }
                     else
                     {
