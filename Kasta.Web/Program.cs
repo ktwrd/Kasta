@@ -42,7 +42,8 @@ public class Program
             .AddScoped<UploadService>()
             .AddScoped<ShortUrlService>()
             .AddScoped<FileService>()
-            .AddScoped<PreviewService>();
+            .AddScoped<PreviewService>()
+            .AddScoped<AuditService>();
         builder.Services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new BlockUserRegisterAttribute());

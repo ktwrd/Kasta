@@ -12,101 +12,12 @@ public class FileService
     private readonly Logger _log = LogManager.GetCurrentClassLogger();
     private readonly ApplicationDbContext _db;
     private readonly S3Service _s3;
+    private readonly AuditService _auditService;
     public FileService(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
         _s3 = services.GetRequiredService<S3Service>();
-    }
-    private List<(AuditModel, List<AuditEntryModel>)> GenerateDeleteAudit<T>(UserModel user, IEnumerable<T> data, Func<T, string> pkSelect, string tableName)
-    {
-        var result = new List<(AuditModel, List<AuditEntryModel>)>();
-        foreach (var i in data)
-        {
-            result.Add(GenerateDeleteAudit(user, i, pkSelect, tableName));
-        }
-        return result;
-    }
-    private (AuditModel, List<AuditEntryModel>) GenerateDeleteAudit<T>(UserModel user, T obj, Func<T, string> pkSelect, string tableName)
-    {
-        var auditModel = new AuditModel()
-        {
-            CreatedBy = user.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
-            Kind = AuditEventKind.Delete,
-            EntityName = tableName,
-            PrimaryKey = pkSelect(obj)
-        };
-        var entries = new List<AuditEntryModel>();
-        foreach (var prop in typeof(T).GetProperties())
-        {
-            var propTypeStr = prop.PropertyType.ToString();
-            if (propTypeStr.StartsWith("System.Collections") || propTypeStr.StartsWith("Kasta.Data.Models") || propTypeStr.StartsWith("Kasta.Web.Models") || propTypeStr.StartsWith(nameof(NpgsqlTypes)))
-                continue;
-            var value = prop.GetValue(obj);
-
-            string? stringValue = null;
-            if (prop.PropertyType == typeof(string)
-            || prop.PropertyType == typeof(char)
-
-            || prop.PropertyType == typeof(sbyte)
-            || prop.PropertyType == typeof(byte)
-            || prop.PropertyType == typeof(short)
-            || prop.PropertyType == typeof(ushort)
-            || prop.PropertyType == typeof(int)
-            || prop.PropertyType == typeof(uint)
-            || prop.PropertyType == typeof(long)
-            || prop.PropertyType == typeof(ulong)
-            || prop.PropertyType == typeof(nint)
-            || prop.PropertyType == typeof(nuint)
-
-            || prop.PropertyType == typeof(float)
-            || prop.PropertyType == typeof(double)
-            || prop.PropertyType == typeof(decimal)
-            || prop.PropertyType == typeof(bool))
-            {
-                stringValue = value?.ToString();
-            }
-            else if (value is DateTime dt)
-            {
-                stringValue = dt.ToString("R");
-            }
-            else if (value is DateTimeOffset dto)
-            {
-                stringValue = dto.ToString("R");
-            }
-            else if (prop.PropertyType.IsEnum)
-            {
-                stringValue = value?.ToString();
-            }
-            else if (value == null)
-            {
-                stringValue = null;
-            }
-            else
-            {
-                throw new InvalidOperationException($"Unknown type {prop.PropertyType}");
-            }
-            entries.Add(new()
-            {
-                AuditId = auditModel.Id,
-                PropertyName = prop.Name,
-                Value = stringValue
-            });
-        }
-    
-        return (auditModel, entries);
-    }
-    private async Task InsertAuditData(ApplicationDbContext db, (AuditModel, List<AuditEntryModel>) data)
-    {
-        await db.Audit.AddAsync(data.Item1);
-        await db.AuditEntries.AddRangeAsync(data.Item2.ToArray());
-    }
-    private async Task InsertAuditData(ApplicationDbContext db, List<(AuditModel, List<AuditEntryModel>)> data)
-    {
-        foreach (var i in data)
-        {
-            await InsertAuditData(db, i);
-        }
+        _auditService = services.GetRequiredService<AuditService>();
     }
     public async Task DeleteFile(UserModel user, FileModel file)
     {
@@ -115,29 +26,29 @@ public class FileService
         string? previewLocation = null;
         try
         {
-            await InsertAuditData(ctx, GenerateDeleteAudit(user, file, (e) => e.Id, FileModel.TableName));
+            await _auditService.InsertAuditData(ctx, _auditService.GenerateDeleteAudit(user, file, (e) => e.Id, FileModel.TableName));
 
-            await InsertAuditData(ctx, 
-                GenerateDeleteAudit(
+            await _auditService.InsertAuditData(ctx, 
+                _auditService.GenerateDeleteAudit(
                     user,
                     _db.ChunkUploadSessions.Where(e => e.FileId == file.Id),
                     e => e.Id,
                     ChunkUploadSessionModel.TableName));
-            await InsertAuditData(ctx, 
-                GenerateDeleteAudit(
+            await _auditService.InsertAuditData(ctx, 
+                _auditService.GenerateDeleteAudit(
                     user,
                     _db.S3FileChunks.Where(e => e.FileId == file.Id),
                     e => e.Id,
                     S3FileChunkModel.TableName));
-            await InsertAuditData(ctx, 
-                GenerateDeleteAudit(
+            await _auditService.InsertAuditData(ctx, 
+                _auditService.GenerateDeleteAudit(
                     user,
                     _db.S3FileInformations.Where(e => e.Id == file.Id),
                     e => e.Id,
                     S3FileInformationModel.TableName));
-            await InsertAuditData(
+            await _auditService.InsertAuditData(
                 ctx,
-                GenerateDeleteAudit(
+                _auditService.GenerateDeleteAudit(
                     user,
                     _db.FilePreviews.Where(e => e.Id == file.Id),
                     e => e.Id,
