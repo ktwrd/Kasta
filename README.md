@@ -11,10 +11,11 @@ A Simple self-hostable File Sharing Service written in C#. Supports displaying m
 - Audit Logging
 - Per-user storage quota & file size limits
 - Public & Private uploads
-- Image Preview Generation
+- Image Preview Generation (including image info like file type, compression, interlacing, and dimensions)
+- Text File Preview
 
 ## Installing
-It is recomended to use Docker to make updating very easy. The following docker compose file is the recomended setup;
+It is recommended to use Docker to make updating very easy. The following docker compose file is the recommended setup;
 ```yml
 services:
   db:
