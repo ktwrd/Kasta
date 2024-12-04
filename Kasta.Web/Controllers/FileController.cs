@@ -1,5 +1,6 @@
 using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -56,6 +57,11 @@ public class FileController : Controller
             }
         }
 
-        return View("Details", file);
+        var vm = new FileDetailViewModel()
+        {
+            File = file
+        };
+
+        return View("Details", vm);
     }
 }

@@ -1,14 +1,14 @@
 @using Kasta.Data.Models
 @using Kasta.Web.Helpers
 @using Vivet.AspNetCore.RequestTimeZone.Extensions
-@model FileModel
+@model FileDetailViewModel
 @inject IHttpContextAccessor ctx
 
 @{
-    ViewData["Title"] = $"{Model.Filename}";
+    ViewData["Title"] = $"{Model.File.Filename}";
     Layout = "_Layout";
 
-    var previewUrl = Model.GetPreviewUrl();
+    var previewUrl = Model.File.GetPreviewUrl();
     
     TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
     if (ctx.HttpContext != null)
@@ -25,39 +25,39 @@
     <div class="col-md-12 justify-content-center">
         <div class="row mb-2">
             <div class="col-md-12 text-center">
-                @if (Model.MimeType?.StartsWith("image/") ?? false)
+                @if (Model.File.MimeType?.StartsWith("image/") ?? false)
                 {
                     @if (!string.IsNullOrEmpty(previewUrl))
                     {
                         <div id="previewContainer" class="img-thumbnail rounded d-block">
                             <img src="@previewUrl"
                                  class="rounded mx-auto d-block"
-                                 alt="@Model.Filename (Preview)"
-                                 onload="document.getElementById('realImage').setAttribute('src', '@Model.GetDownloadUrl()')" />
+                                 alt="@Model.File.Filename (Preview)"
+                                 onload="document.getElementById('realImage').setAttribute('src', '@Model.File.GetDownloadUrl()')" />
                             <span>Displaying Preview. Full Image is loading.</span>
                         </div>
                         <img src=""
                              class="d-none"
-                             alt="@Model.Filename"
+                             alt="@Model.File.Filename"
                              onload="document.getElementById('previewContainer').remove();
                              document.getElementById('realImage').setAttribute('class', 'img-thumbnail rounded mx-auto d-block')"
                              id="realImage"/>
                     }
                     else
                     {
-                        <img src="@(Model.GetDownloadUrl())" class="img-thumbnail rounded mx-auto d-block" alt="@Model.Filename"/>
+                        <img src="@(Model.File.GetDownloadUrl())" class="img-thumbnail rounded mx-auto d-block" alt="@Model.File.Filename"/>
                     }
                 }
-                else if (Model.MimeType?.StartsWith("video/") ?? false)
+                else if (Model.File.MimeType?.StartsWith("video/") ?? false)
                 {
                     <video width="320" height="240" controls class="rounded mx-auto d-block">
-                        <source src="@Model.GetDownloadUrl()" type="@Model.MimeType" />
+                        <source src="@Model.File.GetDownloadUrl()" type="@Model.File.MimeType" />
                     </video>
                 }
-                else if (Model.MimeType?.StartsWith("audio/") ?? false)
+                else if (Model.File.MimeType?.StartsWith("audio/") ?? false)
                 {
                     <audio controls class="rounded mx-auto d-block">
-                        <source src="@Model.GetDownloadUrl()" type="@Model.MimeType" />
+                        <source src="@Model.File.GetDownloadUrl()" type="@Model.File.MimeType" />
                     </audio>
                 }
                 else
@@ -74,19 +74,19 @@
         <div class="row mt-1">
             <div class="col-md-12 text-center">
                 <i class="bi bi-stack"></i>
-                @SizeHelper.BytesToString(Model.Size)
+                @SizeHelper.BytesToString(Model.File.Size)
             </div>
         </div>
         <div class="row mt-1">
             <div class="col-md-12 text-center">
                 <i class="bi bi-file-earmark"></i>
-                @Model.Filename
+                @Model.File.Filename
             </div>
         </div>
         <div class="row mt-1">
             <div class="col-md-12 text-center">
                 <i class="bi bi-calendar"></i>
-                @TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedAt.UtcDateTime, targetTimezone)
+                @TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt.UtcDateTime, targetTimezone)
             </div>
         </div>
     </div>
