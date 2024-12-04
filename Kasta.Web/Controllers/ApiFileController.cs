@@ -48,8 +48,7 @@ public class ApiFileController : Controller
     [HttpGet("~/api/v1/File/{value}/Download")]
     public async Task<IActionResult> GetFile(string value, [FromQuery] bool preview = false)
     {
-        var model = await _db.Files.Where(v => v.Id == value).Include(fileModel => fileModel.Preview).FirstOrDefaultAsync();
-        model ??= await _db.Files.Where(v => v.ShortUrl == value).Include(fileModel => fileModel.Preview).FirstOrDefaultAsync();
+        var model = await _db.GetFileAsync(value);
         if (model == null)
         {
             HttpContext.Response.StatusCode = 404;
@@ -188,8 +187,7 @@ public class ApiFileController : Controller
                 Message = "Not Authorized"
             });
         }
-        var file = await _db.Files.Where(v => v.Id == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
-        file ??= await _db.Files.Where(v => v.ShortUrl == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
+        var file = await _db.GetFileAsync(id);
         if (file == null)
         {
             Response.StatusCode = 404;
