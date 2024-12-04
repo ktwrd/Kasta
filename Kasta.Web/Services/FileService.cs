@@ -138,4 +138,50 @@ public class FileService
         res = _s3.GetObject(file.RelativeLocation).Result;
         return res.ResponseStream;
     }
+
+    public bool AllowPlaintextPreview(FileModel file)
+    {
+        if (file.Size > 524_288) return false;
+
+        if (string.IsNullOrEmpty(file.MimeType))
+            return false;
+        
+        var mimeWhitelist = new string[]
+        {
+            "application/json",
+            "application/javascript",
+            "application/xml",
+            "application/xhtml+xml",
+            "application/xhtml",
+            "application/html",
+            "application/toml",
+            "application/sql",
+            "application/postscript",
+            "application/x-perl"
+        };
+        var mimeBlacklist = new string[]
+        {
+            "text/rtf",
+            "text/richtext"
+        };
+        if (mimeBlacklist.Contains(file.MimeType))
+            return false;
+        if (file.MimeType?.StartsWith("text/") ?? false)
+            return true;
+        
+        return mimeWhitelist.Contains(file.MimeType);
+    }
+
+    public string? GetPlaintextPreview(FileModel file)
+    {
+        var str = "";
+        using (var stream = GetStream(file, out var r))
+        {
+            using (var reader = new StreamReader(stream))
+            {
+                str = reader.ReadToEnd();
+            }
+        }
+        return str;
+    }
 }

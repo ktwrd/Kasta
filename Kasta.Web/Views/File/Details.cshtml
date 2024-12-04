@@ -9,6 +9,7 @@
     Layout = "_Layout";
 
     var previewUrl = Model.File.GetPreviewUrl();
+    var downloadUrl = Model.File.GetDownloadUrl();
     
     TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
     if (ctx.HttpContext != null)
@@ -33,7 +34,7 @@
                             <img src="@previewUrl"
                                  class="rounded mx-auto d-block"
                                  alt="@Model.File.Filename (Preview)"
-                                 onload="document.getElementById('realImage').setAttribute('src', '@Model.File.GetDownloadUrl()')" />
+                                 onload="document.getElementById('realImage').setAttribute('src', '@downloadUrl')" />
                             <span>Displaying Preview. Full Image is loading.</span>
                         </div>
                         <img src=""
@@ -45,25 +46,38 @@
                     }
                     else
                     {
-                        <img src="@(Model.File.GetDownloadUrl())" class="img-thumbnail rounded mx-auto d-block" alt="@Model.File.Filename"/>
+                        <img src="@downloadUrl" class="img-thumbnail rounded mx-auto d-block" alt="@Model.File.Filename"/>
                     }
                 }
                 else if (Model.File.MimeType?.StartsWith("video/") ?? false)
                 {
                     <video width="320" height="240" controls class="rounded mx-auto d-block">
-                        <source src="@Model.File.GetDownloadUrl()" type="@Model.File.MimeType" />
+                        <source src="@downloadUrl" type="@Model.File.MimeType" />
                     </video>
                 }
                 else if (Model.File.MimeType?.StartsWith("audio/") ?? false)
                 {
                     <audio controls class="rounded mx-auto d-block">
-                        <source src="@Model.File.GetDownloadUrl()" type="@Model.File.MimeType" />
+                        <source src="@downloadUrl" type="@Model.File.MimeType" />
                     </audio>
+                }
+                else if (!string.IsNullOrEmpty(Model.PreviewContent))
+                {
+                    <div class="mx-auto d-block rounded text-preview">
+                        <pre><code>@Model.PreviewContent</code></pre>
+                    </div>
+                    <br/>
+                    <div class="mx-auto d-block">
+                        <a class="btn btn-lg btn-primary" href="@downloadUrl">
+                            <i class="bi bi-cloud-download"></i>
+                            Download
+                        </a>
+                    </div>
                 }
                 else
                 {
                     <div class="mx-auto d-block">
-                        <a class="btn btn-lg btn-primary">
+                        <a class="btn btn-lg btn-primary" href="@downloadUrl">
                             <i class="bi bi-cloud-download"></i>
                             Download
                         </a>

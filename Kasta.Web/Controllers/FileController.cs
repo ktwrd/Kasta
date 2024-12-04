@@ -1,6 +1,7 @@
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Web.Models;
+using Kasta.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,7 @@ public class FileController : Controller
     private readonly ApplicationDbContext _db;
     private readonly UserManager<UserModel> _userManager;
     private readonly SignInManager<UserModel> _signInManager;
+    private readonly FileService _fileService;
 
     private readonly ILogger<FileController> _log;
 
@@ -19,6 +21,7 @@ public class FileController : Controller
         _db = services.GetRequiredService<ApplicationDbContext>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
+        _fileService = services.GetRequiredService<FileService>();
 
         _log = logger;
     }
@@ -61,6 +64,11 @@ public class FileController : Controller
         {
             File = file
         };
+
+        if (_fileService.AllowPlaintextPreview(file))
+        {
+            vm.PreviewContent = _fileService.GetPlaintextPreview(file);
+        }
 
         return View("Details", vm);
     }

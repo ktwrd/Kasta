@@ -42,3 +42,14 @@ body {
     line-height: 40px;
     text-align: right;
 }
+.text-preview {
+    text-align: left;
+    vertical-align: top;
+    background-color: black;
+}
+.text-preview pre {
+    height: min(max(calc(60vh - 100px), 100px), 500px);
+    overflow-y:scroll;
+    overflow-x:auto;
+    padding: 0.5rem;
+}
