@@ -1,3 +1,4 @@
+using ImageMagick;
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Web.Models;
@@ -51,15 +52,25 @@ public class UploadService
 
             var obj = await _s3.UploadObject(s3UploadSource, fileModel.RelativeLocation);
             fileModel.Size = obj.ContentLength;
-            await _db.Files.AddAsync(fileModel);
+            await ctx.Files.AddAsync(fileModel);
 
-            await _db.SaveChangesAsync();
+            await ctx.SaveChangesAsync();
             await s3UploadSource.DisposeAsync();
             if (_previewService.PreviewSupported(fileModel))
             {
                 await s3UploadSource.DisposeAsync();
                 s3UploadSource = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, System.IO.FileShare.Read);
                 await _previewService.Create(ctx, fileModel, s3UploadSource);
+            }
+
+            using (var fstream = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                var imageInfo = GenerateFileImageInfo(fileModel, fstream);
+                if (imageInfo != null)
+                {
+                    ctx.FileImageInfos.Add(imageInfo);
+                    await ctx.SaveChangesAsync();
+                }
             }
 
             File.Delete(tmpFilename);
@@ -77,7 +88,25 @@ public class UploadService
         await _fileService.RecalculateSpaceUsed(user);
         return fileModel;
     }
+    public FileImageInfoModel? GenerateFileImageInfo(FileModel file, Stream stream)
+    {
+        if (!(file.MimeType?.StartsWith("image/") ?? false)) return null;
+        if (file.MimeType.Contains("svg")) return null;
 
+        var info = new MagickImageInfo(stream);
+        var model = new FileImageInfoModel()
+        {
+            Id = file.Id,
+            Width = info.Width,
+            Height = info.Height,
+            ColorSpace = info.ColorSpace == ColorSpace.Undefined ? null : info.ColorSpace.ToString(),
+            CompressionMethod = info.Compression == CompressionMethod.Undefined ? null : info.Compression.ToString(),
+            MagickFormat = info.Format == MagickFormat.Unknown ? null : info.Format.ToString(),
+            Interlace = info.Interlace == Interlace.Undefined ? null : info.Interlace.ToString(),
+            CompressionLevel = info.Quality
+        };
+        return model;
+    }
     public async Task<ChunkUploadSessionModel> CreateSession(UserModel user, CreateSessionParams @params)
     {
         if (string.IsNullOrEmpty(@params.FileName))

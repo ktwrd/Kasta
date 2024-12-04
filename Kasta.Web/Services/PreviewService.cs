@@ -151,7 +151,6 @@ public class PreviewService
             inputStream.Seek(0, SeekOrigin.Begin);
             throw new ApplicationException($"Failed to generate preview for file {file.Filename} (id: {file.Id})", ex);
         }
-
     }
 
     /// <summary>

@@ -53,6 +53,13 @@ public class FileService
                     _db.FilePreviews.Where(e => e.Id == file.Id),
                     e => e.Id,
                     FilePreviewModel.TableName));
+            await _auditService.InsertAuditData(
+                ctx,
+                _auditService.GenerateDeleteAudit(
+                    user,
+                    _db.FileImageInfos.Where(e => e.Id == file.Id),
+                    e => e.Id,
+                    FileImageInfoModel.TableName));
 
             previewLocation = await ctx.FilePreviews.Where(e => e.Id == file.Id).Select(e => e.RelativeLocation)
                 .FirstOrDefaultAsync();
@@ -61,6 +68,7 @@ public class FileService
             await ctx.S3FileChunks.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
             await ctx.S3FileInformations.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
             await ctx.FilePreviews.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+            await ctx.FileImageInfos.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
             await ctx.Files.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
 
             await ctx.SaveChangesAsync();
