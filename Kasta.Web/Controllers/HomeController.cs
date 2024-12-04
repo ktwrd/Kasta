@@ -164,8 +164,7 @@ public class HomeController : Controller
         {
             throw new InvalidOperationException($"Unable to fetch User model even though user is logged in?");
         }
-        var file = await _db.Files.Where(v => v.Id == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
-        file ??= await _db.Files.Where(v => v.ShortUrl == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
+        var file = await _db.GetFileAsync(id);
         if (file == null)
         {
             return View("NotFound");
@@ -198,8 +197,7 @@ public class HomeController : Controller
         {
             throw new InvalidOperationException($"Unable to fetch User model even though user is logged in?");
         }
-        var file = await _db.Files.Where(v => v.Id == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
-        file ??= await _db.Files.Where(v => v.ShortUrl == id).Include(e => e.CreatedByUser).FirstOrDefaultAsync();
+        var file = await _db.GetFileAsync(id);
         if (file == null)
         {
             return View("NotFound");
@@ -218,8 +216,7 @@ public class HomeController : Controller
             try
             {
                 await ctx.Files.Where(e => e.Id == file.Id)
-                    .ExecuteUpdateAsync(e 
-                        => e.SetProperty(p => p.Public, value));
+                    .ExecuteUpdateAsync(e  => e.SetProperty(p => p.Public, value));
                 await ctx.SaveChangesAsync();
                 await trans.CommitAsync();
             }
