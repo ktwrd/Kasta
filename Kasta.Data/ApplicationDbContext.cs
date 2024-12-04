@@ -25,6 +25,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
     public DbSet<UserLimitModel> UserLimits { get; set; }
     public DbSet<PreferencesModel> Preferences { get; set; }
     public DbSet<FileModel> Files { get; set; }
+    public DbSet<FileImageInfoModel> FileImageInfos { get; set; }
     public DbSet<FilePreviewModel> FilePreviews { get; set; }
     public DbSet<S3FileInformationModel> S3FileInformations { get; set; }
     public DbSet<S3FileChunkModel> S3FileChunks { get; set; }
@@ -59,34 +60,63 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         {
             if (string.IsNullOrEmpty(userId))
             {
-                return Files.Include(e => e.Preview);
+                return Files
+                    .Include(e => e.CreatedByUser)
+                    .Include(e => e.Preview)
+                    .Include(e => e.ImageInfo);
             }
             else
             {
-                return Files.Where(e => e.CreatedByUserId == userId).Include(e => e.Preview);
+                return Files.Where(e => e.CreatedByUserId == userId)
+                    .Include(e => e.CreatedByUser)
+                    .Include(e => e.Preview)
+                    .Include(e => e.ImageInfo);
             }
         }
         else
         {
             if (string.IsNullOrEmpty(userId))
             {
-                return Files.Where(e => e.SearchVector.Matches(query)).Include(e => e.Preview);
+                return Files.Where(e => e.SearchVector.Matches(query))
+                    .Include(e => e.CreatedByUser)
+                    .Include(e => e.Preview)
+                    .Include(e => e.ImageInfo);
             }
             else
             {
-                return Files.Where(e => e.SearchVector.Matches(query) && e.CreatedByUserId == userId).Include(e => e.Preview);
+                return Files.Where(e => e.SearchVector.Matches(query) && e.CreatedByUserId == userId)
+                    .Include(e => e.CreatedByUser)
+                    .Include(e => e.Preview)
+                    .Include(e => e.ImageInfo);
             }
         }
     }
 
     public async Task<FileModel?> GetFileAsync(string id)
     {
-        var target = await Files.Where(e => e.Id == id).Include(e => e.Preview).FirstOrDefaultAsync();
+        var target = await Files.Where(e => e.Id == id)
+                .Include(e => e.CreatedByUser)
+                .Include(e => e.Preview)
+                .Include(e => e.ImageInfo).FirstOrDefaultAsync();
         if (target == null)
         {
-            target = await Files.Where(e => e.ShortUrl == id).Include(e => e.Preview).FirstOrDefaultAsync();
+            target = await Files.Where(e => e.ShortUrl == id)
+                .Include(e => e.CreatedByUser)
+                .Include(e => e.Preview)
+                .Include(e => e.ImageInfo).FirstOrDefaultAsync();
         }
         return target;
+    }
+
+    public async Task<List<FileModel>> GetFilesCreatedBy(UserModel user)
+    {
+        var result = await Files
+            .Where(e => e.CreatedByUserId == user.Id)
+            .Include(e => e.CreatedByUser)
+            .Include(e => e.Preview)
+            .Include(e => e.ImageInfo)
+            .ToListAsync();
+        return result;
     }
     public FileModel? GetFile(string id)
     {
@@ -194,7 +224,11 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                     .HasForeignKey(e => e.UserId)
                     .IsRequired(true);
             });
-
+        builder.Entity<FileImageInfoModel>(b =>
+        {
+            b.ToTable(FileImageInfoModel.TableName);
+            b.HasKey(e => e.Id);
+        });
         builder.Entity<FileModel>(
             b =>
             {
@@ -213,6 +247,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                 b.HasOne(e => e.CreatedByUser)
                     .WithOne()
                     .HasForeignKey<FileModel>(e => e.CreatedByUserId)
+                    .IsRequired(false);
+                b.HasOne(e => e.ImageInfo)
+                    .WithOne(e => e.File)
+                    .HasForeignKey<FileImageInfoModel>(e => e.Id)
                     .IsRequired(false);
                 
                 b.HasOne(e => e.Preview)

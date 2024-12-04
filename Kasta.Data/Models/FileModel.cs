@@ -27,6 +27,7 @@ public class FileModel
     public UserModel? CreatedByUser { get; set; }
     
     public FilePreviewModel? Preview { get; set; }
+    public FileImageInfoModel? ImageInfo { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 
