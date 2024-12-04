@@ -34,7 +34,7 @@
                             <img src="@previewUrl"
                                  class="rounded mx-auto d-block"
                                  alt="@Model.File.Filename (Preview)"
-                                 onload="document.getElementById('realImage').setAttribute('src', '@downloadUrl')" />
+                                 onload="document.getElementById('realImage').setAttribute('src', '@downloadUrl');" />
                             <span>Displaying Preview. Full Image is loading.</span>
                         </div>
                         <img src=""
@@ -97,6 +97,15 @@
                 @Model.File.Filename
             </div>
         </div>
+        @if (Model.File.ImageInfo != null)
+        {
+            <div class="row mt-1">
+                <div class="col-md-12 text-center">
+                    <i class="bi bi-image"></i>
+                    @Model.File.ImageInfo.FormatString()
+                </div>
+            </div>
+        }
         <div class="row mt-1">
             <div class="col-md-12 text-center">
                 <i class="bi bi-calendar"></i>

@@ -53,3 +53,6 @@ body {
     overflow-x:auto;
     padding: 0.5rem;
 }
+.img-thumbnail {
+    max-height: 70vh;
+}
