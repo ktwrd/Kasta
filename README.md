@@ -5,7 +5,7 @@ A Simple self-hostable File Sharing Service written in C#. Supports displaying m
 - User Management
 - User Registration
 - 2FA
-- Config Generator for ShareX
+- Config Generator for ShareX and [rustgrab](https://github.com/ktwrd/rustgrab)
 - Compatible with AWS S3 and S3-Compatible Services (like Cloudflare R2 and MinIO)
 - Web File Upload
 - Audit Logging
@@ -32,7 +32,10 @@ services:
   web:
     image: ktwrd/kasta:latest
     environment:
-      DATABASE_CONNECTION_STRING: "Host=db:5432;Database=kasta;Username=kasta;Password=changeme123"
+      DATABASE_HOST: db
+      DATABASE_USER: kasta
+      DATABASE_PASSWORD: changeme123
+      DATABASE_NAME: kasta
       DeploymentEndpoint: "https://kasta.example.com"
       S3_ServiceUrl: "http://s3.us-east-1.amazonaws.com"
       S3_AccessKey: "xxxxxx"
