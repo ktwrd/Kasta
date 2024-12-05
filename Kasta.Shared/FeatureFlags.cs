@@ -43,4 +43,21 @@ public static class FeatureFlags
     public static string S3BucketName => ParseString("S3_Bucket", "");
     public static string Endpoint => ParseString("DeploymentEndpoint", "http://localhost:5280");
     public static string DefaultRequestTimezone => ParseString("DefaultTimezone", "UTC");
+
+    public static bool OpenIdEnable => ParseBool("OpenIdEnable", false);
+    public static string OpenIdClientId => ParseString("OpenIdClientId", "");
+    public static string OpenIdClientSecret => ParseString("OpenIdClientSecret", "");
+    public static string OpenIdConfigurationUrl => ParseString("OpenIdConfigurationUrl", "");
+    public static string OpenIdScopes => ParseString("OpenIdScopes", "openid profile");
+    public static string OpenIdResponseType => ParseString("OpenIdResponseType", "code");
+
+    public static bool JwtEnable => ParseBool("JwtEnable", false);
+    public static bool JwtValidateIssuer => ParseBool("JwtValidateIssuer", true);
+    public static bool JwtValidateAudience => ParseBool("JwtValidateAudience", true);
+    public static bool JwtValidateLifetime => ParseBool("JwtValidateLifetime", true);
+    public static bool JwtValidateIssuerSigningKey => ParseBool("JwtValidateIssuerSigningKey", true);
+    public static string JwtValidIssuer => ParseString("JwtValidIssuer", "");
+    public static string JwtValidAudience => ParseString("JwtValidAudience", "");
+    public static string JwtIssuerSigningKeyLocation => ParseString("JwtIssuerSigningKeyLocation", "");
+    public static string JwtIssuerSigningKeyBase64 => ParseString("JwtIssuerSigningKeyBase64", "");
 }
