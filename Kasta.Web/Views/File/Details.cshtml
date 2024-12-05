@@ -20,6 +20,14 @@
             targetTimezone = tz;
         }
     }
+
+    var codeBlockClass = "";
+    if (!string.IsNullOrEmpty(System.IO.Path.GetExtension(Model.File.Filename)) && !string.IsNullOrEmpty(Model.PreviewContent))
+    {
+        var ext = System.IO.Path.GetExtension(Model.File.Filename).Substring(1);
+        codeBlockClass = $"language-{ext}";
+        ViewData["Highlight"] = true;
+    }
 }
 
 <div class="row">
@@ -63,8 +71,8 @@
                 }
                 else if (!string.IsNullOrEmpty(Model.PreviewContent))
                 {
-                    <div class="mx-auto d-block rounded text-preview">
-                        <pre><code>@Model.PreviewContent</code></pre>
+                    <div class="mx-auto d-block rounded text-preview hljs">
+                        <pre><code class="@codeBlockClass">@Model.PreviewContent</code></pre>
                     </div>
                     <br/>
                     <div class="mx-auto d-block">

@@ -94,6 +94,17 @@
         <link rel="stylesheet" href="~/css/theme-2010.css" asp-append-version="true"/>
     }
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    @if (ViewData.ContainsKey("Highlight"))
+    {
+        if (bootstrapThemeAttributeValue == "dark")
+        {
+            <link rel="stylesheet" href="~/lib/highlightjs/styles/dark.min.css" />
+        }
+        else
+        {
+            <link rel="stylesheet" href="~/lib/highlightjs/styles/default.min.css" />
+        }
+    }
     <script type="text/javascript">
         window.UserLimits = {
             MaxUploadQuota: @(systemSettings.EnableQuota ? "null" : (userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal)?.ToString() ?? "null")
@@ -157,6 +168,11 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/lib/dropzone/js/dropzone.min.js"></script>
+@if (ViewData.ContainsKey("Highlight"))
+{
+    <script src="~/lib/highlightjs/highlight.min.js"></script>
+    <script type="application/javascript">hljs.highlightAll();</script>
+}
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>

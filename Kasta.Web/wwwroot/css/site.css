@@ -48,10 +48,14 @@ body {
     background-color: black;
 }
 .text-preview pre {
-    height: min(max(calc(60vh - 100px), 100px), 500px);
-    overflow-y:scroll;
+    height: max(calc(70vh - 50px), 200px);
+    overflow-y:auto;
     overflow-x:auto;
     padding: 0.5rem;
+}
+.text-preview pre code {
+    padding: 0 !important;
+    overflow-x: initial !important;
 }
 .img-thumbnail {
     max-height: 70vh;
