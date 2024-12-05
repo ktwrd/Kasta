@@ -143,6 +143,13 @@ public class AdminController : Controller
             vm.Page,
             50,
             out var lastPage);
+        foreach (var user in vm.Users)
+        {
+            var files = await _db.Files.Where(e => e.CreatedByUserId == user.Id).Select(e => e.Id).ToListAsync();
+            var previewFileCount = await _db.FilePreviews.Where(e => files.Contains(e.Id)).LongCountAsync();
+            vm.UserPreviewFileCount[user.Id] = previewFileCount;
+            vm.UserFileCount[user.Id] = files.LongCount();
+        }
         vm.IsLastPage = lastPage;
 
         return View("UserList", vm);

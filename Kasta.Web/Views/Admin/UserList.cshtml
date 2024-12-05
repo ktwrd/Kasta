@@ -23,17 +23,17 @@
                     {
                         <th colspan="2"><center>Limits</center></th>
                     }
+                    <th colspan="2">Storage</th>
                     <th>Theme</th>
                 </tr>
-                @if (Model.SystemSettings.EnableQuota)
-                {
                     <tr>
                         <th colspan="6"></th>
                         <th>Storage</th>
                         <th>File Size</th>
+                        <th>Total</th>
+                        <th>File Count</th>
                         <th></th>
                     </tr>
-                }
             </thead>
             <tbody>
                 @foreach (var user in Model.Users)
@@ -65,6 +65,27 @@
                             <td>@(user.Limit?.MaxStorage == null || user.Limit.MaxStorage < 0 ? "Default" : SizeHelper.BytesToString((long)user.Limit.MaxStorage!))</td>
                             <td>@(user.Limit?.MaxFileSize == null || user.Limit.MaxFileSize < 0 ? "Default" : SizeHelper.BytesToString((long)user.Limit.MaxFileSize!))</td>
                         }
+                        <td>
+                            @if (user.Limit?.SpaceUsed <= 0)
+                            {
+                                @("None")
+                            }
+                            else
+                            {
+                                @SizeHelper.BytesToString((long)(user.Limit?.SpaceUsed ?? 0))
+                            }
+                        </td>
+                        <td>
+                            @if (Model.UserFileCount.TryGetValue(user.Id, out var currentUserFileCount))
+                            {
+                                @($"{currentUserFileCount:n0}")
+                                @if (Model.UserPreviewFileCount.TryGetValue(user.Id, out var currentUserPreviewFileCount))
+                                {
+                                    <br/>
+                                    <sup>Preview @($"{currentUserPreviewFileCount:n0}")</sup>
+                                }
+                            }
+                        </td>
                         <td>
                             @if (string.IsNullOrEmpty(user.ThemeName))
                             {
