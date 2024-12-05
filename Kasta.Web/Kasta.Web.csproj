@@ -7,8 +7,8 @@
         <UserSecretsId>aspnet-Kasta-be2e7886-b576-461b-9096-e78871b03d07</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>Kasta.Web</RootNamespace>
-        <FileVersion>0.2.0</FileVersion>
-        <AssemblyVersion>0.2.0</AssemblyVersion>
+        <FileVersion>0.3.0</FileVersion>
+        <AssemblyVersion>0.3.0</AssemblyVersion>
     </PropertyGroup>
 
     <ItemGroup>
