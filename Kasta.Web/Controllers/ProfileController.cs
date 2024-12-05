@@ -136,6 +136,60 @@ public class ProfileController : Controller
 
     [AuthRequired]
     [HttpGet]
+    public async Task<IActionResult> GenerateRustgrabConfig()
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null)
+        {
+            throw new InvalidOperationException(
+                $"User returned null from {typeof(UserManager<UserModel>)} (method: {nameof(_userManager.GetUserAsync)})");
+        }
+
+        var apiKey = new UserApiKeyModel()
+        {
+            UserId = currentUser.Id,
+            CreatedByUserId = currentUser.Id,
+            Purpose = "Generate rustgrab Config (from Profile)"
+        };
+        
+        var data = new Dictionary<string, object>()
+        {
+            {"xbackbone_config", new Dictionary<string, object>()
+            {
+                {"token", apiKey.Token},
+                {"url", $"{FeatureFlags.Endpoint}/api/v1/File/Upload/Form"}
+            }}
+        };
+        var fileContent = JsonSerializer.Serialize(data, new JsonSerializerOptions()
+        {
+            IncludeFields = true,
+            WriteIndented = true
+        });
+        var ms = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+        using (var ctx = _db.CreateSession())
+        {
+            using (var trans = ctx.Database.BeginTransaction())
+            {
+                try
+                {
+                    await ctx.UserApiKeys.AddAsync(apiKey);
+                    trans.Commit();
+                    ctx.SaveChanges();
+                }
+                catch
+                {
+                    trans.Rollback();
+                }
+            }
+        }
+        return new FileStreamResult(ms, "application/json")
+        {
+            FileDownloadName = $"{currentUser.UserName}-rustgrab-partial.json"
+        };
+    }
+
+    [AuthRequired]
+    [HttpGet]
     public async Task<IActionResult> DeleteAllApiKeys()
     {
         var currentUser = await _userManager.GetUserAsync(User);

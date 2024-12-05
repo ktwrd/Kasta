@@ -62,9 +62,15 @@
                     <hr/>
                     <div class="btn-group">
                         <a asp-controller="Profile" asp-action="GenerateShareXConfig" class="btn btn-primary">Get ShareX Config</a>
+                        <a asp-controller="Profile" asp-action="GenerateRustgrabConfig" class="btn btn-primary">Get rustgrab Config</a>
                         <a asp-controller="Profile" asp-action="DeleteAllApiKeys" class="btn btn-danger">Delete all API Keys</a>
                     </div>
                 </form>
+                <hr/>
+                <p>
+                    <strong>Note for rustgrab:</strong> The config file provided only has the <code>xbackbone_config</code> property set.
+                    Manually copy this into your rustgrab config, or use the "insert" button in the GUI.
+                </p>
             </div>
         </div>
     </div>
