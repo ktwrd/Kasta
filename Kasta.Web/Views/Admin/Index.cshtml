@@ -14,57 +14,25 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-auto">
-                        <table>
+                        <table class="table table-sm">
                             <tr>
-                                <th colspan="2">Space Used</th>
-                            </tr>
-                            @if (Model.TotalPreviewSpaceUsed == "0B")
-                            {
-                                <tr>
-                                    <td colspan="2">@Model.TotalSpaceUsed</td>
-                                </tr>
-                            }
-                            else
-                            {
-                                <tr>
-                                    <th>Total</th>
-                                    <td>@Model.TotalSpaceUsed</td>
-                                </tr>
-                                
-                                <tr>
-                                    <th>Preview</th> 
-                                    <td>@Model.TotalPreviewSpaceUsed</td>
-                                </tr>
-                            }
-                        </table>
-                    </div>
-                    <div class="col-auto">
-                        <table>
-                            <tr>
+                                <th>Users</th>
+                                <th>Space Used</th>
                                 <th>Files</th>
-                            </tr>
-                            <tr>
-                                <td>@Model.FileCount</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-auto">
-                        <table>
-                            <tr>
                                 <th>Orphaned Files</th>
                             </tr>
                             <tr>
-                                <td>@Model.OrphanFileCount</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-auto">
-                        <table>
-                            <tr>
-                                <th>Users</th>
-                            </tr>
-                            <tr>
                                 <td>@Model.UserCount</td>
+                                <td>
+                                    <span>@Model.TotalSpaceUsed</span>
+                                    @if (Model.TotalPreviewSpaceUsed.ToUpper() != "0B")
+                                    {
+                                        <br/>
+                                        <sup>Preview: @Model.TotalPreviewSpaceUsed</sup>
+                                    }
+                                </td>
+                                <td>@Model.FileCount</td>
+                                <td>@Model.OrphanFileCount</td>
                             </tr>
                         </table>
                     </div>
