@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
@@ -9,6 +10,7 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Npgsql;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
+using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace Kasta.Web;
 
@@ -52,12 +54,20 @@ public class Program
                     options.ClientSecret = FeatureFlags.OpenIdClientSecret;
                     options.Authority = FeatureFlags.OpenIdEndpoint;
                     options.ResponseType = OpenIdConnectResponseType.Code;
+                    options.Scope.Add("email");
                     options.SaveTokens = true;
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
                     options.TokenValidationParameters.RoleClaimType = "roles";
+                    if (FeatureFlags.OpenIdValidateIssuer == false)
+                    {
+                        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+                        options.TokenValidationParameters.SignatureValidator = (a, b) =>
+                        {
+                            return new JsonWebToken(a);
+                        };
+                    }
                 });
-
         }
         builder.Services.AddMvc();
         builder.Services.AddScoped<S3Service>()
