@@ -4,6 +4,9 @@ using Kasta.Shared;
 using Kasta.Web.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Npgsql;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
 
@@ -13,6 +16,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        IdentityModelEventSource.ShowPII = true;
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
@@ -25,6 +29,7 @@ public class Program
                 b.Username = FeatureFlags.DatabaseUser;
                 b.Password = FeatureFlags.DatabasePassword;
                 b.Database = FeatureFlags.DatabaseName;
+                b.IncludeErrorDetail = true;
                 options.UseNpgsql(b.ToString());
             });
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -37,6 +42,23 @@ public class Program
                     options.Password.RequireNonAlphanumeric = false;
                 })
             .AddEntityFrameworkStores<ApplicationDbContext>();
+        if (FeatureFlags.OpenIdEnable)
+        {
+            builder.Services.AddAuthentication().AddOpenIdConnect(
+                options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.ClientId = FeatureFlags.OpenIdClientId;
+                    options.ClientSecret = FeatureFlags.OpenIdClientSecret;
+                    options.Authority = FeatureFlags.OpenIdEndpoint;
+                    options.ResponseType = OpenIdConnectResponseType.Code;
+                    options.SaveTokens = true;
+                    options.GetClaimsFromUserInfoEndpoint = true;
+                    options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
+                    options.TokenValidationParameters.RoleClaimType = "roles";
+                });
+
+        }
         builder.Services.AddMvc();
         builder.Services.AddScoped<S3Service>()
             .AddScoped<UploadService>()
