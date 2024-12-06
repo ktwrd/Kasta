@@ -214,14 +214,17 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                 b.HasOne(e => e.Limit)
                     .WithOne(e => e.User)
                     .HasForeignKey<UserLimitModel>(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired(false);
                 b.HasOne(e => e.Settings)
                     .WithOne(e => e.User)
                     .HasForeignKey<UserSettingModel>(e => e.Id)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired(false);
                 b.HasMany(e => e.ApiKeys)
                     .WithOne(e => e.User)
                     .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired(true);
             });
         builder.Entity<FileImageInfoModel>(b =>
