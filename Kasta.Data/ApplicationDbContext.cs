@@ -185,7 +185,19 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         }
         return r;
     }
-
+    public async Task<UserModel?> GetUserAsync(string id)
+    {
+        var item = await Users.Where(e => e.Id == id)
+            .Include(e => e.Limit)
+            .Include(e => e.ApiKeys)
+            .Include(e => e.Settings)
+            .FirstOrDefaultAsync();
+        return item;
+    }
+    public async Task<bool> UserExistsAsync(string id)
+    {
+        return await Users.Where(e => e.Id == id).AnyAsync();
+    }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
