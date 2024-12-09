@@ -1,4 +1,5 @@
 @using Kasta.Data.Models
+@using Kasta.Web.Areas.Admin.Models.User
 @using Kasta.Web.Helpers
 @using Kasta.Web.Models.Components
 @model UserModel
@@ -8,24 +9,13 @@
         <h5>Edit User @Model.UserName</h5>
     </div>
     <div class="card-body">
-        <form asp-controller="Admin" asp-action="EditUserPost" method="post" enctype="multipart/form-data">
-            <input type="hidden" value="@Model.Id" name="userId"></input>
-            <div class="mb-3 row">
-                @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
-                {
-                    Id = "userIsAdmin",
-                    State = Model.IsAdmin,
-                    Name = nameof(Model.IsAdmin),
-                    Label = "Is Admin"
-                })
-            </div>
-            <hr/>
+        <form asp-area="Admin" asp-controller="User" asp-action="EditUserPostForm" asp-route-userId="@Model.Id" method="post" enctype="multipart/form-data">
             <div class="mb-3 row">
                 @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
                 {
                     Id = "enableStorageQuota",
                     State = (Model.Limit?.MaxStorage ?? -1) >= 0,
-                    Name = "enableStorageQuota",
+                    Name = nameof(EditUserContract.EnableStorageQuota),
                     Label = "Enable Storage Quota"
                 })
             </div>
@@ -34,7 +24,7 @@
                 {
                     Id = "storageQuotaValue",
                     Value = (Model.Limit?.MaxStorage ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxStorage ?? 0) : "",
-                    Name = "storageQuotaValue",
+                    Name = nameof(EditUserContract.StorageQuotaValue),
                     DisplayName = "Storage Quota",
                     HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Storage Quota' is unchecked."
                 })
@@ -44,7 +34,7 @@
                 {
                     Id = "enableUploadLimit",
                     State = (Model.Limit?.MaxFileSize ?? -1) >= 0,
-                    Name = "enableUploadLimit",
+                    Name = nameof(EditUserContract.EnableUploadLimit),
                     Label = "Enable Upload Limit"
                 })
             </div>
@@ -53,7 +43,7 @@
                 {
                     Id = "uploadLimitValue",
                     Value = (Model.Limit?.MaxFileSize ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxFileSize ?? 0) : "",
-                    Name = "uploadLimitValue",
+                    Name = nameof(EditUserContract.UploadLimitValue),
                     DisplayName = "Upload Limit",
                     HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Upload Limit' is unchecked."
                 })
