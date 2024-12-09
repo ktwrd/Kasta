@@ -58,3 +58,13 @@ For this script to work, you must provide the details to connect to the database
 - `DATABASE_PASSWORD`
 
 Extra content can be appended onto the connection string with the `DATABASE_APPEND` environment variable. Debug logging can also be enabled by setting the environment variable `DEBUG` to `1`.
+
+## 520 with Cloudflare
+This occurs because the response header is >8kb. This can be fixed by disabling HTTP/2 support (`/speed/optimization/protocol`), and setting the following value in your NGINX config;
+```
+server {
+  ...
+  large_client_header_buffers 4 32k;
+  ...
+}
+```
