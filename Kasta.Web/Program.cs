@@ -10,12 +10,12 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Npgsql;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
+using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace Kasta.Web;
 
@@ -37,6 +37,7 @@ public static class Program
                 b.Username = FeatureFlags.DatabaseUser;
                 b.Password = FeatureFlags.DatabasePassword;
                 b.Database = FeatureFlags.DatabaseName;
+                b.IncludeErrorDetail = true;
                 options.UseNpgsql(b.ToString());
             });
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -49,7 +50,31 @@ public static class Program
                     options.Password.RequireNonAlphanumeric = false;
                 })
             .AddEntityFrameworkStores<ApplicationDbContext>();
-
+        if (FeatureFlags.OpenIdEnable)
+        {
+            builder.Services.AddAuthentication().AddOpenIdConnect(
+                options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.ClientId = FeatureFlags.OpenIdClientId;
+                    options.ClientSecret = FeatureFlags.OpenIdClientSecret;
+                    options.Authority = FeatureFlags.OpenIdEndpoint;
+                    options.ResponseType = OpenIdConnectResponseType.Code;
+                    options.Scope.Add("email");
+                    options.SaveTokens = true;
+                    options.GetClaimsFromUserInfoEndpoint = true;
+                    options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
+                    options.TokenValidationParameters.RoleClaimType = "roles";
+                    if (FeatureFlags.OpenIdValidateIssuer == false)
+                    {
+                        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+                        options.TokenValidationParameters.SignatureValidator = (a, b) =>
+                        {
+                            return new JsonWebToken(a);
+                        };
+                    }
+                });
+        }
         builder.Services.AddMvc();
         builder.Services.AddScoped<S3Service>()
             .AddScoped<UploadService>()

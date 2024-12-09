@@ -43,4 +43,10 @@ public static class FeatureFlags
     public static string S3BucketName => ParseString("S3_Bucket", "");
     public static string Endpoint => ParseString("DeploymentEndpoint", "http://localhost:5280");
     public static string DefaultRequestTimezone => ParseString("DefaultTimezone", "UTC");
+
+    public static bool OpenIdEnable => ParseBool("OpenIdEnable", false);
+    public static string OpenIdClientId => ParseString("OpenIdClientId", "");
+    public static string OpenIdClientSecret => ParseString("OpenIdClientSecret", "");
+    public static string OpenIdEndpoint => ParseString("OpenIdEndpoint", "");
+    public static bool OpenIdValidateIssuer => ParseBool("OpenIdValidateIssuer", true);
 }
