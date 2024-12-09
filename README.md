@@ -46,3 +46,15 @@ services:
 volumes:
   local_pgdata:
 ```
+
+## Migration Script
+For development purposes, a script has been created to more easily apply migrations to a database, which can be found in the file `apply-migration.sh`.
+
+For this script to work, you must provide the details to connect to the database with either the `DATABASE_CONNECTION_STRING` environment variable or by providing all the parts separately in the following environment variables.
+- `DATABASE_HOST`
+- `DATABASE_PORT`
+- `DATABASE_NAME`
+- `DATABASE_USER`
+- `DATABASE_PASSWORD`
+
+Extra content can be appended onto the connection string with the `DATABASE_APPEND` environment variable. Debug logging can also be enabled by setting the environment variable `DEBUG` to `1`.
