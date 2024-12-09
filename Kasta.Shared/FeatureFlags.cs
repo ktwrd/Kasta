@@ -44,9 +44,45 @@ public static class FeatureFlags
     public static string Endpoint => ParseString("DeploymentEndpoint", "http://localhost:5280");
     public static string DefaultRequestTimezone => ParseString("DefaultTimezone", "UTC");
 
+    /// <summary>
+    /// <para>Key: <c>OpenIdEnable</c></para>
+    /// <para>Default Value: <see langword="false"/></para>
+    /// </summary>
     public static bool OpenIdEnable => ParseBool("OpenIdEnable", false);
+    /// <summary>
+    /// <para>Key: <c>OpenIdClientId</c></para>
+    /// <para>Default Value: (empty string)</para>
+    /// </summary>
     public static string OpenIdClientId => ParseString("OpenIdClientId", "");
+    /// <summary>
+    /// <para>Key: <c>OpenIdClientSecret</c></para>
+    /// <para>Default Value: (empty string)</para>
+    /// </summary>
     public static string OpenIdClientSecret => ParseString("OpenIdClientSecret", "");
+    /// <summary>
+    /// <para>Key: <c>OpenIdEndpoint</c></para>
+    /// <para>Default Value: (empty string)</para>
+    /// </summary>
     public static string OpenIdEndpoint => ParseString("OpenIdEndpoint", "");
+    /// <summary>
+    /// <para>Key: <c>OpenIdValidateIssuer</c></para>
+    /// <para>Default Value: <see langword="true"/></para>
+    /// </summary>
+    /// <remarks>Set this to <see langword="false"/> when using Authentik 2024.10 or later.</remarks>
     public static bool OpenIdValidateIssuer => ParseBool("OpenIdValidateIssuer", true);
+    /// <summary>
+    /// <para>Key: <c>OpenIdScopes</c></para>
+    /// <para>Default Value: <c>openid profile</c></para>
+    /// </summary>
+    public static string OpenIdScopes => ParseString("OpenIdScopes", "openid profile");
+    /// <summary>
+    /// <para>Key: <c>JwtNameClaimType</c></para>
+    /// <para>Default Value: <see cref="JwtRegisteredClaimNames.Name"/> (<c>name</c>)</para>
+    /// </summary>
+    public static string JwtNameClaimType => ParseString("JwtNameClaimType", "name");
+    /// <summary>
+    /// <para>Key: <c>JwtRoleClaimType</c></para>
+    /// <para>Default Value: <c>roles</c></para>
+    /// </summary>
+    public static string JwtRoleClaimType => ParseString("JwtRoleClaimType", "roles");
 }

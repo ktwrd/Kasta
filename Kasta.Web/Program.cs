@@ -31,9 +31,9 @@ public static class Program
     public static void Main(string[] args)
     {
         if (IsDevelopment)
-    {
-        IdentityModelEventSource.ShowPII = true;
-        IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+        {
+            IdentityModelEventSource.ShowPII = true;
+            IdentityModelEventSource.LogCompleteSecurityArtifact = true;
         }
         var builder = WebApplication.CreateBuilder(args);
 
@@ -70,11 +70,15 @@ public static class Program
                     options.ClientSecret = FeatureFlags.OpenIdClientSecret;
                     options.Authority = FeatureFlags.OpenIdEndpoint;
                     options.ResponseType = OpenIdConnectResponseType.Code;
-                    options.Scope.Add("email");
+                    options.Scope.Clear();
+                    foreach (var x in FeatureFlags.OpenIdScopes.Split(' '))
+                    {
+                        options.Scope.Add(x);
+                    }
                     options.SaveTokens = true;
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
-                    options.TokenValidationParameters.RoleClaimType = "roles";
+                    options.TokenValidationParameters.RoleClaimType = FeatureFlags.JwtRoleClaimType;
                     if (FeatureFlags.OpenIdValidateIssuer == false)
                     {
                         options.TokenValidationParameters.ValidateIssuerSigningKey = false;
