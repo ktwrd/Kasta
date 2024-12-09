@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Kasta.Web.Models.Admin;
 using Microsoft.EntityFrameworkCore;
 using Kasta.Web.Services;
+using NLog;
 
 namespace Kasta.Web.Controllers;
 
@@ -18,6 +19,7 @@ public class AdminController : Controller
     private readonly FileService _fileService;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly UserManager<UserModel> _userManager;
+    private readonly Logger _log = LogManager.GetCurrentClassLogger();
     
     public AdminController(IServiceProvider services)
         : base()
@@ -153,5 +155,104 @@ public class AdminController : Controller
         vm.IsLastPage = lastPage;
 
         return View("UserList", vm);
+    }
+
+    [AuthRequired]
+    [HttpGet("EditUser")]
+    public async Task<IActionResult> EditUserPage([FromQuery] string userId)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null || !currentUser.IsAdmin)
+        {
+            return new RedirectToActionResult("Index", "Home", null);
+        }
+
+        var targetUser = await _db.GetUserAsync(userId);
+        if (targetUser == null)
+        {
+            Response.StatusCode = 404;
+            return View("NotFound", new NotFoundViewModel()
+            {
+                Message = $"Could not find User with Id of `{userId}`"
+            });
+        }
+
+        return View("EditUser", targetUser);
+    }
+
+    [AuthRequired]
+    [HttpPost("EditUser")]
+    public async Task<IActionResult> EditUserPost(
+        [FromForm] string userId,
+        [FromForm] bool isAdmin,
+        [FromForm] bool enableStorageQuota,
+        [FromForm] string? storageQuotaValue,
+        [FromForm] bool enableUploadLimit,
+        [FromForm] string? uploadLimitValue)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null || !currentUser.IsAdmin)
+        {
+            return new RedirectToActionResult("Index", "Home", null);
+        }
+
+        if (!await _db.UserExistsAsync(userId))
+        {
+            Response.StatusCode = 404;
+            return View("NotFound", new NotFoundViewModel()
+            {
+                Message = $"Could not find User with Id of `{userId}`"
+            });
+        }
+
+        using (var ctx = _db.CreateSession())
+        {
+            var trans = ctx.Database.BeginTransaction();
+
+            try
+            {
+                var user = await ctx.GetUserAsync(userId);
+                if (user == null)
+                {
+                    throw new InvalidOperationException($"WTF??? Checked if the user ({userId}) exists outside of new context, but it doesn't??");
+                }
+
+                long? storageParse = enableStorageQuota || string.IsNullOrEmpty(storageQuotaValue)
+                    ? null
+                    : SizeHelper.ParseToByteCount(storageQuotaValue!);
+                long? uploadParse= enableUploadLimit || string.IsNullOrEmpty(uploadLimitValue)
+                    ? null
+                    : SizeHelper.ParseToByteCount(uploadLimitValue!);
+
+                if (user.Limit == null)
+                {
+                    var limit = new UserLimitModel()
+                    {
+                        UserId = user.Id,
+                        MaxFileSize = uploadParse,
+                        MaxStorage = storageParse
+                    };
+                    await ctx.UserLimits.AddAsync(limit);
+                }
+                else
+                {
+                    await ctx.UserLimits.Where(e => e.UserId == user.Id)
+                        .ExecuteUpdateAsync(e =>
+                            e.SetProperty(e => e.MaxFileSize, uploadParse)
+                             .SetProperty(e => e.MaxStorage, storageParse)
+                        );
+                }
+                user.IsAdmin = isAdmin;
+                await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                throw;
+            }
+
+            return new RedirectToActionResult("UserList", "Admin", null);
+        }
     }
 }

@@ -25,6 +25,7 @@
                     }
                     <th colspan="2">Storage</th>
                     <th>Theme</th>
+                    <th></th>
                 </tr>
                     <tr>
                         <th colspan="6"></th>
@@ -95,6 +96,11 @@
                             {
                                 <code>@user.ThemeName</code>
                             }
+                        </td>
+                        <td>
+                            <a asp-controller="Admin" asp-action="EditUserPage" class="btn btn-primary" asp-route-userId="@user.Id" title="Edit User">
+                                <i class="bi bi-edit"></i>
+                            </a>
                         </td>
                     </tr>
                 }

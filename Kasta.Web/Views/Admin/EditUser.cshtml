@@ -1,0 +1,65 @@
+@using Kasta.Data.Models
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
+@model UserModel
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5>Edit User @Model.UserName</h5>
+    </div>
+    <div class="card-body">
+        <form asp-controller="Admin" asp-action="EditUserPost" method="post" enctype="multipart/form-data">
+            <input type="hidden" value="@Model.Id" name="userId"></input>
+            <div class="mb-3 row">
+                @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                {
+                    Id = "userIsAdmin",
+                    State = Model.IsAdmin,
+                    Name = nameof(Model.IsAdmin),
+                    Label = "Is Admin"
+                })
+            </div>
+            <hr/>
+            <div class="mb-3 row">
+                @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                {
+                    Id = "enableStorageQuota",
+                    State = (Model.Limit?.MaxStorage ?? -1) >= 0,
+                    Name = "enableStorageQuota",
+                    Label = "Enable Storage Quota"
+                })
+            </div>
+            <div class="mb-3 row">
+                @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                {
+                    Id = "storageQuotaValue",
+                    Value = (Model.Limit?.MaxStorage ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxStorage ?? 0) : "",
+                    Name = "storageQuotaValue",
+                    DisplayName = "Storage Quota",
+                    HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Storage Quota' is unchecked."
+                })
+            </div>
+            <div class="mb-3 row">
+                @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                {
+                    Id = "enableUploadLimit",
+                    State = (Model.Limit?.MaxFileSize ?? -1) >= 0,
+                    Name = "enableUploadLimit",
+                    Label = "Enable Upload Limit"
+                })
+            </div>
+            <div class="mb-3 row">
+                @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                {
+                    Id = "uploadLimitValue",
+                    Value = (Model.Limit?.MaxFileSize ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxFileSize ?? 0) : "",
+                    Name = "uploadLimitValue",
+                    DisplayName = "Upload Limit",
+                    HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Upload Limit' is unchecked."
+                })
+            </div>
+            <hr/>
+            <button type="submit" class="btn btn-success">Save</button>
+        </form>
+    </div>
+</div>

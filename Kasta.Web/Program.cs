@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Npgsql;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Kasta.Web;
 
@@ -62,7 +63,10 @@ public static class Program
             .AddEntityFrameworkStores<ApplicationDbContext>();
         if (FeatureFlags.OpenIdEnable)
         {
-            builder.Services.AddAuthentication().AddOpenIdConnect(
+            builder.Services.AddAuthentication()
+            .AddCookie(JwtBearerDefaults.AuthenticationScheme).AddOpenIdConnect(
+                "OIDC",
+                "Authentik",
                 options =>
                 {
                     options.RequireHttpsMetadata = false;
@@ -70,6 +74,7 @@ public static class Program
                     options.ClientSecret = FeatureFlags.OpenIdClientSecret;
                     options.Authority = FeatureFlags.OpenIdEndpoint;
                     options.ResponseType = OpenIdConnectResponseType.Code;
+                    options.ResponseMode = "query";
                     options.Scope.Clear();
                     foreach (var x in FeatureFlags.OpenIdScopes.Split(' '))
                     {
