@@ -65,8 +65,8 @@ public static class Program
         {
             builder.Services.AddAuthentication()
             .AddCookie(JwtBearerDefaults.AuthenticationScheme).AddOpenIdConnect(
-                "OIDC",
-                "Authentik",
+                string.IsNullOrEmpty(FeatureFlags.OpenIdIdentifier) ? OpenIdConnectDefaults.AuthenticationScheme : FeatureFlags.OpenIdIdentifier,
+                string.IsNullOrEmpty(FeatureFlags.OpenIdDisplayName) ? null : FeatureFlags.OpenIdDisplayName,
                 options =>
                 {
                     options.RequireHttpsMetadata = false;

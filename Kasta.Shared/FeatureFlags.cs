@@ -76,6 +76,16 @@ public static class FeatureFlags
     /// </summary>
     public static string OpenIdScopes => ParseString("OpenIdScopes", "openid profile");
     /// <summary>
+    /// <para>Key: <c>OpenIdDisplayName</c></para>
+    /// <para>Default Value: (empty string)</para>
+    /// </summary>
+    public static string OpenIdDisplayName => ParseString("OpenIdDisplayName", "");
+    /// <summary>
+    /// <para>Key: <c>OpenIdIdentifier</c></para>
+    /// <para>Default Value: (empty string)</para>
+    /// </summary>
+    public static string OpenIdIdentifier => ParseString("OpenIdIdentifier", "");
+    /// <summary>
     /// <para>Key: <c>JwtNameClaimType</c></para>
     /// <para>Default Value: <see cref="JwtRegisteredClaimNames.Name"/> (<c>name</c>)</para>
     /// </summary>
