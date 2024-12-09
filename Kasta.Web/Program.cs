@@ -21,10 +21,20 @@ namespace Kasta.Web;
 
 public static class Program
 {
+    public static bool IsDevelopment
+    {
+        get
+        {
+            return string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "development", StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
     public static void Main(string[] args)
+    {
+        if (IsDevelopment)
     {
         IdentityModelEventSource.ShowPII = true;
         IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+        }
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
