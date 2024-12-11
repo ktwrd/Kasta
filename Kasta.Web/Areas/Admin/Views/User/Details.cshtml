@@ -4,52 +4,75 @@
 @using Kasta.Web.Models.Components
 @model UserModel
 
-<div class="card shadow-sm">
-    <div class="card-header">
-        <h5>Edit User @Model.UserName</h5>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">Admin</li>
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="User" asp-action="List">Users</a></li>
+    <li class="breadcrumb-item active" aria-current="page">@Model.UserName</li>
+  </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5>Edit User @Model.UserName</h5>
+            </div>
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="User" asp-action="EditUserPostForm" asp-route-userId="@Model.Id" method="post" enctype="multipart/form-data">
+                    <div class="mb-3 row">
+                        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                        {
+                            Id = "enableStorageQuota",
+                            State = (Model.Limit?.MaxStorage ?? -1) >= 0,
+                            Name = nameof(EditUserContract.EnableStorageQuota),
+                            Label = "Enable Storage Quota"
+                        })
+                    </div>
+                    <div class="mb-3 row">
+                        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                        {
+                            Id = "storageQuotaValue",
+                            Value = (Model.Limit?.MaxStorage ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxStorage ?? 0) : "",
+                            Name = nameof(EditUserContract.StorageQuotaValue),
+                            DisplayName = "Storage Quota",
+                            HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Storage Quota' is unchecked."
+                        })
+                    </div>
+                    <div class="mb-3 row">
+                        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                        {
+                            Id = "enableUploadLimit",
+                            State = (Model.Limit?.MaxFileSize ?? -1) >= 0,
+                            Name = nameof(EditUserContract.EnableUploadLimit),
+                            Label = "Enable Upload Limit"
+                        })
+                    </div>
+                    <div class="mb-3 row">
+                        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                        {
+                            Id = "uploadLimitValue",
+                            Value = (Model.Limit?.MaxFileSize ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxFileSize ?? 0) : "",
+                            Name = nameof(EditUserContract.UploadLimitValue),
+                            DisplayName = "Upload Limit",
+                            HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Upload Limit' is unchecked."
+                        })
+                    </div>
+                    <hr/>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <form asp-area="Admin" asp-controller="User" asp-action="EditUserPostForm" asp-route-userId="@Model.Id" method="post" enctype="multipart/form-data">
-            <div class="mb-3 row">
-                @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
-                {
-                    Id = "enableStorageQuota",
-                    State = (Model.Limit?.MaxStorage ?? -1) >= 0,
-                    Name = nameof(EditUserContract.EnableStorageQuota),
-                    Label = "Enable Storage Quota"
-                })
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5>Roles</h5>
             </div>
-            <div class="mb-3 row">
-                @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
-                {
-                    Id = "storageQuotaValue",
-                    Value = (Model.Limit?.MaxStorage ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxStorage ?? 0) : "",
-                    Name = nameof(EditUserContract.StorageQuotaValue),
-                    DisplayName = "Storage Quota",
-                    HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Storage Quota' is unchecked."
-                })
+            <div class="card-body">
+                // TODO
             </div>
-            <div class="mb-3 row">
-                @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
-                {
-                    Id = "enableUploadLimit",
-                    State = (Model.Limit?.MaxFileSize ?? -1) >= 0,
-                    Name = nameof(EditUserContract.EnableUploadLimit),
-                    Label = "Enable Upload Limit"
-                })
-            </div>
-            <div class="mb-3 row">
-                @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
-                {
-                    Id = "uploadLimitValue",
-                    Value = (Model.Limit?.MaxFileSize ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxFileSize ?? 0) : "",
-                    Name = nameof(EditUserContract.UploadLimitValue),
-                    DisplayName = "Upload Limit",
-                    HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Upload Limit' is unchecked."
-                })
-            </div>
-            <hr/>
-            <button type="submit" class="btn btn-success">Save</button>
-        </form>
+        </div>
     </div>
 </div>
+
