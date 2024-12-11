@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web.Areas.Admin.Controllers;
 
+[Area("Admin")]
+[Route("~/Admin/[controller]")]
 [Authorize(Roles = $"{RoleKind.Administrator}, {RoleKind.UserAdmin}")]
 public class UserController : Controller
 {
@@ -52,7 +54,7 @@ public class UserController : Controller
         }
         vm.IsLastPage = lastPage;
 
-        return View("UserList", vm);
+        return View("List", vm);
     }
 
     [HttpGet("{userId}")]
@@ -68,7 +70,18 @@ public class UserController : Controller
             });
         }
 
-        return View("Details", targetUser);
+        var vm = new UserDetailsViewModel()
+        {
+            User = targetUser
+        };
+
+        var roles = await _db.Roles.ToListAsync();
+        vm.Roles = roles.ToDictionary(e => e.Id, e => e);
+
+        var userRoles = await _db.UserRoles.Where(e => e.UserId == targetUser.Id).ToListAsync();
+        vm.UserRoles = userRoles.ToDictionary(e => e.RoleId, e => e.UserId);
+
+        return View("Details", vm);
     }
 
     [HttpPost("{userId}/Edit")]
@@ -133,8 +146,88 @@ public class UserController : Controller
             }
 
             return new RedirectToActionResult("GetUser", "User", new {
-                userId = userId
+                userId = userId,
+                area = "Admin"
             });
         }
+    }
+
+    [HttpPost("{userId}/Edit/Roles")]
+    public async Task<IActionResult> EditUserRolesPostForm(
+        string userId,
+        [FromForm] Dictionary<string, bool> userRoles)
+    {
+        if (!await _db.UserExistsAsync(userId))
+        {
+            Response.StatusCode = 404;
+            return View("NotFound", new NotFoundViewModel()
+            {
+                Message = $"Could not find User with Id of `{userId}`"
+            });
+        }
+
+        using (var ctx = _db.CreateSession())
+        {
+            var trans = ctx.Database.BeginTransaction();
+
+            try
+            {
+                var existingRoles = await ctx.UserRoles.Where(e => e.UserId == userId).Select(e => e.RoleId).ToListAsync();
+
+                var roleIdRemoveList = new List<string>();
+                var roleIdAddList = new List<string>();
+
+                foreach (var (targetRoleId, targetState) in userRoles)
+                {
+                    if (targetState)
+                    {
+                        roleIdAddList.Add(targetRoleId);
+                    }
+                    else
+                    {
+                        roleIdRemoveList.Add(targetRoleId);
+                    }
+                }
+
+                foreach (var targetRoleId in existingRoles)
+                {
+                    if (!roleIdRemoveList.Contains(targetRoleId) && !roleIdAddList.Contains(targetRoleId))
+                    {
+                        roleIdRemoveList.Add(targetRoleId);
+                    }
+                }
+                roleIdAddList = roleIdAddList.Where(e => existingRoles.Contains(e) == false).ToList();
+                roleIdAddList = await ctx.Roles.Where(e => roleIdAddList.Contains(e.Id)).Select(e => e.Id).ToListAsync();
+
+                await ctx.UserRoles.Where(e => e.UserId == userId).Where(e => roleIdRemoveList.Contains(e.RoleId)).ExecuteDeleteAsync();
+
+                foreach (var roleId in roleIdAddList)
+                {
+                    if (await ctx.UserRoles.Where(e => e.UserId == userId && e.RoleId == roleId).AnyAsync() == false)
+                    {
+                        var m = new IdentityUserRole<string>()
+                        {
+                            UserId = userId,
+                            RoleId = roleId
+                        };
+                        await ctx.UserRoles.AddAsync(m);
+                    }
+                }
+
+                await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                throw;
+            }
+        }
+        
+        return new RedirectResult(Url.Action(nameof(GetUser), "User", new Dictionary<string, object>()
+        {
+            {"area", "Admin"},
+            {"userId", userId}
+        })!);
     }
 }

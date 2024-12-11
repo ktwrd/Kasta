@@ -1,6 +1,7 @@
 ﻿using Kasta.Data.Models;
 using Kasta.Data.Models.Audit;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,15 +9,52 @@ namespace Kasta.Data;
 
 public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyContext
 {
+    private static bool InitTaskRan = false;
     private readonly DbContextOptions<ApplicationDbContext> _ops;
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
-    { _ops = options; }
+    {
+        _ops = options;
+        if (!InitTaskRan)
+        {
+            EnsureInitialRoles();
+        }
+    }
 
     public ApplicationDbContext CreateSession()
     {
         return new(_ops);
     }
+
+    public void EnsureInitialRoles()
+    {
+        var trans = Database.BeginTransaction();
+        try
+        {
+            foreach (var item in RoleKind.ToList())
+            {
+                if (Roles.Where(e => e.Name == item.Name).Any() == false)
+                {
+                    Roles.Add(new IdentityRole()
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = item.Name,
+                        NormalizedName = item.Name.ToUpper(),
+                        ConcurrencyStamp = null
+                    });
+                }
+            }
+            SaveChanges();
+            trans.Commit();
+        }
+        catch
+        {
+            trans.Rollback();
+            throw;
+        }
+
+    }
+
     #region IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     #endregion

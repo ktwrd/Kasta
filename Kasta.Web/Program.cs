@@ -60,6 +60,7 @@ public static class Program
                     options.SignIn.RequireConfirmedPhoneNumber = false;
                     options.Password.RequireNonAlphanumeric = false;
                 })
+                .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
         if (FeatureFlags.OpenIdEnable)
         {
@@ -81,7 +82,7 @@ public static class Program
                         options.Scope.Add(x);
                     }
                     options.SaveTokens = true;
-                    options.GetClaimsFromUserInfoEndpoint = true;
+                    // options.GetClaimsFromUserInfoEndpoint = true;
                     options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
                     options.TokenValidationParameters.RoleClaimType = FeatureFlags.JwtRoleClaimType;
                     if (FeatureFlags.OpenIdValidateIssuer == false)

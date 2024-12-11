@@ -2,13 +2,19 @@
 @using Kasta.Web.Areas.Admin.Models.User
 @using Kasta.Web.Helpers
 @using Kasta.Web.Models.Components
-@model UserModel
+@model UserDetailsViewModel
+
+@{
+    ViewData["Title"] = $"{Model.User.UserName} - User - Admin";
+    Layout = "_Layout";
+    var user = Model.User;
+}
 
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item">Admin</li>
     <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="User" asp-action="List">Users</a></li>
-    <li class="breadcrumb-item active" aria-current="page">@Model.UserName</li>
+    <li class="breadcrumb-item active" aria-current="page">@user.UserName</li>
   </ol>
 </nav>
 
@@ -19,12 +25,12 @@
                 <h5>Storage Quota</h5>
             </div>
             <div class="card-body">
-                <form asp-area="Admin" asp-controller="User" asp-action="EditUserPostForm" asp-route-userId="@Model.Id" method="post" enctype="multipart/form-data">
+                <form action='@Url.Action("EditUserPostForm", "User", new { area = "Admin", userId = user.Id })' method="post" enctype="multipart/form-data">
                     <div class="mb-3 row">
                         @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
                         {
                             Id = "enableStorageQuota",
-                            State = (Model.Limit?.MaxStorage ?? -1) >= 0,
+                            State = (user.Limit?.MaxStorage ?? -1) >= 0,
                             Name = nameof(EditUserContract.EnableStorageQuota),
                             Label = "Enable Storage Quota"
                         })
@@ -33,7 +39,7 @@
                         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
                         {
                             Id = "storageQuotaValue",
-                            Value = (Model.Limit?.MaxStorage ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxStorage ?? 0) : "",
+                            Value = (user.Limit?.MaxStorage ?? -1) >= 0 ? SizeHelper.BytesToString(user.Limit?.MaxStorage ?? 0) : "",
                             Name = nameof(EditUserContract.StorageQuotaValue),
                             DisplayName = "Storage Quota",
                             HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Storage Quota' is unchecked."
@@ -43,7 +49,7 @@
                         @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
                         {
                             Id = "enableUploadLimit",
-                            State = (Model.Limit?.MaxFileSize ?? -1) >= 0,
+                            State = (user.Limit?.MaxFileSize ?? -1) >= 0,
                             Name = nameof(EditUserContract.EnableUploadLimit),
                             Label = "Enable Upload Limit"
                         })
@@ -52,7 +58,7 @@
                         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
                         {
                             Id = "uploadLimitValue",
-                            Value = (Model.Limit?.MaxFileSize ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxFileSize ?? 0) : "",
+                            Value = (user.Limit?.MaxFileSize ?? -1) >= 0 ? SizeHelper.BytesToString(user.Limit?.MaxFileSize ?? 0) : "",
                             Name = nameof(EditUserContract.UploadLimitValue),
                             DisplayName = "Upload Limit",
                             HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Upload Limit' is unchecked."
@@ -70,7 +76,25 @@
                 <h5>Roles</h5>
             </div>
             <div class="card-body">
-                // TODO
+                <form action='@Url.Action("EditUserRolesPostForm", "User", new { area = "Admin", userId = user.Id })' method="post" enctype="multipart/form-data">
+                    <ul class="list-group">
+                        @foreach (var (roleId, roleModel) in Model.Roles)
+                        {
+                            <li class="list-group-item">
+                                @if (Model.UserRoles.ContainsKey(roleId))
+                                {
+                                    <input class="form-check-input me-1" id="user-@(user.Id)-role-check-@(roleId)" type="checkbox" name="@roleId" value="true" aria-label="@roleModel.Name" checked />
+                                }
+                                else
+                                {
+                                    <input class="form-check-input me-1" id="user-@(user.Id)-role-check-@(roleId)" type="checkbox" name="@roleId" value="true" aria-label="@roleModel.Name" />
+                                }
+                                @roleModel.Name
+                            </li>
+                        }
+                    </ul>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </form>
             </div>
         </div>
     </div>

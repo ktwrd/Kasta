@@ -1,7 +1,7 @@
 @using Kasta.Shared.Helpers
 @using Kasta.Web.Helpers
-@using Kasta.Web.Models.Admin
-@model AdminUserListViewModel
+@using Kasta.Web.Areas.Admin.Models.User
+@model UserListViewModel
 
 @{
     ViewData["Title"] = "User List - Admin";
@@ -105,8 +105,8 @@
                             }
                         </td>
                         <td>
-                            <a asp-controller="Admin" asp-action="EditUserPage" class="btn btn-primary" asp-route-userId="@user.Id" title="Edit User">
-                                <i class="bi bi-edit"></i>
+                            <a class="btn btn-primary" href='@Url.Action("GetUser", "User", new { area = "Admin", userId = user.Id })'>
+                                <i class="bi bi-pencil"></i>
                             </a>
                         </td>
                     </tr>
