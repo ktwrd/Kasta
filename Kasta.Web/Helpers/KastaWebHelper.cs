@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Markdig;
 using Markdig.Parsers.Inlines;
 
@@ -35,4 +36,51 @@ public static class KastaWebHelper
         var result = Markdown.ToHtml(content, pipeline.Build());
         return result;
     }
+
+    public static bool EmbedMedia(string userAgent)
+    {
+        var robot = EmbedMediaUserAgent.Select(e => e.ToLower()).ToList();
+
+        return robot.Contains(userAgent.ToLower());
+    }
+
+    public static bool EmbedLink(string userAgent)
+    {
+        var robot = EmbedLinkUserAgent.Select(e => e.ToLower()).ToList();
+
+        return robot.Contains(userAgent.ToLower());
+    }
+
+    public static BotFeature GetBotFeatures(string userAgent)
+    {
+        if (EmbedLink(userAgent))
+            return BotFeature.EmbedLink;
+        if (EmbedMedia(userAgent))
+            return BotFeature.EmbedMedia;
+        return BotFeature.None;
+    }
+
+    public static ReadOnlyCollection<string> EmbedLinkUserAgent => new List<string>()
+    {
+            "discord",
+            // discord image bot
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 11.6; rv:92.0) Gecko/20100101 Firefox/92.0",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:38.0) Gecko/20100101 Firefox/38.0"
+    }.AsReadOnly();
+    public static ReadOnlyCollection<string> EmbedMediaUserAgent => EmbedLinkUserAgent.Concat([
+        "TelegramBot",
+        "facebookexternalhit/",
+        "Facebot",
+        "curl/",
+        "WhatsApp/",
+        "Slack",
+        "Twitterbot",
+    ]).Select(e => e.ToLower()).ToList().AsReadOnly();
+}
+
+public enum BotFeature
+{
+    None,
+    EmbedLink,
+    EmbedMedia,
 }

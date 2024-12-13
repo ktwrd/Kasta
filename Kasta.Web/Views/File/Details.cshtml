@@ -122,3 +122,38 @@
         </div>
     </div>
 </div>
+
+@section Head
+{
+    @if (Model.Embed)
+    {
+        <meta name="twitter:card" content="summary_image_large" />
+        <meta property="og:type" content="website"/>
+        <meta id="embed-title" property="og:title" content="@(Model.File.Filename) (@(SizeHelper.BytesToString(Model.File.Size)))" />
+        <meta id="embed-desc" property="og:description" content="@(TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt.UtcDateTime, targetTimezone))" />
+        @if (Model.File.MimeType?.StartsWith("image/") ?? false)
+        {
+            <meta id="embed-image" property="og:image" content="@downloadUrl">
+            <meta id="discord" name="twitter:image" content="@downloadUrl">
+            <meta id="image-src" name="twitter:image:src" content="@downloadUrl">
+        }
+        else if (Model.File.MimeType?.StartsWith("video/") ?? false)
+        {
+            <meta name="twitter:card" content="player" />
+            <meta name="twitter:title" content="@(Model.File.Filename) (@(SizeHelper.BytesToString(Model.File.Size)))" />
+            <meta name="twitter:image" content="0" />
+            <meta name="twitter:player:stream" content="@downloadUrl" />
+            <meta name="twitter:player:width" content="720" />
+            <meta name="twitter:player:height" content="480" />
+            <meta name="twitter:player:stream:content_type" content="@Model.File.MimeType" />
+
+            <meta property="og:url" content="@downloadUrl" />
+            <meta property="og:video" content="@downloadUrl" />
+            <meta property="og:video:secure_url" content="@downloadUrl" />
+            <meta property="og:video:type" content="@Model.File.MimeType" />
+            <meta property="og:video:width" content="720" />
+            <meta property="og:video:height" content="480" />
+            <meta property="og:image" content="0" />
+        }
+    }
+}

@@ -110,6 +110,7 @@
             MaxUploadQuota: @(systemSettings.EnableQuota ? "null" : (userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal)?.ToString() ?? "null")
         };
     </script>
+    @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
 <header>

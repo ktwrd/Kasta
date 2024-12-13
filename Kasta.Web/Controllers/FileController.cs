@@ -1,5 +1,6 @@
 using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Web.Helpers;
 using Kasta.Web.Models;
 using Kasta.Web.Services;
 using Microsoft.AspNetCore.Identity;
@@ -60,10 +61,23 @@ public class FileController : Controller
             }
         }
 
+        var bot = KastaWebHelper.GetBotFeatures(Request.Headers.UserAgent.ToString());
+        if (bot == BotFeature.EmbedMedia)
+        {
+            return new RedirectResult(Url.Action("GetFile", "ApiFile", new
+            {
+                value = id,
+                preview = false
+            })!);
+        }
+
+        var systemSettings = _db.GetSystemSettings();
         var vm = new FileDetailViewModel()
         {
-            File = file
+            File = file,
+            Embed = systemSettings.EnableEmbeds
         };
+
 
         if (_fileService.AllowPlaintextPreview(file))
         {
