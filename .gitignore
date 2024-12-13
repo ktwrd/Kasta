@@ -402,3 +402,6 @@ FodyWeavers.xsd
 .env.*
 !.env.example
 .idea
+config.xml
+config*xml
+!config.example.xml
