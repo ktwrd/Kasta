@@ -84,86 +84,31 @@ public class UserController : Controller
         return View("Details", vm);
     }
 
-    [HttpPost("{userId}/Edit")]
-    public async Task<IActionResult> EditUserPostForm(
-        string userId,
-        [FromForm] EditUserContract body)
+    [HttpGet("{userId}/Edit/Roles/Component")]
+    public async Task<IActionResult> EditUserRolesComponent(
+        string userId)
     {
         if (!await _db.UserExistsAsync(userId))
         {
-            Response.StatusCode = 404;
-            return View("NotFound", new NotFoundViewModel()
-            {
-                Message = $"Could not find User with Id of `{userId}`"
-            });
+            var userIdSanitized = userId.Replace("<", "&lt;").Replace(">", "&gt;");
+            Response.StatusCode = 200;
+            return Content($"<div class=\"alert alert-danger\" role=\"alert\">Could not find User with Id <code>{userIdSanitized}</code></div>");
         }
-
-        using (var ctx = _db.CreateSession())
-        {
-            var trans = ctx.Database.BeginTransaction();
-
-            try
-            {
-                var user = await ctx.GetUserAsync(userId);
-                if (user == null)
-                {
-                    throw new InvalidOperationException($"WTF??? Checked if the user ({userId}) exists outside of new context, but it doesn't??");
-                }
-
-                long? storageParse = body.EnableStorageQuota || string.IsNullOrEmpty(body.StorageQuotaValue)
-                    ? null
-                    : SizeHelper.ParseToByteCount(body.StorageQuotaValue!);
-                long? uploadParse= body.EnableUploadLimit || string.IsNullOrEmpty(body.UploadLimitValue)
-                    ? null
-                    : SizeHelper.ParseToByteCount(body.UploadLimitValue!);
-
-                if (user.Limit == null)
-                {
-                    var limit = new UserLimitModel()
-                    {
-                        UserId = user.Id,
-                        MaxFileSize = uploadParse,
-                        MaxStorage = storageParse
-                    };
-                    await ctx.UserLimits.AddAsync(limit);
-                }
-                else
-                {
-                    await ctx.UserLimits.Where(e => e.UserId == user.Id)
-                        .ExecuteUpdateAsync(e =>
-                            e.SetProperty(e => e.MaxFileSize, uploadParse)
-                             .SetProperty(e => e.MaxStorage, storageParse)
-                        );
-                }
-
-                await ctx.SaveChangesAsync();
-                await trans.CommitAsync();
-            }
-            catch
-            {
-                await trans.RollbackAsync();
-                throw;
-            }
-
-            return new RedirectToActionResult("GetUser", "User", new {
-                userId = userId,
-                area = "Admin"
-            });
-        }
+        
+        var vm = await GetRoleDetailsComponentViewModel(userId);
+        return PartialView("RoleDetailsComponent", vm);
     }
 
-    [HttpPost("{userId}/Edit/Roles")]
-    public async Task<IActionResult> EditUserRolesPostForm(
+    [HttpPost("{userId}/Edit/Roles/Component")]
+    public async Task<IActionResult> EditUserRolesComponentPost(
         string userId,
         [FromForm] Dictionary<string, bool> userRoles)
     {
         if (!await _db.UserExistsAsync(userId))
         {
-            Response.StatusCode = 404;
-            return View("NotFound", new NotFoundViewModel()
-            {
-                Message = $"Could not find User with Id of `{userId}`"
-            });
+            var userIdSanitized = userId.Replace("<", "&lt;").Replace(">", "&gt;");
+            Response.StatusCode = 200;
+            return Content($"<div class=\"alert alert-danger\" role=\"alert\">Could not find User with Id <code>{userIdSanitized}</code></div>");
         }
 
         using (var ctx = _db.CreateSession())
@@ -223,11 +168,115 @@ public class UserController : Controller
                 throw;
             }
         }
-        
-        return new RedirectResult(Url.Action(nameof(GetUser), "User", new Dictionary<string, object>()
+
+        var vm = await GetRoleDetailsComponentViewModel(userId);
+        vm.AlertType = "success";
+        vm.AlertContent = "Saved Roles";
+        return PartialView("RoleDetailsComponent", vm);
+    }
+
+    private async Task<RoleDetailsComponentViewModel> GetRoleDetailsComponentViewModel(string userId)
+    {
+        var roles = await _db.Roles.Where(e => e.Name != null).ToListAsync();
+        var userRoles = await _db.UserRoles.Where(e => e.UserId == userId).Select(e => e.RoleId).ToListAsync();
+        var vm = new RoleDetailsComponentViewModel()
         {
-            {"area", "Admin"},
-            {"userId", userId}
-        })!);
+            UserId = userId,
+            UserRoleIds = userRoles,
+            Roles = roles.ToDictionary(e => e.Id, e => e.Name ?? e.Id)
+        };
+        return vm;
+    }
+
+    [HttpGet("{userId}/Edit/Component")]
+    public async Task<IActionResult> EditUserLimitComponent(
+        string userId)
+    {
+        if (!await _db.UserExistsAsync(userId))
+        {
+            var userIdSanitized = userId.Replace("<", "&lt;").Replace(">", "&gt;");
+            Response.StatusCode = 200;
+            return Content($"<div class=\"alert alert-danger\" role=\"alert\">Could not find User with Id <code>{userIdSanitized}</code></div>");
+        }
+
+        var vm = await GetEditDetailsComponentViewModel(userId);
+        return PartialView("EditDetailsComponent", vm);
+    }
+
+    [HttpPost("{userId}/Edit/Component")]
+    public async Task<IActionResult> EditUserLimitComponentPost(
+        string userId,
+        [FromForm] EditUserContract body)
+    {
+        if (!await _db.UserExistsAsync(userId))
+        {
+            var userIdSanitized = userId.Replace("<", "&lt;").Replace(">", "&gt;");
+            Response.StatusCode = 200;
+            return Content($"<div class=\"alert alert-danger\" role=\"alert\">Could not find User with Id <code>{userIdSanitized}</code></div>");
+        }
+
+        using (var ctx = _db.CreateSession())
+        {
+            var trans = ctx.Database.BeginTransaction();
+
+            try
+            {
+                var user = await ctx.GetUserAsync(userId);
+                if (user == null)
+                {
+                    throw new InvalidOperationException($"WTF??? Checked if the user ({userId}) exists outside of new context, but it doesn't??");
+                }
+
+                long? storageParse = body.EnableStorageQuota || string.IsNullOrEmpty(body.StorageQuotaValue)
+                    ? null
+                    : SizeHelper.ParseToByteCount(body.StorageQuotaValue!);
+                long? uploadParse= body.EnableUploadLimit || string.IsNullOrEmpty(body.UploadLimitValue)
+                    ? null
+                    : SizeHelper.ParseToByteCount(body.UploadLimitValue!);
+
+                if (user.Limit == null)
+                {
+                    var limit = new UserLimitModel()
+                    {
+                        UserId = user.Id,
+                        MaxFileSize = uploadParse,
+                        MaxStorage = storageParse
+                    };
+                    await ctx.UserLimits.AddAsync(limit);
+                }
+                else
+                {
+                    await ctx.UserLimits.Where(e => e.UserId == user.Id)
+                        .ExecuteUpdateAsync(e =>
+                            e.SetProperty(e => e.MaxFileSize, uploadParse)
+                             .SetProperty(e => e.MaxStorage, storageParse)
+                        );
+                }
+
+                await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                throw;
+            }
+        }
+        
+        var vm = await GetEditDetailsComponentViewModel(userId);
+        vm.AlertType = "success";
+        vm.AlertContent = "Saved Storage Limit";
+        return PartialView("EditDetailsComponent", vm);
+    }
+
+    private async Task<EditDetailsComponentViewModel> GetEditDetailsComponentViewModel(string userId)
+    {
+        var limit = await _db.UserLimits.Where(e => e.UserId == userId).FirstOrDefaultAsync();
+        var vm = new EditDetailsComponentViewModel()
+        {
+            UserId = userId,
+            Limit = limit
+        };
+        return vm;
     }
 }

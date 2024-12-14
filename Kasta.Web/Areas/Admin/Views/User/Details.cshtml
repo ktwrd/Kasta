@@ -10,8 +10,8 @@
     var user = Model.User;
 }
 
-<nav aria-label="breadcrumb" class="p-3">
-  <ol class="breadcrumb">
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb p-3">
     <li class="breadcrumb-item">Admin</li>
     <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="User" asp-action="List">Users</a></li>
     <li class="breadcrumb-item active" aria-current="page">@user.UserName</li>
@@ -24,8 +24,14 @@
             <div class="card-header">
                 <h5>Storage Quota</h5>
             </div>
-            <div class="card-body">
-                <form action='@Url.Action("EditUserPostForm", "User", new { area = "Admin", userId = user.Id })' method="post" enctype="multipart/form-data">
+            <div class="card-body"
+                 id="user-@(Model.User.Id)-storage-container"
+                 hx-get='@Url.Action("EditUserLimitComponent", "User", new {area = "Admin", userId = user.Id})'
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML"
+                 hx-target="#user-@(Model.User.Id)-storage-container">
+                    <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                @* <form action='@Url.Action("EditUserPostForm", "User", new { area = "Admin", userId = user.Id })' method="post" enctype="multipart/form-data">
                     <div class="mb-3 row">
                         @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
                         {
@@ -66,7 +72,7 @@
                     </div>
                     <hr/>
                     <button type="submit" class="btn btn-success">Save</button>
-                </form>
+                </form> *@
             </div>
         </div>
     </div>
@@ -75,8 +81,15 @@
             <div class="card-header">
                 <h5>Roles</h5>
             </div>
-            <div class="card-body">
-                <form action='@Url.Action("EditUserRolesPostForm", "User", new { area = "Admin", userId = user.Id })' method="post" enctype="multipart/form-data">
+            <div class="card-body"
+                 id="user-@(Model.User.Id)-role-container"
+                 hx-get='@Url.Action("EditUserRolesComponent", "User", new { area = "Admin", userId = user.Id })'
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML"
+                 hx-target="#user-@(Model.User.Id)-role-container">
+                <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+
+                @* <form action='@Url.Action("EditUserRolesPostForm", "User", new { area = "Admin", userId = user.Id })' method="post" enctype="multipart/form-data">
                     <ul class="list-group">
                         @foreach (var (roleId, roleModel) in Model.Roles)
                         {
@@ -93,8 +106,8 @@
                             </li>
                         }
                     </ul>
-                    <button type="submit" class="btn btn-success">Save</button>
-                </form>
+                    <button type="submit" class="btn btn-success mt-3">Save</button>
+                </form> *@
             </div>
         </div>
     </div>
