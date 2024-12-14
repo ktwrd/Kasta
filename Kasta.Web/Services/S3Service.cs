@@ -44,9 +44,11 @@ public class S3Service
 
         // Issue request and remember to dispose of the response
         var c = _client;
-        GetObjectResponse response = await c.GetObjectAsync(request);
+        var response = await c.GetObjectAsync(request);
         if (response.HttpStatusCode == HttpStatusCode.NotFound)
-            throw new Exception("NotFound");
+        {
+            throw new S3ObjectNotFoundException(request, response);
+        }
         return response;
     }
     public async Task<GetObjectResponse> UploadObject(Stream stream, string location)
@@ -79,9 +81,7 @@ public class S3Service
         
         // Issue request and remember to dispose of the response
         var c = _client;
-        DeleteObjectResponse response = await c.DeleteObjectAsync(request);
-        if (response.HttpStatusCode == HttpStatusCode.NotFound)
-            throw new Exception("NotFound");
+        var response = await c.DeleteObjectAsync(request);
         return response;
         
     }
