@@ -14,9 +14,25 @@ public class BaseAlertViewModel
                 return null;
             
             var t = AlertType.Trim().ToLower();
+            var list = new List<string>()
+            {
+                "alert"
+            };
             if (ValidAlertTypes.Contains(t))
-                return $"alert alert-{t}";
-            return "alert alert-secondary";
+            {
+                list.Add($"alert-{t}");
+            }
+            else
+            {
+                list.Add("alert-secondary");
+            }
+
+            if (ShowAlertCloseButton)
+            {
+                list.Add("alert-dismissible");
+            }
+
+            return string.Join(" ", list);
         }
     }
     private static ReadOnlyCollection<string> ValidAlertTypes => new List<string>()
