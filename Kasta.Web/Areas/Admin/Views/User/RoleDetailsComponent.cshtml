@@ -8,7 +8,7 @@
       method="post"
       enctype="multipart/form-data">
 
-    @await Component.InvokeAsync("Alert", Model);
+    @await Component.InvokeAsync("Alert", Model)
     
     <ul class="list-group">
         @foreach (var (roleId, roleName) in Model.Roles)

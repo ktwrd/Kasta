@@ -10,7 +10,7 @@
       method="post"
       enctype="multipart/form-data">
 
-    @await Component.InvokeAsync("Alert", Model);
+    @await Component.InvokeAsync("Alert", Model)
     
     <div class="mb-3 row">
         @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
