@@ -13,6 +13,7 @@
     string bootstrapThemeAttributeValue = "auto";
     string currentTheme = "";
     bool isAdmin = false;
+    bool enableNavbar = true;
     if (SignInManager.IsSignedIn(User))
     {
         var user = await UserManager.GetUserAsync(User);
@@ -73,6 +74,11 @@
         }
         versionString = $"v{versionString}";
     }
+
+    if (ViewData.ContainsKey("Navbar"))
+    {
+        enableNavbar = ViewData["Navbar"]?.ToString() == "true";
+    }
 }
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@bootstrapThemeAttributeValue">
@@ -113,46 +119,49 @@
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
-<header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3">
-        <div class="container-fluid">
-            @if (!string.IsNullOrEmpty(appTitle))
-            {
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">@appTitle</a>
-            }
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                            <i class="bi bi-house-door"></i>
-                            Home
-                        </a>
-                    </li>
-                    @if (isAdmin)
-                    {
+@if (enableNavbar)
+{
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                @if (!string.IsNullOrEmpty(appTitle))
+                {
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">@appTitle</a>
+                }
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Admin" asp-action="Index">
-                                <i class="bi bi-gear"></i>
-                                System
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door"></i>
+                                Home
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="List">
-                                <i class="bi bi-people"></i>
-                                Users
-                            </a>
-                        </li>
-                    }
-                </ul>
-                <partial name="_LoginPartial"/>
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index">
+                                    <i class="bi bi-gear"></i>
+                                    System
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="List">
+                                    <i class="bi bi-people"></i>
+                                    Users
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <partial name="_LoginPartial"/>
+                </div>
             </div>
-        </div>
-    </nav>
-</header>
+        </nav>
+    </header>   
+}
 <div class="container">
     <main role="main" class="pb-3">
         @RenderBody()
