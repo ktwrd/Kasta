@@ -94,7 +94,7 @@ public class ProfileController : Controller
 
         var data = new Dictionary<string, object>()
         {
-            {"DestinationType", "ImageUploader, FileUploader"},
+            {"DestinationType", "ImageUploader, TextUploader, FileUploader"},
             {"RequestURL", $"{FeatureFlags.Endpoint}/api/v1/File/Upload/Form"},
             {"FileFormName", "file"},
             {"Arguments", new Dictionary<string, object>()
@@ -114,17 +114,17 @@ public class ProfileController : Controller
         var ms = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
         using (var ctx = _db.CreateSession())
         {
-            using (var trans = ctx.Database.BeginTransaction())
+            using (var trans = await ctx.Database.BeginTransactionAsync())
             {
                 try
                 {
                     await ctx.UserApiKeys.AddAsync(apiKey);
-                    trans.Commit();
-                    ctx.SaveChanges();
+                    await ctx.SaveChangesAsync();
+                    await trans.CommitAsync();
                 }
                 catch
                 {
-                    trans.Rollback();
+                    await trans.RollbackAsync();
                 }
             }
         }
