@@ -53,9 +53,8 @@ body {
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 40px;
-    line-height: 40px;
     text-align: right;
+    white-space: nowrap;
 }
 .text-preview {
     text-align: left;
@@ -114,10 +113,9 @@ button.accept-policy {
     line-height: inherit;
 }
 
-.footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    white-space: nowrap;
-    line-height: 60px;
+.alert p {
+    margin-bottom: 0.25rem;
+}
+.alert p:last-of-type {
+    margin-bottom: 0 !important;
 }
