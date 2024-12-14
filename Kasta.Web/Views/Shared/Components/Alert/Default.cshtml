@@ -6,12 +6,14 @@
     <div class="@Model.AlertClass" role="alert">
         @if (Model.AlertContentAsMarkdown)
         {
-            @Html.Raw(KastaWebHelper.MarkdownToHtmlBasic(Model.AlertContent))
+            var str = KastaWebHelper.MarkdownToHtmlBasic(Model.AlertContent);
+            @Html.Raw(str);
         }
         else
         {
             @Model.AlertContent
         }
+
         @if (Model.ShowAlertCloseButton)
         {
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
