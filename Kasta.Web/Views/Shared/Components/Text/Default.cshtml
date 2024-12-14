@@ -1,0 +1,32 @@
+﻿@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
+@model TextViewComponentModel
+
+@if (!string.IsNullOrEmpty(Model.Content))
+{
+    @if (Model.Kind == TextDisplayKind.Plain)
+    {
+        @Model.Content
+    }
+    else if (Model.Kind == TextDisplayKind.Html)
+    {
+        @Html.Raw(Model.Content)
+    }
+    else if (Model.Kind == TextDisplayKind.Markdown)
+    {
+        @KastaWebHelper.MarkdownToHtml(Model.Content)
+    }
+    else if (Model.Kind == TextDisplayKind.MarkdownBasic)
+    {
+        @KastaWebHelper.MarkdownToHtmlBasic(Model.Content)
+    }
+    else if (Model.Kind == TextDisplayKind.CodeBlock)
+    {
+        <code class="@Model.CodeBlockClass">@Model.Content</code>
+    }
+    else
+    {
+        <!-- Unknown property Kind with value @(Model.Kind) on Model @(nameof(TextViewComponentModel)) -->
+        @Model.Content
+    }
+}
