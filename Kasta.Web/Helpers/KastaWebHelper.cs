@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Markdig;
+using Markdig.Parsers;
 using Markdig.Parsers.Inlines;
 
 namespace Kasta.Web.Helpers;
@@ -17,9 +18,19 @@ public static class KastaWebHelper
             new LinkInlineParser(),
             new EmphasisInlineParser(),
             new CodeInlineParser(),
+            new AutolinkInlineParser(),
             new LineBreakInlineParser()
         ]);
         pipeline.BlockParsers.Clear();
+        pipeline.BlockParsers.AddRange([
+            new ThematicBreakParser(),
+            new HeadingBlockParser(),
+            new QuoteBlockParser(),
+
+            new FencedCodeBlockParser(),
+            new IndentedCodeBlockParser(),
+            new ParagraphBlockParser(),
+        ]);
         pipeline.Extensions.Clear();
 
         var result = Markdown.ToHtml(content, pipeline.Build());
