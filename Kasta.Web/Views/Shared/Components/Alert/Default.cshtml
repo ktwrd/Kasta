@@ -1,0 +1,20 @@
+﻿@using Kasta.Web.Helpers
+@model BaseAlertViewModel
+
+@if (!string.IsNullOrEmpty(Model.AlertClass) && !string.IsNullOrEmpty(Model.AlertContent))
+{
+    <div class="@Model.AlertClass" role="alert">
+        @if (Model.AlertContentAsMarkdown)
+        {
+            @Html.Raw(KastaWebHelper.MarkdownToHtmlBasic(Model.AlertContent))
+        }
+        else
+        {
+            @Model.AlertContent
+        }
+        @if (Model.ShowAlertCloseButton)
+        {
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        }
+    </div>
+}
