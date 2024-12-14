@@ -8,13 +8,7 @@
       method="post"
       enctype="multipart/form-data">
 
-    @if (!string.IsNullOrEmpty(Model.AlertClass) && !string.IsNullOrEmpty(Model.AlertContent))
-    {
-        <div class="@Model.AlertClass" role="alert">
-            @Model.AlertContent
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+    @await Component.InvokeAsync("Alert", Model);
     
     <ul class="list-group">
         @foreach (var (roleId, roleName) in Model.Roles)
