@@ -1,6 +1,7 @@
 @using Kasta.Shared.Helpers
 @using Kasta.Web.Helpers
 @using Kasta.Web.Areas.Admin.Models.User
+@using Kasta.Web.Models.Components
 @model UserListViewModel
 
 @{
@@ -8,12 +9,19 @@
     Layout = "_Layout";
 }
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb p-3">
-    <li class="breadcrumb-item">Admin</li>
-    <li class="breadcrumb-item active" aria-current="page"><a asp-area="Admin" asp-controller="User" asp-action="List">Users</a></li>
-  </ol>
-</nav>
+@await Component.InvokeAsync("Breadcrumb", new BreadcrumbViewComponentModel()
+{
+    new()
+    {
+        Text = "Admin"
+    },
+    new()
+    {
+        Text = "Users",
+        Link = Url.Action("List", "User", new { area = "Admin" }),
+        Current = true
+    }
+})
 
 <div class="card shadow-sm">
     <div class="card-body">
@@ -28,7 +36,7 @@
                     <th>Failed Login Attempts</th>
                     @if (Model.SystemSettings.EnableQuota)
                     {
-                        <th colspan="2"><center>Limits</center></th>
+                        <th colspan="2" class="text-center">Limits</th>
                     }
                     <th colspan="2">Storage</th>
                     <th>Theme</th>
