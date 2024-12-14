@@ -27,6 +27,21 @@ body {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
 }
+.htmx-indicator {
+    display: none;
+    opacity: 0;
+    transition: 200ms ease-in;
+}
+.htmx-request .htmx-indicator {
+    display: inherit;
+    opacity:1;
+    transition: 200ms ease-in;
+}
+.htmx-request.htmx-indicator {
+    display: inherit;
+    opacity:1;
+    transition: 200ms ease-in;
+}
 
 .dropzone {
     min-height: 300px;
