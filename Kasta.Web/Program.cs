@@ -101,7 +101,8 @@ public static class Program
             .AddScoped<ShortUrlService>()
             .AddScoped<FileService>()
             .AddScoped<PreviewService>()
-            .AddScoped<AuditService>();
+            .AddScoped<AuditService>()
+            .AddScoped<FileWebService>();
         builder.Services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new BlockUserRegisterAttribute());

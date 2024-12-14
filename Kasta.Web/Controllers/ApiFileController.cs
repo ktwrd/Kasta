@@ -19,6 +19,7 @@ public class ApiFileController : Controller
     private readonly UserManager<UserModel> _userManager;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly FileService _fileService;
+    private readonly FileWebService _fileWebService;
 
     private readonly ILogger<ApiFileController> _logger;
     
@@ -32,69 +33,21 @@ public class ApiFileController : Controller
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _fileService = services.GetRequiredService<FileService>();
+        _fileWebService = services.GetRequiredService<FileWebService>();
         
         _logger = logger;
     }
 
     [HttpGet("~/f/{value}")]
-    public IActionResult GetFileShort(string value, [FromQuery] bool preview = false)
+    public Task<IActionResult> GetFileShort(string value, [FromQuery] bool preview = false, [FromQuery] bool download = false)
     {
-        var s = "";
-        if (preview)
-            s = "?preview=true";
-        return Redirect($"/api/v1/File/{value}/Download{s}");
+        return _fileWebService.DownloadFile(this, value, preview, download);
     }
     
     [HttpGet("~/api/v1/File/{value}/Download")]
-    public async Task<IActionResult> GetFile(string value, [FromQuery] bool preview = false)
+    public Task<IActionResult> GetFile(string value, [FromQuery] bool preview = false)
     {
-        var model = await _db.GetFileAsync(value);
-        if (model == null)
-        {
-            HttpContext.Response.StatusCode = 404;
-            return View("NotFound");
-        }
-        if (!model.Public)
-        {
-            if (!_signInManager.IsSignedIn(User))
-            {
-                Response.StatusCode = 404;
-                return View("NotFound");
-            }
-            var userModel = await _userManager.GetUserAsync(User);
-
-            if ((userModel?.Id ?? "invalid") != model.CreatedByUserId)
-            {
-                if (!(userModel?.IsAdmin ?? false))
-                {
-                    Response.StatusCode = 404;
-                    return View("NotFound");
-                }
-            }
-        }
-
-        string relativeLocation = model.RelativeLocation;
-        string filename = model.Filename;
-        string? mimeType = model.MimeType;
-        if (model.Preview != null && preview)
-        {
-            relativeLocation = model.Preview.RelativeLocation;
-            filename = model.Preview.Filename;
-            mimeType = model.Preview.MimeType;
-        }
-        var obj = await _s3.GetObject(relativeLocation);
-        if (obj == null)
-        {
-            HttpContext.Response.StatusCode = 404;
-            return View("NotFound");
-        }
-        
-        HttpContext.Response.StatusCode = 200;
-        return new FileStreamResult(obj.ResponseStream, mimeType ?? "application/octet-stream")
-        {
-            FileDownloadName = filename,
-            LastModified = new DateTimeOffset(obj.LastModified)
-        };
+        return _fileWebService.DownloadFile(this, value, preview, true);
     }
     
     [HttpPost("~/api/v1/File/Upload/Form")]
