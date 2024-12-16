@@ -102,10 +102,7 @@
             @if (Model.File.Public)
             {
                 <a class="btn btn-sm btn-secondary"
-                   asp-controller="Home"
-                   asp-action="ChangeFilePublicState"
-                   asp-route-id="@Model.File.Id"
-                   asp-route-state="false"
+                   href="@Model.ChangeFileStateUrl(Url, Model.File)"
                    title="Make file private">
                     <i class="bi bi-lock"></i>
                 </a>
@@ -113,10 +110,7 @@
             else
             {
                 <a class="btn btn-sm btn-secondary"
-                   asp-controller="Home"
-                   asp-action="ChangeFilePublicState"
-                   asp-route-id="@Model.File.Id"
-                   asp-route-state="true"
+                   href="@Model.ChangeFileStateUrl(Url, Model.File)"
                    title="Make file public">
                     <i class="bi bi-unlock"></i>
                 </a>
@@ -128,10 +122,7 @@
                 <i class="bi bi-cloud-download"></i>
             </a>
             <a class="btn btn-sm btn-danger"
-               asp-controller="Home"
-               asp-action="DeleteFile"
-               asp-route-id="@Model.File.Id"
-               asp-route-returnUrl="@returnUrl"
+               href="@Model.DeleteFileUrl(Url, Model.File, returnUrl)"
                title="Delete">
                 <i class="bi bi-trash"></i>
             </a>
