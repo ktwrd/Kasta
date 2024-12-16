@@ -15,6 +15,9 @@ public static class RoleKind
     [RoleKindElement]
     public const string UserAdmin = nameof(UserAdmin);
 
+    [RoleKindElement]
+    public const string FileAdmin = nameof(FileAdmin);
+
     public static List<RoleItem> ToList()
     {
 		var result = new List<RoleItem>();
