@@ -68,6 +68,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
     public DbSet<S3FileInformationModel> S3FileInformations { get; set; }
     public DbSet<S3FileChunkModel> S3FileChunks { get; set; }
     public DbSet<ChunkUploadSessionModel> ChunkUploadSessions { get; set; } 
+    public DbSet<ShortLinkModel> ShortLinks { get; set; }
 
     public DbSet<AuditModel> Audit { get; set; }
     public DbSet<AuditEntryModel> AuditEntries { get; set; }
@@ -316,6 +317,18 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                     .HasForeignKey<S3FileInformationModel>(e => e.Id)
                     .IsRequired(false);
             });
+        builder.Entity<ShortLinkModel>(b =>
+        {
+            b.ToTable(ShortLinkModel.TableName);
+            b.HasKey(e => e.Id);
+            b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
+            b.HasIndex(e => e.ShortLink).IsUnique(true);
+
+            b.HasOne(e => e.CreatedByUser)
+                .WithOne()
+                .HasForeignKey<ShortLinkModel>(e => e.CreatedByUserId)
+                .IsRequired(false);
+        });
         builder.Entity<UserApiKeyModel>(b =>
         {
             b.ToTable(UserApiKeyModel.TableName)
