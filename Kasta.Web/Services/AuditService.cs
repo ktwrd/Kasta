@@ -1,3 +1,4 @@
+using System.Reflection;
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Data.Models.Audit;
@@ -34,6 +35,74 @@ public class AuditService
         }
         return result;
     }
+    private AuditEntryModel? GetAuditEntryModel(string parentId, object? instance, PropertyInfo prop)
+    {
+        var propTypeStr = prop.PropertyType.ToString();
+        if (propTypeStr.StartsWith("System.Collections")
+            || propTypeStr.StartsWith("Kasta.Data.Models")
+            || propTypeStr.StartsWith("Kasta.Web.Models")
+            || propTypeStr.StartsWith(nameof(NpgsqlTypes))
+            || prop.GetCustomAttribute<AuditIgnoreAttribute>() != null)
+            return null;
+        var value = prop.GetValue(instance);
+
+        string? stringValue = null;
+        if (prop.PropertyType == typeof(string)
+        || prop.PropertyType == typeof(char)
+
+        || prop.PropertyType == typeof(sbyte)
+        || prop.PropertyType == typeof(byte)
+        || prop.PropertyType == typeof(short)
+        || prop.PropertyType == typeof(ushort)
+        || prop.PropertyType == typeof(int)
+        || prop.PropertyType == typeof(uint)
+        || prop.PropertyType == typeof(long)
+        || prop.PropertyType == typeof(ulong)
+        || prop.PropertyType == typeof(nint)
+        || prop.PropertyType == typeof(nuint)
+
+        || prop.PropertyType == typeof(float)
+        || prop.PropertyType == typeof(double)
+        || prop.PropertyType == typeof(decimal)
+        || prop.PropertyType == typeof(bool))
+        {
+            stringValue = value?.ToString();
+        }
+        else if (value is DateTime dt)
+        {
+            stringValue = dt.ToString("R");
+        }
+        else if (value is DateTimeOffset dto)
+        {
+            stringValue = dto.ToString("R");
+        }
+        else if (value is TimeOnly to)
+        {
+            stringValue = to.ToString("T");
+        }
+        else if (value is Guid guid)
+        {
+            stringValue = guid.ToString();
+        }
+        else if (prop.PropertyType.IsEnum)
+        {
+            stringValue = value?.ToString();
+        }
+        else if (value == null)
+        {
+            stringValue = null;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown type {prop.PropertyType}");
+        }
+        return new()
+        {
+            AuditId = parentId,
+            PropertyName = prop.Name,
+            Value = stringValue
+        };
+    }
     public AuditCollectionItem GenerateDeleteAudit<T>(UserModel user, T obj, Func<T, string> pkSelect, string tableName)
     {
         var auditModel = new AuditModel()
@@ -47,62 +116,36 @@ public class AuditService
         var entries = new List<AuditEntryModel>();
         foreach (var prop in typeof(T).GetProperties())
         {
-            var propTypeStr = prop.PropertyType.ToString();
-            if (propTypeStr.StartsWith("System.Collections")
-             || propTypeStr.StartsWith("Kasta.Data.Models")
-             || propTypeStr.StartsWith("Kasta.Web.Models")
-             || propTypeStr.StartsWith(nameof(NpgsqlTypes)))
-                continue;
-            var value = prop.GetValue(obj);
-
-            string? stringValue = null;
-            if (prop.PropertyType == typeof(string)
-            || prop.PropertyType == typeof(char)
-
-            || prop.PropertyType == typeof(sbyte)
-            || prop.PropertyType == typeof(byte)
-            || prop.PropertyType == typeof(short)
-            || prop.PropertyType == typeof(ushort)
-            || prop.PropertyType == typeof(int)
-            || prop.PropertyType == typeof(uint)
-            || prop.PropertyType == typeof(long)
-            || prop.PropertyType == typeof(ulong)
-            || prop.PropertyType == typeof(nint)
-            || prop.PropertyType == typeof(nuint)
-
-            || prop.PropertyType == typeof(float)
-            || prop.PropertyType == typeof(double)
-            || prop.PropertyType == typeof(decimal)
-            || prop.PropertyType == typeof(bool))
+            var m = GetAuditEntryModel(auditModel.Id, obj, prop);
+            if (m != null)
             {
-                stringValue = value?.ToString();
+                entries.Add(m);
             }
-            else if (value is DateTime dt)
+        }
+        return new AuditCollectionItem(auditModel)
+        {
+            Entries = entries
+        };
+    }
+    
+    public AuditCollectionItem GenerateCreateAudit<T>(UserModel user, T obj, Func<T, string> pkSelect, string tableName)
+    {
+        var auditModel = new AuditModel()
+        {
+            CreatedBy = user.Id,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Kind = AuditEventKind.Insert,
+            EntityName = tableName,
+            PrimaryKey = pkSelect(obj)
+        };
+        var entries = new List<AuditEntryModel>();
+        foreach (var prop in typeof(T).GetProperties())
+        {
+            var m = GetAuditEntryModel(auditModel.Id, obj, prop);
+            if (m != null)
             {
-                stringValue = dt.ToString("R");
+                entries.Add(m);
             }
-            else if (value is DateTimeOffset dto)
-            {
-                stringValue = dto.ToString("R");
-            }
-            else if (prop.PropertyType.IsEnum)
-            {
-                stringValue = value?.ToString();
-            }
-            else if (value == null)
-            {
-                stringValue = null;
-            }
-            else
-            {
-                throw new InvalidOperationException($"Unknown type {prop.PropertyType}");
-            }
-            entries.Add(new()
-            {
-                AuditId = auditModel.Id,
-                PropertyName = prop.Name,
-                Value = stringValue
-            });
         }
         return new AuditCollectionItem(auditModel)
         {
