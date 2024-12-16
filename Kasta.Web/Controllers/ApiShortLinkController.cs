@@ -180,7 +180,7 @@ public class ApiShortLinkController : Controller
 
         if (model.CreatedByUserId != user.Id)
         {
-            var adminRoleId = await _db.Roles.Where(e => e.NormalizedName == "ADMINISTRATOR").Select(e => e.Id).FirstOrDefaultAsync();
+            var adminRoleId = await _db.Roles.Where(e => e.NormalizedName == RoleKind.Administrator.ToUpper()).Select(e => e.Id).FirstOrDefaultAsync();
             if (adminRoleId != null)
             {
                 if (await _db.UserRoles.Where(e => e.UserId == user.Id && e.RoleId == adminRoleId).AnyAsync() == false)
