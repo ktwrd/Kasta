@@ -17,6 +17,7 @@ using Npgsql;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Kasta.Web.Helpers;
 
 namespace Kasta.Web;
 
@@ -50,6 +51,11 @@ public static class Program
                 b.Database = FeatureFlags.DatabaseName;
                 b.IncludeErrorDetail = true;
                 options.UseNpgsql(b.ToString());
+
+                if (IsDevelopment)
+                {
+                    options.EnableSensitiveDataLogging();
+                }
             });
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -136,6 +142,25 @@ public static class Program
                 if (context.Database.GetPendingMigrations().Any())
                 {
                     context.Database.Migrate();
+                }
+            }
+        }
+
+        using (var scope = app.Services.CreateScope())
+        {
+            using (var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().CreateSession())
+            {
+                var trans = ctx.Database.BeginTransaction();
+                try
+                {
+                    var s = ctx.GetSystemSettings();
+                    ctx.SaveChanges();
+                    trans.Commit();
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Failed to insert global preferences.\n{ex}");
+                    trans.Rollback();
                 }
             }
         }
