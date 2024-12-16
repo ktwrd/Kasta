@@ -13,6 +13,7 @@ A Simple self-hostable File Sharing Service written in C#. Supports displaying m
 - Public & Private uploads
 - Image Preview Generation (including image info like file type, compression, interlacing, and dimensions)
 - Text File Preview
+- Link Shortener
 
 ## Installing
 It is recommended to use Docker to make updating very easy. The following docker compose file is the recommended setup;
