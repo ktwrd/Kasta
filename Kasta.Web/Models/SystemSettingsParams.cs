@@ -9,6 +9,7 @@ public class SystemSettingsParams
 {
     public bool EnableUserRegister { get; set; }
     public bool EnableEmbeds { get; set; }
+    public bool EnableLinkShortener { get; set; }
     public bool EnableCustomBranding { get; set; }
     public string CustomBrandingTitle { get; set; } = "Kasta";
     public bool EnableQuota { get; set; }
@@ -51,6 +52,9 @@ public class SystemSettingsParams
         var embedEnable = GetPreferenceModel(db, "embedEnable");
         embedEnable.Set(EnableEmbeds);
 
+        var enableLinkShortener = GetPreferenceModel(db, "enableLinkShortener");
+        enableLinkShortener.Set(EnableLinkShortener);
+
         var customBrandEnable = GetPreferenceModel(db, "customBrandEnable");
         customBrandEnable.Set(EnableCustomBranding);
 
@@ -74,6 +78,9 @@ public class SystemSettingsParams
 
         var embedEnable = GetPreferenceModel(db, "embedEnable");
         EnableEmbeds = embedEnable.GetBool(true);
+
+        var enableLinkShortener = GetPreferenceModel(db, "enableLinkShortener");
+        EnableLinkShortener = enableLinkShortener.GetBool(false);
 
         var customBrandEnable = GetPreferenceModel(db, "customBrandEnable");
         EnableCustomBranding = customBrandEnable.GetBool(false);

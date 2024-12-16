@@ -9,4 +9,5 @@ public class AdminIndexViewModel
     public int OrphanFileCount { get; set; }
     public string TotalSpaceUsed { get; set; } = "0B";
     public string TotalPreviewSpaceUsed { get; set; } = "0B";
+    public int LinkCount { get; set; }
 }

@@ -52,6 +52,8 @@ public class AdminController : Controller
 
         model.FileCount = _db.Files.Count();
 
+        model.LinkCount = _db.ShortLinks.Count();
+
         return View("Index", model);
     }
 
