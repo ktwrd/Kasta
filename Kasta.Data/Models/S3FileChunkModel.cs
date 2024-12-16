@@ -16,5 +16,6 @@ public class S3FileChunkModel
     public int ChunkIndex { get; set; }
     public string Sha256Hash { get; set; }
 
+    [AuditIgnore]
     public S3FileInformationModel S3FileInformation { get; set; }
 }

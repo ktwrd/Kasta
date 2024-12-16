@@ -26,12 +26,16 @@ public class FileModel
     public string? CreatedByUserId { get; set; }
     public UserModel? CreatedByUser { get; set; }
     
+    [AuditIgnore]
     public FilePreviewModel? Preview { get; set; }
+    [AuditIgnore]
     public FileImageInfoModel? ImageInfo { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 
+    [AuditIgnore]
     public S3FileInformationModel? S3FileInformation { get; set; }
     
+    [AuditIgnore]
     public NpgsqlTsVector SearchVector { get; set; }
 }

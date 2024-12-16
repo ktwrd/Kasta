@@ -26,6 +26,7 @@ public class UserApiKeyModel
     }
     public string Id { get; set; }
     public string UserId { get; set; }
+    [AuditIgnore]
     public UserModel User { get; set; }
     [MaxLength(200)]
     public string? Purpose { get; set; }
@@ -35,5 +36,6 @@ public class UserApiKeyModel
     public DateTimeOffset CreatedAt { get; set; }
 
     public string? CreatedByUserId { get; set; }
+    [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }
 }

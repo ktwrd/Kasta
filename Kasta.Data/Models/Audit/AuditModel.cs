@@ -28,6 +28,7 @@ public class AuditModel
 
     public AuditEventKind Kind { get; set; }
 
+    [AuditIgnore]
     [InverseProperty(nameof(AuditEntryModel.Audit))]
     public List<AuditEntryModel> Entries { get; set; } = [];
 }

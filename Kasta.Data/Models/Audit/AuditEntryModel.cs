@@ -15,6 +15,7 @@ public class AuditEntryModel
     [Required]
     [ForeignKey(nameof(Audit))]
     public string AuditId { get; set; }
+    [AuditIgnore]
     public AuditModel Audit { get; set; }
 
     [Required]

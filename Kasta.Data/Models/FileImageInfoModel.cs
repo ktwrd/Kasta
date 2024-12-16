@@ -14,6 +14,7 @@ public class FileImageInfoModel
     /// Foreign Key to <see cref="FileModel"/>
     /// </summary>
     public string Id { get; set; }
+    [AuditIgnore]
     public FileModel File { get; set; }
 
     public uint Width { get; set; }

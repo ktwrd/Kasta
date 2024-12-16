@@ -16,6 +16,7 @@ public class UserSettingModel
     /// Foreign Key to <see cref="UserModel"/>
     /// </summary>
     public string Id { get; set; }
+    [AuditIgnore]
     public UserModel User { get; set; }
 
     [MaxLength(100)]

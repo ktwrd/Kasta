@@ -11,6 +11,7 @@ public class FilePreviewModel
         CreatedAt = DateTimeOffset.UtcNow;
     }
     public string Id { get; set; }
+    [AuditIgnore]
     public FileModel File { get; set; }
     
     /// <summary>
