@@ -73,4 +73,4 @@ fi
 _dbg_print "Connection String:   $_connection_string"
 _dbg_print "   Migration Name:   $1"
 
-dotnet ef database update $1 --project "Kasta.Data" --context "Kasta.Data.ApplicationDbContext" --connection "$DATABASE_CONNECTION_STRING"
+CUSTOM_ENV_LOCATION="../.env" dotnet ef database update $1 --project "Kasta.Data" --context "Kasta.Data.ApplicationDbContext" --connection "$DATABASE_CONNECTION_STRING"
