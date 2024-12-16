@@ -164,7 +164,7 @@ public class ApiFileController : Controller
     [AuthRequired]
     [HttpPost("~/api/v1/File/Upload/Chunk/StartSession")]
     public IActionResult StartSession(
-        [FromForm] CreateSessionParams sessionParams)
+        [FromForm] CreateUploadSessionRequest sessionParams)
     {
         throw new NotImplementedException();
     }

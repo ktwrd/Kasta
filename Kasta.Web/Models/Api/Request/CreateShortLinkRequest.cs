@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Kasta.Web.Models;
 
-public class CreateShortLinkContract
+public class CreateShortLinkRequest
 {
     public string? ShortLinkName { get; set; }
 

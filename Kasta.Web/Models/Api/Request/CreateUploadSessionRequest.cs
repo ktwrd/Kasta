@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Kasta.Web.Models;
 
 [Serializable]
-public class CreateSessionParams
+public class CreateUploadSessionRequest
 {
     [Required]
     public int? ChunkSize { get; set; }

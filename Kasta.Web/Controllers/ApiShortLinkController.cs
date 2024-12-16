@@ -62,7 +62,7 @@ public class ApiShortLinkController : Controller
 
     [HttpPost("~/api/v1/Link/Create")]
     public async Task<IActionResult> Create(
-        [FromForm] CreateShortLinkContract contract,
+        [FromForm] CreateShortLinkRequest contract,
         [FromQuery] string? token = null)
     {
         var user = await _userManager.GetUserAsync(HttpContext.User);

@@ -107,7 +107,7 @@ public class UploadService
         };
         return model;
     }
-    public async Task<ChunkUploadSessionModel> CreateSession(UserModel user, CreateSessionParams @params)
+    public async Task<ChunkUploadSessionModel> CreateSession(UserModel user, CreateUploadSessionRequest @params)
     {
         if (string.IsNullOrEmpty(@params.FileName))
         {
