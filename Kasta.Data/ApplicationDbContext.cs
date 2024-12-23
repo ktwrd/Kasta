@@ -96,6 +96,25 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
 
         return result;
     }
+    public async Task<(List<T> results, bool lastPage)> PaginateAsync<T>(IQueryable<T> query, int page, int pageSize)
+    {
+        var count = await query.CountAsync();
+        var lastPageIndex = Convert.ToInt32(Math.Ceiling(count / (double)pageSize));
+        int skip = 0;
+        if (page > 1)
+        {
+            skip = (page - 1) * pageSize;
+        }
+
+        var result = await query
+            .Skip(skip)
+            .Take(pageSize)
+            .ToListAsync();
+        
+        var lastPage = result.Count < pageSize || page >= lastPageIndex;
+
+        return (result, lastPage);
+    }
 
     public IQueryable<FileModel> SearchFiles(string? query, string? userId = null)
     {
