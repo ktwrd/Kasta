@@ -48,6 +48,26 @@ public class SystemController : Controller
         return View("Index", model);
     }
 
+    [HttpGet("MetricsComponent")]
+    public IActionResult GetMetricsComponent()
+    {
+        var vm = GetMetricsComponentViewModel();
+        return PartialView("MetricsComponent", vm);
+    }
+    public MetricsComponentViewModel GetMetricsComponentViewModel()
+    {
+        var vm = new MetricsComponentViewModel();
+        vm.UserCount = _db.Users.Count();
+        var spaceUsedValue = _db.UserLimits.Select(e => e.SpaceUsed).Sum();
+        vm.TotalSpaceUsed = SizeHelper.BytesToString(spaceUsedValue);
+        var previewSpaceUsedValue = _db.UserLimits.Select(e => e.PreviewSpaceUsed).Sum();
+        vm.TotalPreviewSpaceUsed = SizeHelper.BytesToString(previewSpaceUsedValue);
+        vm.OrphanFileCount = _db.Files.Where(e => e.CreatedByUser == null).Include(e => e.CreatedByUser).Count();
+        vm.FileCount = _db.Files.Count();
+        vm.LinkCount = _db.ShortLinks.Count();
+        return vm;
+    }
+
     [HttpGet("SettingsComponent")]
     public IActionResult GetSettingsComponent()
     {
@@ -107,7 +127,8 @@ public class SystemController : Controller
     }
 
     [HttpGet("RecalculateStorage")]
-    public async Task<IActionResult> RecalculateStorage()
+    public async Task<IActionResult> RecalculateStorage(
+        [FromQuery] string? resultComponent = null)
     {
         var taskList = new List<Task>();
         foreach (var user in _db.Users.ToList())
@@ -121,6 +142,17 @@ public class SystemController : Controller
             t.Start();
         await Task.WhenAll(taskList);
 
-        return new RedirectToActionResult("Index", "System", new {area = "Admin"});
+        var resultComponentTrim = resultComponent?.Trim()?.ToLower();
+        switch (resultComponentTrim)
+        {
+            case "metrics":
+                var metricViewModel = GetMetricsComponentViewModel();
+                metricViewModel.AlertContent = "Refreshed";
+                metricViewModel.AlertType = "success";
+                metricViewModel.AlertIsSmall = true;
+                return PartialView("MetricsComponent", metricViewModel);
+            default:
+                return new RedirectToActionResult("Index", "System", new {area = "Admin"});
+        }
     }
 }

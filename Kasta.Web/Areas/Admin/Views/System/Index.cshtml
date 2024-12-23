@@ -12,34 +12,8 @@
 <div class="row">
     <div class="col-md-8">
         <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-auto">
-                        <table class="table table-sm">
-                            <tr>
-                                <th>Users</th>
-                                <th>Space Used</th>
-                                <th>Files</th>
-                                <th>Orphaned Files</th>
-                                <th>Links</th>
-                            </tr>
-                            <tr>
-                                <td>@Model.UserCount</td>
-                                <td>
-                                    <span>@Model.TotalSpaceUsed</span>
-                                    @if (Model.TotalPreviewSpaceUsed.ToUpper() != "0B")
-                                    {
-                                        <br/>
-                                        <sup>Preview: @Model.TotalPreviewSpaceUsed</sup>
-                                    }
-                                </td>
-                                <td>@Model.FileCount</td>
-                                <td>@Model.OrphanFileCount</td>
-                                <td>@Model.LinkCount</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
+            <div class="card-body" id="metrics-container">
+                @{await Html.RenderPartialAsync("MetricsComponent.cshtml");}
             </div>
         </div>
     </div>
@@ -55,6 +29,7 @@
                  hx-get="@Url.Action("GetSettingsComponent", "System", new {area = "Admin"})"
                  hx-trigger="revealed"
                  hx-swap="innerHTML"
+	             hx-indicator=".htmx-indicator"
                  hx-target="this">
                 <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             </div>
@@ -67,9 +42,19 @@
                 Maintenance
             </div>
             <div class="card-body">
-                <a asp-route="Admin" asp-controller="System" asp-action="RecalculateStorage" class="btn btn-primary">
-                    Recalculate Storage Usage
+                <a class="btn btn-primary"
+                   href="#"
+                   hx-get="@Url.Action("RecalculateStorage", "System", new {area = "Admin", resultComponent = "Metrics"})"
+                   hx-trigger="click"
+	               hx-indicator=".htmx-indicator"
+                   hx-target="#metrics-container"
+                   hx-swap="innerHTML">
+                    <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                   Recalculate Storage Usage
                 </a>
+                @* <a asp-route="Admin" asp-controller="System" asp-action="RecalculateStorage" class="btn btn-primary">
+                    Recalculate Storage Usage
+                </a> *@
             </div>
         </div>
     </div>

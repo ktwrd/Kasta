@@ -1,0 +1,36 @@
+@using Kasta.Web.Areas.Admin.Models.System
+@model IMetricsComponentViewModel
+
+<div class="row">
+    <div class="col-auto">
+        <table class="table table-sm">
+            <tr>
+                <th>Users</th>
+                <th>Space Used</th>
+                <th>Files</th>
+                <th>Orphaned Files</th>
+                <th>Links</th>
+            </tr>
+            <tr>
+                <td>@Model.UserCount</td>
+                <td>
+                    <span>@Model.TotalSpaceUsed</span>
+                    @if (Model.TotalPreviewSpaceUsed.ToUpper() != "0B")
+                    {
+                        <br/>
+                        <sup>Preview: @Model.TotalPreviewSpaceUsed</sup>
+                    }
+                </td>
+                <td>@Model.FileCount</td>
+                <td>@Model.OrphanFileCount</td>
+                <td>@Model.LinkCount</td>
+            </tr>
+        </table>
+    </div>
+    @if (Model is MetricsComponentViewModel vm)
+    {
+        <div class="col-auto">
+            @await Component.InvokeAsync("Alert", vm)
+        </div>
+    }
+</div>

@@ -2,7 +2,7 @@ using Kasta.Web.Models;
 
 namespace Kasta.Web.Areas.Admin.Models.System;
 
-public class IndexViewModel
+public class IndexViewModel : IMetricsComponentViewModel
 {
     public int UserCount { get; set; }
     public int FileCount { get; set; }
