@@ -1,0 +1,114 @@
+@using Kasta.Web.Areas.Admin.Models.System
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
+@model SettingsComponentViewModel
+
+<form hx-post="@Url.Action("SaveSettingsComponent", "System", new {area = "Admin"})"
+      hx-target="this"
+      hx-swap="outerHTML"
+	  hx-indicator=".htmx-indicator"
+      method="post"
+      enctype="multipart/form-data">
+    @await Component.InvokeAsync("Alert", Model)
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = "enableUserRegister",
+            State = Model.SystemSettings.EnableUserRegister,
+            Name = nameof(Model.SystemSettings.EnableUserRegister),
+            Label = "Enable User Registrations"
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = "enableUserRegister",
+            State = Model.SystemSettings.EnableEmbeds,
+            Name = nameof(Model.SystemSettings.EnableEmbeds),
+            Label = "Embed Media"
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = "enableLinkShortener",
+            State = Model.SystemSettings.EnableLinkShortener,
+            Name = nameof(Model.SystemSettings.EnableLinkShortener),
+            Label = "Enable Link Shortener"
+        })
+    </div>
+    <hr/>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = "enableCustomBranding",
+            State = Model.SystemSettings.EnableCustomBranding,
+            Name = nameof(Model.SystemSettings.EnableCustomBranding),
+            Label = "Enable Custom Branding"
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+        {
+            Id = "customBrandTitle",
+            Value = Model.SystemSettings.CustomBrandingTitle,
+            Name = nameof(Model.SystemSettings.CustomBrandingTitle),
+            DisplayName = "App Name"
+        })
+    </div>
+    <hr/>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = "quotaEnable",
+            State = Model.SystemSettings.EnableQuota,
+            Name = nameof(Model.SystemSettings.EnableQuota),
+            Label = "Enable user quota (upload and storage)"
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+        {
+            Id = "defaultUploadQuota",
+            Value = SizeHelper.BytesToString(Model.SystemSettings.DefaultUploadQuotaReal ?? 0),
+            Name = nameof(Model.SystemSettings.DefaultUploadQuota),
+            DisplayName = "Default User Upload Quota",
+            HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+        {
+            Id = "defaultStorageQuota",
+            Value = SizeHelper.BytesToString(Model.SystemSettings.DefaultStorageQuotaReal ?? 0),
+            Name = nameof(Model.SystemSettings.DefaultStorageQuota),
+            DisplayName = "Default User Storage Quota",
+            HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."
+        })
+    </div>
+    <hr/>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = "enableGeoIP",
+            State = Model.SystemSettings.EnableGeoIP,
+            Name = nameof(Model.SystemSettings.EnableGeoIP),
+            Label = "Enable GeoIP",
+            HelpText = "Required for GeoIP Services (accurate timezone detection)"
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+        {
+            Id = "geoIPDbLocation",
+            Value = Model.SystemSettings.GeoIPDatabaseLocation,
+            Name = nameof(Model.SystemSettings.GeoIPDatabaseLocation),
+            DisplayName = "GeoIP Database Location",
+            HelpText = "Location for Maximind GeoIP Database ([see docs](https://dev.maxmind.com/geoip/)). **Must contain City data for Timezones**."
+        })
+    </div>
+    <button class="btn btn-success mt-3" type="submit">
+        <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Save
+    </button>
+</form>

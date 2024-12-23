@@ -1,9 +1,9 @@
-﻿namespace Kasta.Web.Models.Admin;
+using Kasta.Web.Models;
 
-public class AdminIndexViewModel
+namespace Kasta.Web.Areas.Admin.Models.System;
+
+public class IndexViewModel
 {
-    public SystemSettingsParams SystemSettings { get; set; } = new();
-
     public int UserCount { get; set; }
     public int FileCount { get; set; }
     public int OrphanFileCount { get; set; }

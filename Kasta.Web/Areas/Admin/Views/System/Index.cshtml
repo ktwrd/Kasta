@@ -1,0 +1,76 @@
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Admin
+@using Kasta.Web.Models.Components
+@using Kasta.Web.Areas.Admin.Models.System
+@model IndexViewModel
+
+@{
+    ViewData["Title"] = "System Settings";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-auto">
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Users</th>
+                                <th>Space Used</th>
+                                <th>Files</th>
+                                <th>Orphaned Files</th>
+                                <th>Links</th>
+                            </tr>
+                            <tr>
+                                <td>@Model.UserCount</td>
+                                <td>
+                                    <span>@Model.TotalSpaceUsed</span>
+                                    @if (Model.TotalPreviewSpaceUsed.ToUpper() != "0B")
+                                    {
+                                        <br/>
+                                        <sup>Preview: @Model.TotalPreviewSpaceUsed</sup>
+                                    }
+                                </td>
+                                <td>@Model.FileCount</td>
+                                <td>@Model.OrphanFileCount</td>
+                                <td>@Model.LinkCount</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mt-3">
+            <div class="card-header">
+                System Settings
+            </div>
+            <div class="card-body"
+                 id="settings-container"
+                 hx-get="@Url.Action("GetSettingsComponent", "System", new {area = "Admin"})"
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML"
+                 hx-target="this">
+                <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mt-3">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-cone-striped"></i>
+                Maintenance
+            </div>
+            <div class="card-body">
+                <a asp-route="Admin" asp-controller="System" asp-action="RecalculateStorage" class="btn btn-primary">
+                    Recalculate Storage Usage
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

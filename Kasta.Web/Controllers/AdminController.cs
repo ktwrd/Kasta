@@ -32,33 +32,6 @@ public class AdminController : Controller
     }
 
     [AuthRequired]
-    public IActionResult Index()
-    {
-        var user = _userManager.GetUserAsync(User).Result;
-        if (user == null || !user.IsAdmin)
-        {
-            return new RedirectToActionResult("Index", "Home", null);
-        }
-        var model = new AdminIndexViewModel();
-        model.SystemSettings = _db.GetSystemSettings();
-        model.UserCount = _db.Users.Count();
-
-        var spaceUsedValue = _db.UserLimits.Select(e => e.SpaceUsed).Sum();
-        model.TotalSpaceUsed = SizeHelper.BytesToString(spaceUsedValue);
-
-        var previewSpaceUsedValue = _db.UserLimits.Select(e => e.PreviewSpaceUsed).Sum();
-        model.TotalPreviewSpaceUsed = SizeHelper.BytesToString(previewSpaceUsedValue);
-
-        model.OrphanFileCount = _db.Files.Where(e => e.CreatedByUser == null).Include(e => e.CreatedByUser).Count();
-
-        model.FileCount = _db.Files.Count();
-
-        model.LinkCount = _db.ShortLinks.Count();
-
-        return View("Index", model);
-    }
-
-    [AuthRequired]
     [HttpGet("Audit")]
     public async Task<IActionResult> AuditIndex()
     {
@@ -70,78 +43,4 @@ public class AdminController : Controller
 
         return View();
     }
-
-    [AuthRequired]
-    [HttpGet("System/RecalculateStorage")]
-    public async Task<IActionResult> RecalculateStorage()
-    {
-        var currentUser = await _userManager.GetUserAsync(User);
-        if (currentUser == null || !currentUser.IsAdmin)
-        {
-            return new RedirectToActionResult("Index", "Home", null);
-        }
-
-        var taskList = new List<Task>();
-        foreach (var user in _db.Users.ToList())
-        {
-            taskList.Add(new Task(delegate
-            {
-                _fileService.RecalculateSpaceUsed(user).Wait();
-            }));
-        }
-        foreach (var t in taskList)
-            t.Start();
-        await Task.WhenAll(taskList);
-
-        return new RedirectToActionResult("Index", "Admin", null);
-    }
-
-    [AuthRequired]
-    [HttpPost("System/Save")]
-    public async Task<IActionResult> SaveSystemSettings(
-        [FromForm] SystemSettingsParams data)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null || !user.IsAdmin)
-        {
-            return new RedirectToActionResult("Index", "Home", null);
-        }
-
-        using var ctx = _db.CreateSession();
-        using var transaction = await ctx.Database.BeginTransactionAsync();
-
-        bool refresh = false;
-        try
-        {
-            var currentSettings = ctx.GetSystemSettings();
-            if (currentSettings.EnableGeoIP != data.EnableGeoIP || currentSettings.GeoIPDatabaseLocation != data.GeoIPDatabaseLocation)
-            {
-                refresh = true;
-            }
-            data.InsertOrUpdate(ctx);
-            await ctx.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
-
-        if (refresh)
-        {
-            try
-            {
-                _logger.LogDebug($"Refreshing Database for {nameof(TimeZoneService)}");
-                TimeZoneService.OnRefreshDatabase();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to refresh database for {nameof(TimeZoneService)} (via {nameof(TimeZoneService)}.{nameof(TimeZoneService.OnRefreshDatabase)})");
-            }
-        }
-
-        return new RedirectToActionResult(nameof(Index), "Admin", null);
-    }
-
 }
