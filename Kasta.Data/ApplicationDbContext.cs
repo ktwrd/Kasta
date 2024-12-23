@@ -73,6 +73,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
     public DbSet<AuditModel> Audit { get; set; }
     public DbSet<AuditEntryModel> AuditEntries { get; set; }
 
+    public DbSet<TrustedProxyHeaderMappingModel> TrustedProxyHeaderMappings { get; set; }
+    public DbSet<TrustedProxyHeaderModel> TrustedProxyHeaders { get; set; }
+    public DbSet<TrustedProxyModel> TrustedProxies { get; set; }
+
     public List<T> Paginate<T>(IQueryable<T> query, int page, int pageSize, out bool lastPage)
     {
         var count = query.Count();
@@ -377,5 +381,33 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         builder.Entity<S3FileChunkModel>()
             .ToTable(S3FileChunkModel.TableName)
             .HasKey(e => e.Id);
+
+        builder.Entity<TrustedProxyModel>(e =>
+        {
+            e.ToTable(TrustedProxyModel.TableName);
+            e.HasKey(e => e.Id);
+            e.HasIndex(e => e.Address);
+        });
+        builder.Entity<TrustedProxyHeaderModel>(e =>
+        {
+            e.ToTable(TrustedProxyHeaderModel.TableName);
+            e.HasKey(e => e.Id);
+            e.HasIndex(e => e.HeaderName);
+        });
+        builder.Entity<TrustedProxyHeaderMappingModel>(e =>
+        {
+            e.ToTable(TrustedProxyHeaderMappingModel.TableName);
+            e.HasKey(e => e.Id);
+
+            e.HasOne(e => e.TrustedProxy)
+             .WithMany(e => e.HeaderMappings)
+             .HasForeignKey(e => e.TrustedProxyId)
+             .IsRequired(false);
+             
+            e.HasOne(e => e.TrustedProxyHeader)
+             .WithMany(e => e.HeaderMappings)
+             .HasForeignKey(e => e.TrustedProxyHeaderId)
+             .IsRequired(false);
+        });
     }
 }

@@ -1,3 +1,4 @@
+using System.Net;
 using GeoTimeZone;
 using Kasta.Data;
 using Kasta.Web.Helpers;
@@ -183,5 +184,47 @@ public class TimeZoneService : IDisposable
             }
         }
         return null;
+    }
+
+    public string? FindIpAddress(HttpContext context)
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString();
+        if (string.IsNullOrEmpty(ip))
+        {
+            return null;
+        }
+
+        var trustedProxies = _db.TrustedProxies.Where(e => e.Address == ip && e.Enable == true).ToList();
+        if (trustedProxies.Count == 0) return null;
+        foreach (var p in trustedProxies)
+        {
+            var headerMapping = _db.TrustedProxyHeaderMappings.Where(e => e.TrustedProxyId == p.Id).Where(e => e.TrustedProxyHeaderId != null).ToList();
+            foreach (var m in headerMapping)
+            {
+                foreach (var h in _db.TrustedProxyHeaders.Where(e => e.Id == m.TrustedProxyHeaderId && e.Enable == true).ToList())
+                {
+                    if (context.Request.Headers.TryGetValue(h.HeaderName, out var hv))
+                    {
+                        var hvs = Array.Empty<string>();
+                        if (hv.Count == 1 && hv.ToString().Contains(","))
+                        {
+                            hvs = hv.ToString().Split(",").Select(e => e.Trim()).ToArray();
+                        }
+                        else
+                        {
+                            hvs = (string[])hv.Where(e => e != null).ToArray()!;
+                        }
+                        if (hvs.Length > 0)
+                        {
+                            if (IPAddress.TryParse(hvs[0], out var ipa))
+                            {
+                                return ipa.ToString();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ip;
     }
 }

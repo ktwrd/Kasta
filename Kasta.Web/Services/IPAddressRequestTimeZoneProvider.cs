@@ -11,7 +11,7 @@ public class IPAddressRequestTimeZoneProvider : IRequestTimeZoneProvider
         return Task.Run(() =>
         {
             var service = ctx.RequestServices.GetRequiredService<TimeZoneService>();
-            var ip = ctx.Connection.RemoteIpAddress?.ToString();
+            var ip = service.FindIpAddress(ctx);
             if (string.IsNullOrEmpty(ip))
             {
                 return default(ProviderTimeZoneResult);
@@ -21,7 +21,7 @@ public class IPAddressRequestTimeZoneProvider : IRequestTimeZoneProvider
             {
                 return new ProviderTimeZoneResult(tzinfo.Id);
             }
-                return default(ProviderTimeZoneResult);
+            return default(ProviderTimeZoneResult);
         });
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
     }
