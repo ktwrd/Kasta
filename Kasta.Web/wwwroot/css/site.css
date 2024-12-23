@@ -123,3 +123,11 @@ button.accept-policy {
 .form-text p:last-child {
     margin-bottom: 0;
 }
+
+.alert-sm {
+    padding: 0.5rem 0.25rem;
+    padding-right: 1.75rem;
+}
+.alert-sm.alert-dismissible .btn-close {
+    padding: 0.75rem 0.25rem;
+}

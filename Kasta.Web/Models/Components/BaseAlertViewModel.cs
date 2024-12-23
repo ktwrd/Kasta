@@ -14,22 +14,22 @@ public class BaseAlertViewModel
                 return null;
             
             var t = AlertType.Trim().ToLower();
+            if (!ValidAlertTypes.Contains(t))
+                t = "secondary";
             var list = new List<string>()
             {
-                "alert"
+                "alert",
+                $"alert-{t}"
             };
-            if (ValidAlertTypes.Contains(t))
-            {
-                list.Add($"alert-{t}");
-            }
-            else
-            {
-                list.Add("alert-secondary");
-            }
 
             if (ShowAlertCloseButton)
             {
                 list.Add("alert-dismissible");
+            }
+
+            if (AlertIsSmall)
+            {
+                list.Add("alert-sm");
             }
 
             return string.Join(" ", list);
@@ -48,6 +48,7 @@ public class BaseAlertViewModel
     [DefaultValue(true)]
     public bool ShowAlertCloseButton { get; set; } = true;
     [DefaultValue(true)]
-
     public bool AlertContentAsMarkdown { get; set; } = true;
+    [DefaultValue(false)]
+    public bool AlertIsSmall { get; set; } = false;
 }
