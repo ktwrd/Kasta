@@ -1,5 +1,6 @@
 using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Web.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,11 @@ public class LinkShortenerWebService
     public async Task<DeleteShortenedLinkResult> Delete<T>(ILogger<T> logger, string value, T controller, string? token = null)
         where T : Controller
     {
+        var systemSettings = _db.GetSystemSettings();
+        if (systemSettings.EnableLinkShortener == false)
+        {
+            return DeleteShortenedLinkResult.NotAuthorized;
+        }
         var user = await _userManager.GetUserAsync(controller.HttpContext.User);
         if (user == null && !string.IsNullOrEmpty(token))
         {

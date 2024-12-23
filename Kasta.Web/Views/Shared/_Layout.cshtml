@@ -140,6 +140,15 @@
                                 Home
                             </a>
                         </li>
+                        @if (systemSettings.EnableLinkShortener)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="LinkList">
+                                    <i class="bi bi-link-45deg"></i>
+                                    Link Shortener
+                                </a>
+                            </li>
+                        }
                         @if (isAdmin)
                         {
                             <li class="nav-item">

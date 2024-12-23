@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Kasta.Data;
 using Kasta.Web.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Kasta.Web.Controllers;
 
@@ -84,6 +85,88 @@ public class HomeController : Controller
         {
             return new RedirectResult("/Identity/Account/Login", false);
         }
+    }
+    [HttpGet("Links")]
+    [Authorize]
+    public async Task<IActionResult> LinkList([FromQuery] int? page = 1)
+    {
+        var systemSettings = _db.GetSystemSettings();
+        if (systemSettings.EnableLinkShortener == false)
+        {
+            return View("NotAuthorized", new NotAuthorizedViewModel()
+            {
+                Message = "Link Shortener is disabled"
+            });
+        }
+        var vm = new LinkListViewModel();
+        if (page.HasValue && page.Value >= 1)
+        {
+            vm.Page = page.Value;
+        }
+        var query = _db.ShortLinks.OrderByDescending(v => v.CreatedAt);
+        (vm.Links, vm.IsLastPage) = await _db.PaginateAsync(query, vm.Page, 50);
+        return View("LinkList", vm);
+    }
+
+    [HttpGet("Links/Delete")]
+    [Authorize]
+    public async Task<IActionResult> DeleteShortenedLink([FromQuery] string value, [FromQuery] string? returnUrl = null)
+    {
+        var systemSettings = _db.GetSystemSettings();
+        if (systemSettings.EnableLinkShortener == false)
+        {
+            return View("NotAuthorized", new NotAuthorizedViewModel()
+            {
+                Message = "Link Shortener is disabled"
+            });
+        }
+        
+        var user = await _userManager.GetUserAsync(HttpContext.User);
+        if (user == null)
+        {
+            HttpContext.Response.StatusCode = 403;
+            return View("NotAuthorized");
+        }
+
+        var model = await _db.ShortLinks.Where(e => e.Id == value).FirstOrDefaultAsync();
+        model ??= await _db.ShortLinks.Where(e => e.ShortLink == value).FirstOrDefaultAsync();
+
+        if (model == null)
+        {
+            HttpContext.Response.StatusCode = 403;
+            return View("NotFound");
+        }
+
+        if (model.CreatedByUserId != user.Id)
+        {
+            if (await _userManager.IsInRoleAsync(user, RoleKind.Administrator) == false)
+            {
+                HttpContext.Response.StatusCode = 403;
+                return View("NotAuthorized");
+            }
+        }
+
+        using (var ctx = _db.CreateSession())
+        {
+            var trans = await ctx.Database.BeginTransactionAsync();
+            try
+            {
+                await _db.ShortLinks.Where(e => e.Id == model.Id).ExecuteDeleteAsync();
+                await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                throw;
+            }
+        }
+        
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            return new RedirectResult(returnUrl);
+        }
+        return new RedirectToActionResult(nameof(LinkList), "Home", null);
     }
 
     [AuthRequired]

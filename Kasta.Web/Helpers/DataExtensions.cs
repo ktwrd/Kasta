@@ -23,6 +23,14 @@ public static class DataExtensions
         }
         return file.ShortUrl;
     }
+    private static string GetLinkUrlId(ShortLinkModel link)
+    {
+        if (string.IsNullOrEmpty(link.ShortLink))
+        {
+            return link.Id;
+        }
+        return link.ShortLink;
+    }
     public static string GetDownloadUrl(this FileModel file)
     {
         var fileUrlId = GetFileUrlId(file);
@@ -48,6 +56,18 @@ public static class DataExtensions
     {
         var fileUrlId = GetFileUrlId(file);
         string result = $"/d/{fileUrlId}";
+        var endpoint = FeatureFlags.Endpoint;
+        if (string.IsNullOrEmpty(endpoint))
+        {
+            return result;
+        }
+
+        return CombineUrl(endpoint, result);
+    }
+    public static string GetUrl(this ShortLinkModel link)
+    {
+        var urlId = GetLinkUrlId(link);
+        string result = $"/l/{urlId}";
         var endpoint = FeatureFlags.Endpoint;
         if (string.IsNullOrEmpty(endpoint))
         {

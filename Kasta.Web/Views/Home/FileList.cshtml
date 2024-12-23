@@ -16,17 +16,8 @@
     Layout = "_Layout";
     var userModel = await UserManager.GetUserAsync(User);
     var userSetting = await _db.GetUserSettingsAsync(userModel!);
-
-    
 }
 
-@if (userModel != null)
-{
-    @foreach (var x in await UserManager.GetRolesAsync(userModel))
-    {
-        <!-- @x -->
-    }
-}
 
 <div class="card shadow-sm">
     <div class="card-body">

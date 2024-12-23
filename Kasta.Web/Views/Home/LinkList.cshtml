@@ -1,0 +1,70 @@
+@using Kasta.Web.Models
+@using Kasta.Web.Models.Components
+@model LinkListViewModel
+
+@{ await Html.RenderPartialAsync("AddShortenedLink.cshtml"); }
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createLinkModal">
+                    Create
+                </button>
+            </div>
+            <div class="col-md-4 d-flex justify-content-center">
+                <nav>
+                    <ul class="pagination">
+                        @if (Model.Page > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="Home" asp-action="LinkList" asp-route-page="@(Model.Page - 1)" aria-label="Previous">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        @if (!Model.IsLastPage)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="Home" asp-action="LinkList" asp-route-page="@(Model.Page + 1)" aria-label="Next">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
+                
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Destination</th>
+                <th>Created At</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var link in Model.Links)
+            {
+                @await Component.InvokeAsync("LinkListItem", new LinkListItemComponentViewModel()
+                {
+                    Link = link
+                })
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script type="text/javascript">
+        fileshare.createLinkPage();
+    </script>
+}

@@ -39,6 +39,16 @@ public class ApiShortLinkController : Controller
     [HttpGet("~/l/{value}")]
     public async Task<IActionResult> RedirectToLinkDestination(string value)
     {
+        var systemSettings = _db.GetSystemSettings();
+        if (systemSettings.EnableLinkShortener == false)
+        {
+            HttpContext.Response.StatusCode = 403;
+            return new ViewResult()
+            {
+                ViewName = "NotAuthorized"
+            };
+        }
+
         var model = await _db.ShortLinks.Where(e => e.Id == value).FirstOrDefaultAsync();
         model ??= await _db.ShortLinks.Where(e => e.ShortLink == value).FirstOrDefaultAsync();
 
@@ -104,9 +114,9 @@ public class ApiShortLinkController : Controller
             ShortLink = _shortUrlService.Generate(),
             IsVanity = false
         };
-        if (!string.IsNullOrEmpty(contract.ShortLinkName))
+        if (!string.IsNullOrEmpty(contract.Vanity))
         {
-            bool exists = await _db.ShortLinks.Where(e => e.ShortLink == contract.ShortLinkName || e.Id == contract.ShortLinkName).AnyAsync();
+            bool exists = await _db.ShortLinks.Where(e => e.ShortLink == contract.Vanity || e.Id == contract.Vanity).AnyAsync();
             if (exists)
             {
                 HttpContext.Response.StatusCode = 400;
@@ -116,7 +126,7 @@ public class ApiShortLinkController : Controller
                 }, new JsonSerializerOptions() { WriteIndented = true });
             }
 
-            model.ShortLink = contract.ShortLinkName.Trim();
+            model.ShortLink = contract.Vanity.Trim();
             model.IsVanity = true;
         }
 

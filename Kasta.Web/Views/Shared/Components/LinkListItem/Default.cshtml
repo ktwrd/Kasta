@@ -1,0 +1,57 @@
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
+@model LinkListItemComponentViewModel
+@inject IHttpContextAccessor ctx
+
+@{
+    var linkUrl = Model.Link.GetUrl();
+    string returnUrl = "";
+    if (ctx.HttpContext != null)
+    {
+        returnUrl = $"{ctx.HttpContext.Request.Path}{ctx.HttpContext.Request.QueryString}";
+    }
+
+    TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
+    if (ctx.HttpContext != null)
+    {
+        var tz = ctx.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
+}
+
+<tr data-link-id="@Model.Link.Id">
+    <td>
+    @if (!string.IsNullOrEmpty(Model.Link.ShortLink))
+    {
+        <a href="@linkUrl" target="_blank">
+            <code>@(string.IsNullOrEmpty(Model.Link.ShortLink) ? Model.Link.Id : Model.Link.ShortLink)</code>
+        </a>
+    }
+    </td>
+    <td>
+        <code>@Model.Link.Destination</code>
+    </td>
+    <td>
+        @TimeZoneInfo.ConvertTimeFromUtc(Model.Link.CreatedAt.UtcDateTime, targetTimezone)
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary"
+               href="javascript:void(0)"
+               title="Copy Link"
+               data-clipboard-text="@linkUrl">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+            <a class="btn btn-sm btn-danger"
+               href="@Model.DeleteUrl(Url, Model.Link, returnUrl)"
+               title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+
+</tr>

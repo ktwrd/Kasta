@@ -43,6 +43,93 @@
             }
         }
     },
+    createLinkPage: function() {
+        $("#createLinkModal button[type=submit]").click(() => {
+            var destinationElem = $("#createLinkModal #text-destination");
+            var useVanityElem = $("#createLinkModal #checkbox-vanity");
+            var vanityElem = $("#createLinkModal #text-vanity");
+            var valid = destinationElem.length > 0 && useVanityElem.length > 0 && vanityElem.length > 0;
+            if (valid)
+            {
+                var req = {
+                    destination: destinationElem[0].value
+                };
+                if (useVanityElem[0].checked)
+                {
+                    var v = vanityElem[0].value.trim();
+                    if (v.length > 1)
+                    {
+                        req.vanity = v;
+                    }
+                }
+                console.log(req);
+                function cleanupElements() {
+                    destinationElem.forEach(function (elem) {
+                        elem.value = "";
+                    });
+                    if (useVanityElem && useVanityElem.length > 0)
+                    {
+                        useVanityElem.forEach(function (elem) {
+                            elem.checked = false;
+                        });
+                    }
+                    if (vanityElem && vanityElem.length > 0)
+                    {
+                        vanityElem.forEach(function (elem) {
+                            elem.value = "";
+                        });
+                    }
+                }
+                var opts = {
+                    url: '/api/v1/Link/Create',
+                    method: 'POST',
+                    data: req,
+                    dataType: 'json'
+                };
+                $.ajax(opts).done(function (data, textStatus, xhrResponse) {
+                    console.debug('[SUCCESS] Created Link', xhrResponse);
+                    if (textStatus === 'success')
+                    {
+                        if (data.url)
+                        {
+                            console.debug(`Generated URL: ${data.url}`);
+                            navigator.clipboard.writeText(data.url);
+                            alert("Copied link to clipboard");
+                            window.location.reload();
+                        }
+                        else
+                        {
+                            console.warn('Malformed response. Url property not found!', xhrResponse.responseText);
+                            alert("Malformed response (missing property 'url')");
+                        }
+                    }
+                }).fail(function (xhrResponse, textStatus, errorThrown) {
+                    console.error('Failed to create link', xhrResponse, errorThrown);
+                    var msg = xhrResponse.responseText;
+                    if (xhrResponse.responseJSON)
+                    {
+                        if (xhrResponse.responseJSON.message)
+                        {
+                            msg = xhrResponse.responseJSON.message;
+                        }
+                        else
+                        {
+                            msg = JSON.stringify(xhrResponse.responseJSON);
+                        }
+                    }
+                    if (msg.trim().length > 0)
+                    {
+                        msg = "\nMessage: " + msg;
+                    }
+                    else
+                    {
+                        msg = "";
+                    }
+                    alert(`Failed to create link. (${xhrResponse.status}, ${textStatus})` + msg);
+                });
+            }
+        });
+    }
 }
 
 fileshare.flightcheck();

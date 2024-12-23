@@ -1,0 +1,61 @@
+@using Kasta.Data
+@using Kasta.Data.Models
+@using Kasta.Web.Models.Components
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<UserModel> UserManager
+@{
+    var userModel = await UserManager.GetUserAsync(User);
+    bool allowVanity = false;
+    if (userModel != null)
+    {
+        allowVanity = await UserManager.IsInRoleAsync(userModel, RoleKind.LinkShortenerCreateVanity)
+        || await UserManager.IsInRoleAsync(userModel, RoleKind.Administrator);
+    }
+}
+
+<div class="modal fade" id="createLinkModal" tabindex="-1" aria-labelledBy="createLinkModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createLinkModalLabel">Add Shortened Link</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                    {
+                        Id = "text-destination",
+                        Name = "destination",
+                        Value = "",
+                        DisplayName = "Destination URL",
+                        Required = true
+                    })
+                </div>
+                @if (allowVanity)
+                {
+                    <div class="mb-3">
+                        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                        {
+                            Id = "checkbox-vanity",
+                            Name = "useVanity",
+                            State = false,
+                            Label = "Use Vanity"
+                        })
+                    </div>
+                    <div class="mb-3">
+                        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                        {
+                            Id = "text-vanity",
+                            Name = "vanity",
+                            Value = "",
+                            DisplayName = "Vanity Link Value"
+                        })
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
