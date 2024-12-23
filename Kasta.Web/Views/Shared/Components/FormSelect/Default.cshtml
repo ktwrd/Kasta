@@ -48,6 +48,6 @@
 @if (!string.IsNullOrEmpty(Model.HelpText))
 {
     <div class="form-text" id="@(Model.Id)Help">
-        @KastaWebHelper.MarkdownToHtmlBasic(Model.HelpText)
+        @Html.Raw(KastaWebHelper.MarkdownToHtmlBasic(Model.HelpText))
     </div>
 }
