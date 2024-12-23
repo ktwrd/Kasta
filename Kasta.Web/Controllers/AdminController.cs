@@ -19,11 +19,12 @@ public class AdminController : Controller
     private readonly FileService _fileService;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly UserManager<UserModel> _userManager;
-    private readonly Logger _log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<AdminController> _logger;
     
-    public AdminController(IServiceProvider services)
+    public AdminController(IServiceProvider services, ILogger<AdminController> logger)
         : base()
     {
+        _logger = logger;
         _db = services.GetRequiredService<ApplicationDbContext>();
         _fileService = services.GetRequiredService<FileService>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
@@ -109,8 +110,14 @@ public class AdminController : Controller
         using var ctx = _db.CreateSession();
         using var transaction = await ctx.Database.BeginTransactionAsync();
 
+        bool refresh = false;
         try
         {
+            var currentSettings = ctx.GetSystemSettings();
+            if (currentSettings.EnableGeoIP != data.EnableGeoIP || currentSettings.GeoIPDatabaseLocation != data.GeoIPDatabaseLocation)
+            {
+                refresh = true;
+            }
             data.InsertOrUpdate(ctx);
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -119,6 +126,19 @@ public class AdminController : Controller
         {
             await transaction.RollbackAsync();
             throw;
+        }
+
+        if (refresh)
+        {
+            try
+            {
+                _logger.LogDebug($"Refreshing Database for {nameof(TimeZoneService)}");
+                TimeZoneService.OnRefreshDatabase();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to refresh database for {nameof(TimeZoneService)} (via {nameof(TimeZoneService)}.{nameof(TimeZoneService.OnRefreshDatabase)})");
+            }
         }
 
         return new RedirectToActionResult(nameof(Index), "Admin", null);
