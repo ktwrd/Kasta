@@ -7,8 +7,10 @@ public class CreateUploadSessionRequest
 {
     [Required]
     public int? ChunkSize { get; set; }
+
     [Required]
     public long? TotalSize { get; set; }
+
     [Required]
-    public string FileName { get; set; }
+    public string Filename { get; set; } = "";
 }

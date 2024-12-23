@@ -109,7 +109,7 @@ public class UploadService
     }
     public async Task<ChunkUploadSessionModel> CreateSession(UserModel user, CreateUploadSessionRequest @params)
     {
-        if (string.IsNullOrEmpty(@params.FileName))
+        if (string.IsNullOrEmpty(@params.Filename))
         {
             throw new BadHttpRequestException($"Empty filename");
         }
