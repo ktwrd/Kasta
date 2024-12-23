@@ -18,6 +18,9 @@ public static class RoleKind
     [RoleKindElement]
     public const string FileAdmin = nameof(FileAdmin);
 
+    [RoleKindElement]
+    public const string LinkShortenerCreateVanity = nameof(LinkShortenerCreateVanity);
+
     public static List<RoleItem> ToList()
     {
 		var result = new List<RoleItem>();
