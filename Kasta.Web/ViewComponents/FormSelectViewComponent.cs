@@ -5,8 +5,8 @@ namespace Kasta.Web.ViewComponents;
 
 public class FormSelectViewComponent : ViewComponent
 {
-    public async Task<IViewComponentResult> InvokeAsync(FormSelectComponentViewModel data)
+    public Task<IViewComponentResult> InvokeAsync(FormSelectComponentViewModel data)
     {
-        return View("Default", data);
+        return Task.Run(() => (IViewComponentResult)View("Default", data));
     }
 }

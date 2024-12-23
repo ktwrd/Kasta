@@ -4,8 +4,8 @@ namespace Kasta.Web.Models;
 
 public class ProfileViewModel
 {
-    public UserModel User { get; set; }
-    public UserSettingModel Settings { get; set; }
+    public required UserModel User { get; set; }
+    public required UserSettingModel Settings { get; set; }
 
     public List<UserApiKeyModel> ApiKeys { get; set; } = [];
 }
