@@ -7,20 +7,64 @@ namespace Kasta.Web.Services;
 
 public class TimeZoneService : IDisposable
 {
-    public static event Action? RefreshDatabase;
+    private static event Action? RefreshDatabase;
+    public static void OnRefreshDatabase()
+    {
+        RefreshDatabase?.Invoke();
+    }
     private readonly ApplicationDbContext _db;
 
-    public TimeZoneService(IServiceProvider services)
+    private readonly ILogger<TimeZoneService> _logger;
+    public TimeZoneService(IServiceProvider services, ILogger<TimeZoneService> logger)
     {
+        _logger = logger;
         _db = services.GetRequiredService<ApplicationDbContext>();
         RefreshDatabase += EnsureMaxmind;
+        EnsureMaxmind();
     }
+    private bool _disposed = false;
     public void Dispose()
     {
-        RefreshDatabase -= EnsureMaxmind;
+        if (_disposed) return;
+
         try
-        { _geoipDatabase?.Dispose(); }
-        catch {}
+        {
+            RefreshDatabase -= EnsureMaxmind;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to remove method {nameof(EnsureMaxmind)} from static event {nameof(RefreshDatabase)}");
+        }
+
+        if (_geoipDatabase != null)
+        {
+            try
+            {
+                _geoipDatabase?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to dispose {nameof(_geoipDatabase)}");
+            }
+        }
+        try
+        {
+            _geoipDatabase = null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to set {nameof(_geoipDatabase)} to null");
+        }
+        try
+        {
+            _geoipDatabaseLocation = null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to set {nameof(_geoipDatabaseLocation)} to null");
+        }
+
+        _disposed = true;
     }
 
     public TimeZoneInfo? FromCoordinates(double latitude, double longitude)
