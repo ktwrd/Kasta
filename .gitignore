@@ -405,3 +405,4 @@ FodyWeavers.xsd
 config.xml
 config*xml
 !config.example.xml
+private

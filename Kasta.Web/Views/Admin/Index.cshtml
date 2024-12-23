@@ -128,6 +128,27 @@
                             HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."
                         })
                     </div>
+                    <hr/>
+                    <div class="mb-3 row">
+                        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+                        {
+                            Id = "enableGeoIP",
+                            State = Model.SystemSettings.EnableGeoIP,
+                            Name = nameof(Model.SystemSettings.EnableGeoIP),
+                            Label = "Enable GeoIP",
+                            HelpText = "Required for GeoIP Services (accurate timezone detection)"
+                        })
+                    </div>
+                    <div class="mb-3 row">
+                        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+                        {
+                            Id = "geoIPDbLocation",
+                            Value = Model.SystemSettings.GeoIPDatabaseLocation,
+                            Name = nameof(Model.SystemSettings.GeoIPDatabaseLocation),
+                            DisplayName = "GeoIP Database Location",
+                            HelpText = "Location for Maximind GeoIP Database ([see docs](https://dev.maxmind.com/geoip/)). **Must contain City data for Timezones**."
+                        })
+                    </div>
                     <button class="btn btn-success mt-3" type="submit">Save</button>
                 </form>
             </div>

@@ -109,21 +109,26 @@ public static class Program
             .AddScoped<PreviewService>()
             .AddScoped<AuditService>()
             .AddScoped<FileWebService>()
-            .AddScoped<LinkShortenerWebService>();
+            .AddScoped<LinkShortenerWebService>()
+            .AddScoped<TimeZoneService>();
         builder.Services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new BlockUserRegisterAttribute());
         });
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
-        if (string.IsNullOrEmpty(FeatureFlags.DefaultRequestTimezone))
+        builder.Services.AddRequestTimeZone(opts =>
         {
-            builder.Services.AddRequestTimeZone("UTC");
-        }
-        else
-        {
-            builder.Services.AddRequestTimeZone(FeatureFlags.DefaultRequestTimezone);
-        }
+            if (string.IsNullOrEmpty(FeatureFlags.DefaultRequestTimezone))
+            {
+                opts.Id = "UTC";
+            }
+            else
+            {
+                opts.Id = FeatureFlags.DefaultRequestTimezone;   
+            }
+            opts.RequestTimeZoneProviders.Add(new IPAddressRequestTimeZoneProvider());
+        });
 
         var app = builder.Build();
 
