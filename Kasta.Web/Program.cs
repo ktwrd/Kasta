@@ -38,6 +38,25 @@ public static class Program
             IdentityModelEventSource.LogCompleteSecurityArtifact = true;
         }
         var builder = WebApplication.CreateBuilder(args);
+        if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
+        {
+            builder.WebHost.UseSentry(opts =>
+            {
+                opts.Dsn = FeatureFlags.SentryDsn;
+                opts.SendDefaultPii = true;
+                opts.MinimumBreadcrumbLevel = LogLevel.Trace;
+                opts.MinimumEventLevel = LogLevel.Warning;
+                opts.AttachStacktrace = true;
+                opts.DiagnosticLevel = SentryLevel.Debug;
+                opts.TracesSampleRate = 1.0;
+                opts.MaxRequestBodySize = Sentry.Extensibility.RequestSize.Always;
+                #if DEBUG
+                opts.Debug = true;
+                #else
+                opts.Debug = false;
+                #endif
+            });
+        }
 
         // Add services to the container.
         builder.Services.AddDbContextPool<ApplicationDbContext>(

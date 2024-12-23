@@ -95,4 +95,6 @@ public static class FeatureFlags
     /// <para>Default Value: <c>roles</c></para>
     /// </summary>
     public static string JwtRoleClaimType => ParseString("JwtRoleClaimType", "roles");
+
+    public static string SentryDsn => ParseString("SentryDsn", "");
 }
