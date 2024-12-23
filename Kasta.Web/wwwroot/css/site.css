@@ -119,3 +119,7 @@ button.accept-policy {
 .alert p:last-of-type {
     margin-bottom: 0 !important;
 }
+
+.form-text p:last-child {
+    margin-bottom: 0;
+}
