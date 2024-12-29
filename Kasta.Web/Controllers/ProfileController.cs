@@ -63,7 +63,6 @@ public class ProfileController : Controller
             
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();
-            await ctx.SaveChangesAsync();
         }
         catch
         {

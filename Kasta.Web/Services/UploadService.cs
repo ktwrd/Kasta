@@ -75,7 +75,7 @@ public class UploadService
 
             File.Delete(tmpFilename);
 
-            await _db.SaveChangesAsync();
+            await ctx.SaveChangesAsync();
             await transaction.CommitAsync();
         }
         catch (Exception ex)

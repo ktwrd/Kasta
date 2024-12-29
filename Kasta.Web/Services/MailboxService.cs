@@ -17,7 +17,7 @@ public class MailboxService
 
     public SystemMailboxMessageModel CreateMessage(string subject, string[] body)
     {
-        return CreateMessageAsync(subject, body).Result;
+        return CreateMessageAsync(subject, string.Join("\n", body)).Result;
     }
     public SystemMailboxMessageModel CreateMessage(string subject, string body)
     {
@@ -26,8 +26,7 @@ public class MailboxService
     
     public Task<SystemMailboxMessageModel> CreateMessageAsync(string subject, string[] body)
     {
-        var join = string.Join("\n", body);
-        return CreateMessageAsync(subject, join);
+        return CreateMessageAsync(subject, string.Join("\n", body));
     }
 
     public async Task<SystemMailboxMessageModel> CreateMessageAsync(string subject, string body)
@@ -56,8 +55,8 @@ public class MailboxService
             try
             {
                 await ctx.SystemMailboxMessages.AddAsync(model);
-                await trans.CommitAsync();
                 await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
             }
             catch (Exception ex)
             {

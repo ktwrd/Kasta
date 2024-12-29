@@ -178,6 +178,12 @@ public class FileService
             files = files.Where(e => imageInfoIds.Contains(e.Id) == false).ToList();
         }
 
+        if (files.Count < 1)
+        {
+            _log.Trace("No files to process :3");
+            return;
+        }
+        
         if (processOnDifferentThread)
         {
             var thread = new Thread(
@@ -202,9 +208,16 @@ public class FileService
 
     private void GenerateFileMetadataTask(List<FileModel> files)
     {
+        if (files.Count < 1)
+        {
+            _log.Trace($"No files to process :3");
+            return;
+        }
         var start = DateTimeOffset.UtcNow;
         try
         {
+            int i = 0;
+            int c = files.Count;
             Parallel.ForEach(files, file =>
             {
                 try
@@ -217,11 +230,18 @@ public class FileService
                         $"Failed to generate metadata for File {file.Id} ({file.Filename}, {file.MimeType}, {file.Size}b)",
                         ex);
                 }
+                finally
+                {
+                    _log.Debug($"Parallel {i}/{c}");
+                    i++;
+                }
+
             });
             
             var duration = DateTimeOffset.UtcNow - start;
             try
             {
+                _log.Info("Creating mailbox message (for success)");
                 _mailbox.CreateMessage("Generate File Metadata - Complete", [
                     $"Successfully generated metadata for {files.Count} file(s).",
                     $"Took `{duration}` (triggered at `{start}`)"
@@ -245,6 +265,7 @@ public class FileService
             try
             {
                 var exceptionString = ex.ToString();
+                _log.Info("Creating mailbox message (for failure)");
                 _mailbox.CreateMessage(
                     "Generate File Metadata - Failure",
                     [
@@ -290,7 +311,14 @@ public class FileService
                     {
                         var updateResult = await ctx.FileImageInfos
                             .Where(e => e.Id == info.Id)
-                            .ExecuteUpdateAsync(e => info.UpdateCalls(e));
+                            .ExecuteUpdateAsync(e =>
+                                e.SetProperty(x => x.Width, info.Width)
+                                .SetProperty(x => x.Height, info.Height)
+                                .SetProperty(x => x.ColorSpace, info.ColorSpace)
+                                .SetProperty(x => x.CompressionMethod, info.CompressionMethod)
+                                .SetProperty(x => x.MagickFormat, info.MagickFormat)
+                                .SetProperty(x => x.Interlace, info.Interlace)
+                                .SetProperty(x => x.CompressionLevel, info.CompressionLevel));
                         logger.Info($"Updated {updateResult} rows");
                     }
                     else
@@ -299,8 +327,8 @@ public class FileService
                         logger.Info($"Added 1 row");
                     }
 
-                    await trans.CommitAsync();
                     await ctx.SaveChangesAsync();
+                    await trans.CommitAsync();
                 }
                 catch (Exception ex)
                 {

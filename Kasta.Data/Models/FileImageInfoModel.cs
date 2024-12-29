@@ -64,15 +64,4 @@ public class FileImageInfoModel
         }
         return sb.ToString();
     }
-
-    public SetPropertyCalls<FileImageInfoModel> UpdateCalls(SetPropertyCalls<FileImageInfoModel> e)
-    {
-        return e.SetProperty(x => x.Width, Width)
-            .SetProperty(x => x.Height, Height)
-            .SetProperty(x => x.ColorSpace, ColorSpace)
-            .SetProperty(x => x.CompressionMethod, CompressionMethod)
-            .SetProperty(x => x.MagickFormat, MagickFormat)
-            .SetProperty(x => x.Interlace, Interlace)
-            .SetProperty(x => x.CompressionLevel, CompressionLevel);
-    }
 }
