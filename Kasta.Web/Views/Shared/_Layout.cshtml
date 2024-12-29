@@ -15,6 +15,7 @@
     bool isAdmin = false;
     bool enableNavbar = true;
     bool showMailbox = false;
+    bool showUserAdmin = false;
     if (SignInManager.IsSignedIn(User))
     {
         var user = await UserManager.GetUserAsync(User);
@@ -39,9 +40,11 @@
         {
             bool userAdministrator = await UserManager.IsInRoleAsync(user, RoleKind.Administrator);
             showMailbox = userAdministrator;
+            showUserAdmin = userAdministrator;
             if (!userAdministrator)
             {
                 showMailbox = await UserManager.IsInRoleAsync(user, RoleKind.ViewSystemMailbox);
+                showUserAdmin = await UserManager.IsInRoleAsync(user, RoleKind.UserAdmin);
             }
         }
     }
@@ -168,21 +171,24 @@
                                     System
                                 </a>
                             </li>
+                        }
+                        @if (showUserAdmin)
+                        {
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="List">
                                     <i class="bi bi-people"></i>
                                     Users
                                 </a>
                             </li>
-                            @if (showMailbox)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-area="Admin" asp-controller="Mailbox" asp-action="Index">
-                                        <i class="bi bi-mailbox"></i>
-                                        Mailbox
-                                    </a>
-                                </li>
-                            }
+                        }
+                        @if (showMailbox)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-controller="Mailbox" asp-action="Index">
+                                    <i class="bi bi-mailbox"></i>
+                                    Mailbox
+                                </a>
+                            </li>
                         }
                     </ul>
                     <partial name="_LoginPartial"/>
