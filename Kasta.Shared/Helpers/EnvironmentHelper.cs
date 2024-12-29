@@ -68,10 +68,13 @@ internal class EnvironmentFileHandler
     private Dictionary<string, string> Values = [];
     internal string? FindValue(string key)
     {
-        foreach (var (k, v) in Values)
+        lock (Values)
         {
-            if (k.Trim().ToLower() == key.Trim().ToLower())
-                return v;
+            foreach (var (k, v) in Values)
+            {
+                if (k.Trim().ToLower() == key.Trim().ToLower())
+                    return v;
+            }
         }
         if (UseEnvironmentAsFallback)
         {
@@ -96,7 +99,7 @@ internal class EnvironmentFileHandler
                 if (string.IsNullOrEmpty(item) || item.StartsWith('#'))
                     continue;
                 string line = item;
-                var commentIndex = line.IndexOf("#");
+                var commentIndex = line.IndexOf("#", StringComparison.Ordinal);
                 if (commentIndex != -1)
                 {
                     line = line.Substring(0, commentIndex);
