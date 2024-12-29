@@ -135,3 +135,9 @@ ol.breadcrumb {
     border-radius: calc(var(--bs-border-radius) - (var(--bs-border-width)));
     padding: 1rem;
 }
+
+tr.bg-warning td,
+tr.bg-warning th {
+    background-color: rgba(var(--bs-warning-rgb),var(--bs-bg-opacity)) !important;
+    color: black;
+}
