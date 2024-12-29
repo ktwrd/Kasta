@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Kasta.Data;
+using Kasta.Data.Models;
 using Kasta.Web.Areas.Admin.Models.System;
 using Kasta.Web.Helpers;
 using Kasta.Web.Models;
@@ -169,5 +171,66 @@ public class SystemController : Controller
             default:
                 return new RedirectToActionResult("Index", "System", new {area = "Admin"});
         }
+    }
+
+    [HttpGet("GenerateFileMetadata")]
+    public async Task<IActionResult> GenerateFileMetadata(
+        [FromQuery] string? resultComponent = null,
+        [FromQuery] bool force = false)
+    {
+        var files = await _db.Files.Where(e => e.MimeType != null && e.MimeType.StartsWith("image/")).ToListAsync();
+        if (force)
+        {
+            var fileIds = files.Select(e => e.Id).ToList();
+            var imageInfos = await _db.FileImageInfos.Where(e => fileIds.Contains(e.Id)).ToListAsync();
+            var imageInfoIds = imageInfos.Select(e => e.Id).ToList();
+            files = files.Where(e => imageInfoIds.Contains(e.Id) == false).ToList();
+        }
+        _logger.LogInformation($"Generating Metadata for {files.Count} files. (force: {force})");
+        var thread = new Thread((workingFilesObj =>
+        {
+            _logger.LogInformation($"ThreadStart");
+            if (!(workingFilesObj is List<FileModel> workingFiles))
+            {
+                _logger.LogDebug($"Could not run thread since parameter isn't List<FileModel>");
+                return;
+            }
+            _logger.LogInformation($"Thread | Processing {workingFiles} files (force: {force})");
+            
+            Parallel.ForEach(workingFiles, f =>
+            {
+                var logger = LogManager.GetCurrentClassLogger();
+                logger.Properties["Request"] = nameof(GenerateFileMetadata);
+                try
+                {
+                    _fileService.GenerateFileMetadataNow(f).Wait();
+                }
+                catch (Exception ex)
+                {
+                    logger.Error($"Failed to generate file metadata for {f.Id}");
+                    SentrySdk.CaptureException(
+                        ex, scope =>
+                        {
+                            scope.SetExtra(
+                                "File", JsonSerializer.Serialize(
+                                    f, new JsonSerializerOptions()
+                                    {
+                                        WriteIndented = true
+                                    }));
+                        });
+                }
+                
+            });
+        }));
+        thread.Start(files);
+        
+        
+        var alertViewModel = new BaseAlertViewModel()
+        {
+            AlertContent = $"Generating metadata for {files.Count} files (this might take a while)",
+            AlertType = "success",
+            AlertIsSmall = true
+        };
+        return GenerateActionResultForTaskComponent(resultComponent, alertViewModel);
     }
 }
