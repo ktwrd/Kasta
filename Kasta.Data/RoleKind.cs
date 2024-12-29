@@ -18,8 +18,19 @@ public static class RoleKind
     [RoleKindElement]
     public const string FileAdmin = nameof(FileAdmin);
 
+    /// <summary>
+    /// User can create custom links, like a "vanity" URL
+    /// </summary>
+    [Description("User can create custom links, like a \"vanity\" URL")]
     [RoleKindElement]
     public const string LinkShortenerCreateVanity = nameof(LinkShortenerCreateVanity);
+
+    /// <summary>
+    /// User can view the System Mailbox.
+    /// </summary>
+    [Description("User can view the System Mailbox")]
+    [RoleKindElement]
+    public const string ViewSystemMailbox = nameof(ViewSystemMailbox);
 
     public static List<RoleItem> ToList()
     {
