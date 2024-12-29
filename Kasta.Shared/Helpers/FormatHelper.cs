@@ -6,4 +6,6 @@ public static class FormatHelper
     {
         return value ? "✔️" : "❌";
     }
+
+    public const string Ellipses = "...";
 }
