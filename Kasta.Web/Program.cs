@@ -129,7 +129,8 @@ public static class Program
             .AddScoped<AuditService>()
             .AddScoped<FileWebService>()
             .AddScoped<LinkShortenerWebService>()
-            .AddScoped<TimeZoneService>();
+            .AddScoped<TimeZoneService>()
+            .AddScoped<MailboxService>();
         builder.Services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new BlockUserRegisterAttribute());
