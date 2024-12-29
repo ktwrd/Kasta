@@ -1,0 +1,149 @@
+﻿@using Kasta.Web.Models.Components
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
+@model Kasta.Web.Areas.Admin.Models.Mailbox.MailboxListViewModel
+@inject IHttpContextAccessor ContextAccessor
+
+@{
+    ViewData["Title"] = "Inbox";
+    Layout = "_Layout";
+    
+    TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
+    if (ContextAccessor.HttpContext != null)
+    {
+        var tz = ContextAccessor.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
+}
+
+@await Component.InvokeAsync("Breadcrumb", new BreadcrumbViewComponentModel()
+{
+    new()
+    {
+        Text = "Admin"
+    },
+    new()
+    {
+        Text = "Mailbox",
+        TextIcon = "mailbox",
+        Link = Url.Action(
+            "Index", "Mailbox", new
+            {
+                area = "Admin"
+            }),
+        Current = true
+    }
+})
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
+                <!-- left -->
+                @if (ContextAccessor.HttpContext?.Request.QueryString.ToString().ToLower().Contains("showdeleted") == false ||
+                      (ContextAccessor.HttpContext?.Request.QueryString.ToString().ToLower().Contains("showdeleted=false") ?? true)||
+                      (ContextAccessor.HttpContext?.Request.QueryString.ToString().ToLower().Contains("showdeleted=0")?? true))
+                {
+                <a href="@Url.Action(
+                             "Index", "Mailbox", new
+                             {
+                                 area = "Admin",
+                                 showDeleted = true
+                             })"
+                   class="btn btn-secondary">
+                    View Trash
+                </a>
+                }
+                else
+                {
+                <a href="@Url.Action(
+                             "Index", "Mailbox", new
+                             {
+                                 area = "Admin",
+                                 showDeleted = false
+                             })"
+                   class="btn btn-secondary">
+                    Back to Inbox
+                </a>
+                }
+            </div>
+            <div class="col-md-4 d-flex justify-content-center">
+                <!-- middle -->
+                <nav>
+                    <ul class="pagination">
+                        @if (Model.Page > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="@Url.Action("Index", "Mailbox", new { area = "Admin", page = Model.Page - 1})"
+                                   aria-label="Previous">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        @if (!Model.IsLastPage)
+                        {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="@Url.Action("Index", "Mailbox", new { area = "Admin", page = Model.Page - 1})"
+                                   aria-label="Next">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
+                <!-- right -->
+            </div>
+        </div>
+    
+        @if (Model.Items.Count < 1)
+        {
+            <div class="px-4 py-2 text-center">
+                <h4>No Messages Found</h4>
+            </div>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Created At</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    var columnClass = item.Seen ? "" : "bg-warning";
+                    <tr class="@columnClass">
+                        <td>
+                            @if (!item.Seen)
+                            {
+                                <img src="~/img/new.png" class="mr-2" width="32" height="32" alt="New!"/>
+                            }
+                            <a href="@Url.Action(
+                                         "ViewMessage", 
+                                         "Mailbox",
+                                         new
+                                         {
+                                             area = "Admin",
+                                             id = item.Id
+                                         })">
+                                @item.Subject
+                            </a>
+                        </td>
+                        <td>
+                            @TimeZoneInfo.ConvertTimeFromUtc(item.CreatedAt.UtcDateTime, targetTimezone)
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

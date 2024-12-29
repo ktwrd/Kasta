@@ -1,0 +1,40 @@
+﻿@using Kasta.Shared.Helpers
+@using Kasta.Web.Models.Components
+@model Kasta.Data.Models.SystemMailboxMessageModel
+
+@{
+    var subject = Model.Subject.FancyMaxLength(30);
+    ViewData["Title"] = subject;
+    Layout = "_Layout";
+
+    var breadcrumbData = new BreadcrumbViewComponentModel()
+    {
+        new()
+        {
+            Text = "Admin"
+        },
+        new()
+        {
+            Text = "Mailbox",
+            TextIcon = "mailbox",
+            Link = Url.Action(
+                "Index", "Mailbox", new
+                {
+                    area = "Admin"
+                })
+        },
+        new()
+        {
+            Text = subject,
+            Current = true
+        }
+    };
+}
+
+@await Component.InvokeAsync("Breadcrumb",breadcrumbData)
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        @await Component.InvokeAsync("SystemMailboxMessage", Model)
+    </div>
+</div>
