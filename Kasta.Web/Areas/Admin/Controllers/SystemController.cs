@@ -6,6 +6,7 @@ using Kasta.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 
 namespace Kasta.Web.Areas.Admin.Controllers;
 
@@ -131,26 +132,40 @@ public class SystemController : Controller
         [FromQuery] string? resultComponent = null)
     {
         var taskList = new List<Task>();
+        long fileCount = 0;
         foreach (var user in _db.Users.ToList())
         {
             taskList.Add(new Task(delegate
             {
-                _fileService.RecalculateSpaceUsed(user).Wait();
+                fileCount += _fileService.RecalculateSpaceUsed(user).Result;
             }));
         }
         foreach (var t in taskList)
             t.Start();
         await Task.WhenAll(taskList);
 
+        var alertViewModel = new BaseAlertViewModel()
+        {
+            AlertContent = $"Recalculated storage space ({fileCount} files)",
+            AlertType = "success",
+            AlertIsSmall = true
+        };
+        return GenerateActionResultForTaskComponent(resultComponent, alertViewModel);
+    }
+
+    private IActionResult GenerateActionResultForTaskComponent(string? resultComponent, BaseAlertViewModel alert)
+    {
         var resultComponentTrim = resultComponent?.Trim()?.ToLower();
         switch (resultComponentTrim)
         {
             case "metrics":
                 var metricViewModel = GetMetricsComponentViewModel();
-                metricViewModel.AlertContent = "Refreshed";
-                metricViewModel.AlertType = "success";
-                metricViewModel.AlertIsSmall = true;
+                metricViewModel.AlertContent = alert.AlertContent;
+                metricViewModel.AlertType = alert.AlertType;
+                metricViewModel.AlertIsSmall = alert.AlertIsSmall;
                 return PartialView("MetricsComponent", metricViewModel);
+            case "alert":
+                return PartialView("Components/Alert/Default", alert);
             default:
                 return new RedirectToActionResult("Index", "System", new {area = "Admin"});
         }
