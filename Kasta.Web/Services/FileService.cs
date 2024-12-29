@@ -15,11 +15,13 @@ public class FileService
     private readonly ApplicationDbContext _db;
     private readonly S3Service _s3;
     private readonly AuditService _auditService;
+    private readonly MailboxService _mailbox;
     public FileService(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
         _s3 = services.GetRequiredService<S3Service>();
         _auditService = services.GetRequiredService<AuditService>();
+        _mailbox = services.GetRequiredService<MailboxService>();
     }
     public async Task DeleteFile(UserModel user, FileModel file)
     {
@@ -138,6 +140,183 @@ public class FileService
         return fileCount;
     }
 
+    /// <summary>
+    /// Generate the metadata for all files.
+    /// </summary>
+    /// <param name="force">
+    /// <para>
+    /// When <see langword="false"/>, then only files that don't have a relation to <see cref="FileImageInfoModel"/> will be processed.
+    /// </para>
+    /// <b>Note</b>, this will take longer than just regenerating missing metadata.
+    /// </param>
+    /// <param name="userIdFilter">When the list has at least 1 item, then only files created by the specified user IDs will be included.</param>
+    /// <param name="processOnDifferentThread">
+    /// When <see langword="true"/>, then all the logic for generating the file metadata will be done on a new thread.
+    /// </param>
+    public async Task GenerateFileMetadata(
+        bool force,
+        List<string>? userIdFilter = null,
+        bool processOnDifferentThread = true)
+    {
+        // get all images
+        var files = await _db.Files.Where(e => e.MimeType != null && e.MimeType.StartsWith("image/")).ToListAsync();
+        if (userIdFilter?.Count > 0)
+        {
+            files = files
+                .Where(e => e.CreatedByUserId != null && userIdFilter.Contains(e.CreatedByUserId))
+                .ToList();
+        }
+
+        // only include files that don't have FileImageInfo
+        if (!force)
+        {
+            var fileIds = files.Select(e => e.Id).ToList();
+            var imageInfoIds = await _db.FileImageInfos
+                .Where(e => fileIds.Contains(e.Id))
+                .Select(e => e.Id)
+                .ToListAsync();
+            files = files.Where(e => imageInfoIds.Contains(e.Id) == false).ToList();
+        }
+
+        if (processOnDifferentThread)
+        {
+            var thread = new Thread(
+                data =>
+                {
+                    if (!(data is List<FileModel> workingFiles))
+                    {
+                        _log.Error(
+                            $"Failed to run thread since data has invalid type (expected List<FileModel>, got {data?.GetType()})");
+                        return;
+                    }
+
+                    GenerateFileMetadataTask(workingFiles);
+                });
+            thread.Start(files);
+        }
+        else
+        {
+            GenerateFileMetadataTask(files);
+        }
+    }
+
+    private void GenerateFileMetadataTask(List<FileModel> files)
+    {
+        var start = DateTimeOffset.UtcNow;
+        try
+        {
+            Parallel.ForEach(files, file =>
+            {
+                try
+                {
+                    GenerateFileMetadataNow(file).Wait();
+                }
+                catch (Exception ex)
+                {
+                    throw new ApplicationException(
+                        $"Failed to generate metadata for File {file.Id} ({file.Filename}, {file.MimeType}, {file.Size}b)",
+                        ex);
+                }
+            });
+            
+            var duration = DateTimeOffset.UtcNow - start;
+            try
+            {
+                _mailbox.CreateMessage("Generate File Metadata - Complete", [
+                    $"Successfully generated metadata for {files.Count} file(s).",
+                    $"Took `{duration}` (triggered at `{start}`)"
+                ]);
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex, $"Failed to add message to system mailbox to notify that a task has finished.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Failed to run task");
+            SentrySdk.CaptureException(ex, scope =>
+            {
+                var fileIdList = files.Select(e => e.Id).ToList();
+                scope.SetExtra("FileIdList", string.Join("\n", fileIdList));
+                scope.SetExtra("TaskStartAt", start.ToUnixTimeSeconds());
+                scope.SetTag("TaskName", nameof(GenerateFileMetadataTask));
+            });
+            try
+            {
+                var exceptionString = ex.ToString();
+                _mailbox.CreateMessage(
+                    "Generate File Metadata - Failure",
+                    [
+                        $"Failed to generate metadata for {files.Count} files.",
+                        "```",
+                        exceptionString.FancyMaxLength(SystemMailboxMessageModel.MessageMaxLength - 300),
+                        "```",
+                    ]);
+            }
+            catch (Exception iex)
+            {
+                _log.Error(iex, "Failed to report error in system inbox.");
+            }
+        }
+    }
+
+    public async Task GenerateFileMetadataNow(FileModel file, Logger? logger = null)
+    {
+        logger ??= LogManager.GetCurrentClassLogger();
+        logger.Properties["FileId"] = file.Id;
+        // file isn't an image, idc about metadata
+        if (!(file.MimeType?.StartsWith("image/") ?? false))
+            return;
+        try
+        {
+
+            var res = await _s3.GetObject(file.RelativeLocation);
+            var info = GenerateFileImageInfo(file, res.ResponseStream);
+            if (info == null)
+            {
+                logger.Info($"Couldn't generate image info ({nameof(GenerateFileImageInfo)} returned null)");
+                return;
+            }
+
+            await using (var ctx = _db.CreateSession())
+            {
+                var trans = await ctx.Database.BeginTransactionAsync();
+                logger.Debug($"Created transaction ({trans.TransactionId})");
+
+                try
+                {
+                    if (await ctx.FileImageInfos.AnyAsync(e => e.Id == info.Id))
+                    {
+                        var updateResult = await ctx.FileImageInfos
+                            .Where(e => e.Id == info.Id)
+                            .ExecuteUpdateAsync(e => info.UpdateCalls(e));
+                        logger.Info($"Updated {updateResult} rows");
+                    }
+                    else
+                    {
+                        await ctx.FileImageInfos.AddAsync(info);
+                        logger.Info($"Added 1 row");
+                    }
+
+                    await trans.CommitAsync();
+                    await ctx.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    await trans.RollbackAsync();
+                    logger.Error(ex, $"Failed to insert or update file info");
+                    throw;
+                }
+            }
+            res.Dispose();
+            logger.Info("Done! Generated file metadata");
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Could not generate metadata for file {file.Id}", ex);
+        }
+    }
     public FileImageInfoModel? GenerateFileImageInfo(FileModel file, Stream stream)
     {
         if (!(file.MimeType?.StartsWith("image/") ?? false)) return null;
