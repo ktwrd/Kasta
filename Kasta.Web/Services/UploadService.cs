@@ -65,7 +65,7 @@ public class UploadService
 
             using (var fstream = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                var imageInfo = GenerateFileImageInfo(fileModel, fstream);
+                var imageInfo = _fileService.GenerateFileImageInfo(fileModel, fstream);
                 if (imageInfo != null)
                 {
                     ctx.FileImageInfos.Add(imageInfo);
@@ -87,25 +87,6 @@ public class UploadService
 
         await _fileService.RecalculateSpaceUsed(user);
         return fileModel;
-    }
-    public FileImageInfoModel? GenerateFileImageInfo(FileModel file, Stream stream)
-    {
-        if (!(file.MimeType?.StartsWith("image/") ?? false)) return null;
-        if (file.MimeType.Contains("svg")) return null;
-
-        var info = new MagickImageInfo(stream);
-        var model = new FileImageInfoModel()
-        {
-            Id = file.Id,
-            Width = info.Width,
-            Height = info.Height,
-            ColorSpace = info.ColorSpace == ColorSpace.Undefined ? null : info.ColorSpace.ToString(),
-            CompressionMethod = info.Compression == CompressionMethod.Undefined ? null : info.Compression.ToString(),
-            MagickFormat = info.Format == MagickFormat.Unknown ? null : info.Format.ToString(),
-            Interlace = info.Interlace == Interlace.Undefined ? null : info.Interlace.ToString(),
-            CompressionLevel = info.Quality
-        };
-        return model;
     }
     public async Task<ChunkUploadSessionModel> CreateSession(UserModel user, CreateUploadSessionRequest @params)
     {

@@ -1,7 +1,9 @@
 using Amazon.S3.Model;
+using ImageMagick;
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Data.Models.Audit;
+using Kasta.Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 
@@ -133,6 +135,26 @@ public class FileService
         }
     }
 
+    public FileImageInfoModel? GenerateFileImageInfo(FileModel file, Stream stream)
+    {
+        if (!(file.MimeType?.StartsWith("image/") ?? false)) return null;
+        if (file.MimeType.Contains("svg")) return null;
+
+        var info = new MagickImageInfo(stream);
+        var model = new FileImageInfoModel()
+        {
+            Id = file.Id,
+            Width = info.Width,
+            Height = info.Height,
+            ColorSpace = info.ColorSpace == ColorSpace.Undefined ? null : info.ColorSpace.ToString(),
+            CompressionMethod = info.Compression == CompressionMethod.Undefined ? null : info.Compression.ToString(),
+            MagickFormat = info.Format == MagickFormat.Unknown ? null : info.Format.ToString(),
+            Interlace = info.Interlace == Interlace.Undefined ? null : info.Interlace.ToString(),
+            CompressionLevel = info.Quality
+        };
+        return model;
+    }
+    
     public MemoryStream GetMemoryStream(FileModel file, out GetObjectResponse res)
     {
         res = _s3.GetObject(file.RelativeLocation).Result;
@@ -140,7 +162,6 @@ public class FileService
         res.ResponseStream.CopyTo(ms);
         return ms;
     }
-
     public Stream GetStream(FileModel file, out GetObjectResponse res)
     {
         res = _s3.GetObject(file.RelativeLocation).Result;
