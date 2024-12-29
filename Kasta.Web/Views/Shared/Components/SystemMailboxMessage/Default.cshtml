@@ -1,0 +1,33 @@
+﻿@using Kasta.Web.Helpers
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
+@model Kasta.Data.Models.SystemMailboxMessageModel
+@inject IHttpContextAccessor ContextAccessor
+
+@{
+    TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
+    if (ContextAccessor.HttpContext != null)
+    {
+        var tz = ContextAccessor.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
+
+    var createdAtString = TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedAt.UtcDateTime, targetTimezone)
+        .ToString("yyyy/MM/dd HH:mm:ss");
+}
+
+
+<h3>@Model.Subject</h3>
+<p>
+    Message created at <code>@createdAtString</code>
+    <br/>
+    @if (Model.IsDeleted)
+    {
+        <sup class="mr-3">Deleted</sup>
+    }
+    <sup>@SizeHelper.BytesToString(SizeHelper.GetByteCount(Model.Message))</sup>
+</p>
+<hr/>
+@Html.Raw(KastaWebHelper.MarkdownToHtml(Model.Message))
