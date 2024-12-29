@@ -178,7 +178,7 @@ public class SystemController : Controller
         [FromQuery] string? resultComponent = null,
         [FromQuery] bool force = false)
     {
-        var files = await _db.Files.Where(e => e.MimeType != null && e.MimeType.StartsWith("image/")).ToListAsync();
+        /*var files = await _db.Files.Where(e => e.MimeType != null && e.MimeType.StartsWith("image/")).ToListAsync();
         if (force)
         {
             var fileIds = files.Select(e => e.Id).ToList();
@@ -222,12 +222,13 @@ public class SystemController : Controller
                 
             });
         }));
-        thread.Start(files);
-        
+        thread.Start(files);*/
+
+        await _fileService.GenerateFileMetadata(force);
         
         var alertViewModel = new BaseAlertViewModel()
         {
-            AlertContent = $"Generating metadata for {files.Count} files (this might take a while)",
+            AlertContent = $"Generating missing file metadata (this might take a while)",
             AlertType = "success",
             AlertIsSmall = true
         };

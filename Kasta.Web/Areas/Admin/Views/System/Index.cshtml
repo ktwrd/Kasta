@@ -17,6 +17,9 @@
             </div>
         </div>
     </div>
+    <div class="col-md-4 mt-3" id="alert-container">
+        
+    </div>
 </div>
 <div class="row">
     <div class="col-md-8">
@@ -46,11 +49,25 @@
                    href="#"
                    hx-get="@Url.Action("RecalculateStorage", "System", new {area = "Admin", resultComponent = "Metrics"})"
                    hx-trigger="click"
-	               hx-indicator=".htmx-indicator"
+                   hx-indicator=".htmx-indicator"
                    hx-target="#metrics-container"
                    hx-swap="innerHTML">
                     <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                   Recalculate Storage Usage
+                    Recalculate Storage Usage
+                </a>
+                <br/>
+                <a class="btn btn-warning"
+                   href="#"
+                   hx-get="@Url.Action(
+                               "GenerateFileMetadata", "System", new
+                               {
+                                   area = "Admin",
+                                   resultComponent = "alert"
+                               })"
+                   hx-trigger="click"
+                   hx-target="#alert-container"
+                   hx-swap="innerHTML">
+                    Generate Missing File Metadata
                 </a>
             </div>
         </div>
