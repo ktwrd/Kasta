@@ -95,17 +95,18 @@ public class FileService
         }
     }
 
-    public async Task RecalculateSpaceUsed(UserModel user)
+    public async Task<long> RecalculateSpaceUsed(UserModel user)
     {
         await using var ctx = _db.CreateSession();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
-
+        long fileCount = 0;
         try
         {
-            var totalSpace = await ctx.Files.Where(e => e.CreatedByUserId == user.Id)
+            var totalSpaceQuery = ctx.Files.Where(e => e.CreatedByUserId == user.Id)
                 .Include(e => e.Preview)
-                .Select(e => e.Size + (e.Preview == null ? 0 : e.Preview.Size))
-                .SumAsync();
+                .Select(e => e.Size + (e.Preview == null ? 0 : e.Preview.Size));
+            var totalSpace = await totalSpaceQuery.SumAsync();
+            fileCount = await totalSpaceQuery.LongCountAsync();
             var previewSpace = await ctx.Files
                 .Where(e => e.CreatedByUserId == user.Id)
                 .Where(e => e.Preview != null)
@@ -133,6 +134,8 @@ public class FileService
             await transaction.RollbackAsync();
             throw;
         }
+
+        return fileCount;
     }
 
     public FileImageInfoModel? GenerateFileImageInfo(FileModel file, Stream stream)
