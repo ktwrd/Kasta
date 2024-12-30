@@ -22,6 +22,7 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/config.xml
 private
 LICENSE
 LICENSE.txt
