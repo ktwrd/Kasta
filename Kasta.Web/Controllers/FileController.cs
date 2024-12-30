@@ -1,5 +1,6 @@
 using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Data.Models.Audit;
 using Kasta.Web.Helpers;
 using Kasta.Web.Models;
 using Kasta.Web.Services;
@@ -149,14 +150,36 @@ public class FileController : Controller
                 Message = $"Vanity Url already exists ({vanity})"
             });
         }
+        var userModel = await _userManager.GetUserAsync(User);
+        if (userModel == null)
+        {
+            throw new InvalidOperationException($"Action has {nameof(AuthorizeAttribute)}, but {nameof(_userManager.GetUserAsync)} returned null?!?!?!?!?!?!?");
+        }
 
         using (var ctx = _db.CreateSession())
         {
             var trans = await ctx.Database.BeginTransactionAsync();
             try
             {
-                await ctx.Files.Where(e => e.Id == file.Id)
-                    .ExecuteUpdateAsync(m => m.SetProperty(e => e.ShortUrl, id));
+                await ctx.Files
+                    .Where(e => e.Id == file.Id)
+                    .ExecuteUpdateAsync(m => m.SetProperty(e => e.ShortUrl, vanity));
+                
+                // auditing
+                var auditModel = new AuditModel()
+                {
+                    CreatedBy = userModel.Id,
+                    EntityName = FileModel.TableName,
+                    PrimaryKey = file.Id,
+                    Kind = AuditEventKind.Update
+                };
+                await ctx.Audit.AddAsync(auditModel);
+                await ctx.AuditEntries.AddAsync(new AuditEntryModel()
+                {
+                    AuditId = auditModel.Id,
+                    PropertyName = nameof(FileModel.ShortUrl),
+                    Value = vanity
+                });
 
                 await ctx.SaveChangesAsync();
                 await trans.CommitAsync();
