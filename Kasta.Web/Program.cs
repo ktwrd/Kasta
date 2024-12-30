@@ -18,6 +18,7 @@ using Vivet.AspNetCore.RequestTimeZone.Extensions;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Kasta.Web.Helpers;
+using System.Diagnostics;
 
 namespace Kasta.Web;
 
@@ -30,12 +31,26 @@ public static class Program
             return string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "development", StringComparison.InvariantCultureIgnoreCase);
         }
     }
+    public static bool IsDocker { get; private set; }
     public static void Main(string[] args)
     {
+        IsDocker = args.FirstOrDefault() == "docker";
+        if (IsDocker)
+        {
+            Environment.SetEnvironmentVariable("_KASTA_RUNNING_IN_DOCKER", "true");
+        }
         if (IsDevelopment)
         {
             IdentityModelEventSource.ShowPII = true;
             IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+        }
+        if (!string.IsNullOrEmpty(FeatureFlags.XmlConfigLocation))
+        {
+            if (!File.Exists(FeatureFlags.XmlConfigLocation))
+            {
+                new KastaConfig().WriteToFile(FeatureFlags.XmlConfigLocation);
+                Console.WriteLine($"Wrote blank config file to {FeatureFlags.XmlConfigLocation}");
+            }
         }
         var builder = WebApplication.CreateBuilder(args);
         if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
@@ -62,12 +77,13 @@ public static class Program
         builder.Services.AddDbContextPool<ApplicationDbContext>(
             options =>
             {
+                var cfg = KastaConfig.Get();
                 var b = new NpgsqlConnectionStringBuilder();
-                b.Host = FeatureFlags.DatabaseHost;
-                b.Port = FeatureFlags.DatabasePort;
-                b.Username = FeatureFlags.DatabaseUser;
-                b.Password = FeatureFlags.DatabasePassword;
-                b.Database = FeatureFlags.DatabaseName;
+                b.Host = cfg.Database.Hostname;
+                b.Port = cfg.Database.Port;
+                b.Username = cfg.Database.Username;
+                b.Password = cfg.Database.Password;
+                b.Database = cfg.Database.Name;
                 b.IncludeErrorDetail = true;
                 options.UseNpgsql(b.ToString());
 
@@ -87,39 +103,8 @@ public static class Program
                 })
                 .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
-        if (FeatureFlags.OpenIdEnable)
-        {
-            builder.Services.AddAuthentication()
-            .AddCookie(JwtBearerDefaults.AuthenticationScheme).AddOpenIdConnect(
-                string.IsNullOrEmpty(FeatureFlags.OpenIdIdentifier) ? OpenIdConnectDefaults.AuthenticationScheme : FeatureFlags.OpenIdIdentifier,
-                string.IsNullOrEmpty(FeatureFlags.OpenIdDisplayName) ? null : FeatureFlags.OpenIdDisplayName,
-                options =>
-                {
-                    options.RequireHttpsMetadata = false;
-                    options.ClientId = FeatureFlags.OpenIdClientId;
-                    options.ClientSecret = FeatureFlags.OpenIdClientSecret;
-                    options.Authority = FeatureFlags.OpenIdEndpoint;
-                    options.ResponseType = OpenIdConnectResponseType.Code;
-                    options.ResponseMode = "query";
-                    options.Scope.Clear();
-                    foreach (var x in FeatureFlags.OpenIdScopes.Split(' '))
-                    {
-                        options.Scope.Add(x);
-                    }
-                    options.SaveTokens = true;
-                    // options.GetClaimsFromUserInfoEndpoint = true;
-                    options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
-                    options.TokenValidationParameters.RoleClaimType = FeatureFlags.JwtRoleClaimType;
-                    if (FeatureFlags.OpenIdValidateIssuer == false)
-                    {
-                        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
-                        options.TokenValidationParameters.SignatureValidator = (a, b) =>
-                        {
-                            return new JsonWebToken(a);
-                        };
-                    }
-                });
-        }
+        
+        InitializeOAuth(builder);
         builder.Services.AddMvc();
         builder.Services.AddScoped<S3Service>()
             .AddScoped<UploadService>()
@@ -139,13 +124,14 @@ public static class Program
         builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
         builder.Services.AddRequestTimeZone(opts =>
         {
-            if (string.IsNullOrEmpty(FeatureFlags.DefaultRequestTimezone))
+            var cfg = KastaConfig.Get();
+            if (string.IsNullOrEmpty(cfg.DefaultTimezone))
             {
                 opts.Id = "UTC";
             }
             else
             {
-                opts.Id = FeatureFlags.DefaultRequestTimezone;   
+                opts.Id = cfg.DefaultTimezone;   
             }
             opts.RequestTimeZoneProviders.Add(new IPAddressRequestTimeZoneProvider());
         });
@@ -206,5 +192,57 @@ public static class Program
         app.MapRazorPages();
 
         app.Run();
+    }
+    private static void InitializeOAuth(WebApplicationBuilder builder)
+    {
+        var cfg = KastaConfig.Get();
+        if (cfg.Auth?.OAuth.Count < 1) return;
+        
+        var auth = builder.Services.AddAuthentication()
+            .AddCookie(JwtBearerDefaults.AuthenticationScheme);
+        foreach (var item in cfg.Auth!.OAuth)
+        {
+            auth.AddOpenIdConnect(
+                item.Identifier,
+                item.DisplayName,
+                options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.ClientId = item.ClientId;
+                    options.ClientSecret = item.ClientSecret;
+                    options.Authority = item.Endpoint;
+                    options.ResponseType = OpenIdConnectResponseType.Code;
+                    options.ResponseMode = "query";
+                    options.Scope.Clear();
+                    foreach (var x in item.Scopes)
+                    {
+                        options.Scope.Add(x);
+                    }
+                    options.SaveTokens = true;
+                    // options.GetClaimsFromUserInfoEndpoint = true;
+                    options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
+                    options.TokenValidationParameters.RoleClaimType = "roles";
+                    foreach (var inner in item.Jwt?.Items ?? [])
+                    {
+                        switch (inner.InternalName)
+                        {
+                            case "name":
+                                options.TokenValidationParameters.NameClaimType = inner.JwtValue;
+                                break;
+                            case "role":
+                                options.TokenValidationParameters.RoleClaimType = inner.JwtValue;
+                                break;
+                        }
+                    }
+                    if (item.ValidateIssuer == false)
+                    {
+                        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+                        options.TokenValidationParameters.SignatureValidator = (a, b) =>
+                        {
+                            return new JsonWebToken(a);
+                        };
+                    }
+                });
+        }
     }
 }

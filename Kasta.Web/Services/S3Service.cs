@@ -20,25 +20,27 @@ public class S3Service
 
     public void InitializeClient()
     {
+        var cfg = KastaConfig.Get();
         var config = new AmazonS3Config()
         {
-            ServiceURL = FeatureFlags.S3ServiceUrl,
-            ForcePathStyle = FeatureFlags.S3ForcePathStyle
+            ServiceURL = cfg.S3.ServiceUrl,
+            ForcePathStyle = cfg.S3.ForcePathStyle
         };
-        config.UseHttp = FeatureFlags.S3ServiceUrl.StartsWith("http://");
+        config.UseHttp = config.ServiceURL.StartsWith("http://");
 
         _client = new AmazonS3Client(
-            FeatureFlags.S3AccessKeyId,
-            FeatureFlags.S3AccessSecretKey,
+            cfg.S3.AccessKey,
+            cfg.S3.AccessSecret,
             config);
         _log.Info($"Created S3 Client");
     }
     public async Task<GetObjectResponse> GetObject(string location)
     {
+        var cfg = KastaConfig.Get();
         // Create a GetObject request
         var request = new GetObjectRequest
         {
-            BucketName = FeatureFlags.S3BucketName,
+            BucketName = cfg.S3.BucketName,
             Key = location,
         };
 
@@ -53,11 +55,12 @@ public class S3Service
     }
     public async Task<GetObjectResponse> UploadObject(Stream stream, string location)
     {
+        var cfg = KastaConfig.Get();
         var c = _client;
         var fileTransferUtility = new TransferUtility(c);
         var fileTransferUtilityRequest = new TransferUtilityUploadRequest
         {
-            BucketName = FeatureFlags.S3BucketName,
+            BucketName = cfg.S3.BucketName,
             InputStream = stream,
             PartSize = 6291456, // 6 MB.
             Key = location,
@@ -72,10 +75,11 @@ public class S3Service
 
     public async Task<DeleteObjectResponse> DeleteObject(string location)
     {
+        var cfg = KastaConfig.Get();
         // Create a DeleteObject request
         var request = new DeleteObjectRequest()
         {
-            BucketName = FeatureFlags.S3BucketName,
+            BucketName = cfg.S3.BucketName,
             Key = location
         };
         
