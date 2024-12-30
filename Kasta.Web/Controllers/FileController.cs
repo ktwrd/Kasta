@@ -3,8 +3,10 @@ using Kasta.Data.Models;
 using Kasta.Web.Helpers;
 using Kasta.Web.Models;
 using Kasta.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web.Controllers;
 
@@ -85,5 +87,92 @@ public class FileController : Controller
         }
 
         return View("Details", vm);
+    }
+
+    /// <summary>
+    /// Update the <see cref="FileModel.ShortUrl"/> property with the <paramref name="vanity"/> parameter.
+    /// </summary>
+    /// <param name="id"><see cref="FileModel.Id"/> or <see cref="FileModel.ShortUrl"/> to target.</param>
+    /// <param name="vanity">New vanity url for <see cref="FileModel.ShortUrl"/></param>
+    /// <remarks>
+    /// <para>This will only work if the Vanity Url isn't taken, and it's 3 or more characters in length.</para>
+    /// 
+    /// Requires the <see cref="RoleKind.Administrator"/> or <see cref="RoleKind.FileCreateVanity"/> role.
+    /// </remarks>
+    [HttpPost("~/File/Details/Update/Vanity")]
+    [Authorize(Roles = $"{RoleKind.Administrator}, {RoleKind.FileCreateVanity}")]
+    public async Task<IActionResult> SetVanityUrl(
+        [FromForm] string id,
+        [FromForm] string vanity)
+    {
+        var scope = _log.BeginScope($"id={id},vanity={vanity}");
+
+        if (string.IsNullOrEmpty(id))
+        {
+            Response.StatusCode = 404;
+            scope?.Dispose();
+            return View("NotFound");
+        }
+        _log.LogDebug($"Fetching file with requested ID \"{id}\"");
+        var file = await _db.GetFileAsync(id);
+        if (file == null)
+        {
+            Response.StatusCode = 404;
+            scope?.Dispose();
+            return View("NotFound");
+        }
+        if (string.IsNullOrEmpty(vanity))
+        {
+            Response.StatusCode = 400;
+            scope?.Dispose();
+            return View("BadRequest", new BadRequestViewModel()
+            {
+                Message = $"Missing request property \"{nameof(vanity)}\""
+            });
+        }
+        if (vanity.Length < 3)
+        {
+            Response.StatusCode = 400;
+            scope?.Dispose();
+            return View("BadRequest", new BadRequestViewModel()
+            {
+                Message = $"Vanity Url must have 3 or more characters ({vanity})"
+            });
+        }
+
+        if (await _db.FileExistsAsync(id))
+        {
+            Response.StatusCode = 400;
+            scope?.Dispose();
+            return View("BadRequest", new BadRequestViewModel()
+            {
+                Message = $"Vanity Url already exists ({vanity})"
+            });
+        }
+
+        using (var ctx = _db.CreateSession())
+        {
+            var trans = await ctx.Database.BeginTransactionAsync();
+            try
+            {
+                await ctx.Files.Where(e => e.Id == file.Id)
+                    .ExecuteUpdateAsync(m => m.SetProperty(e => e.ShortUrl, id));
+
+                await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, $"Failed to update record {nameof(FileModel)} (where id={file.Id}) set {nameof(file.ShortUrl)} to \"{id}\"");
+                scope?.Dispose();
+                await trans.RollbackAsync();
+                throw;
+            }
+        }
+        scope?.Dispose();
+        return RedirectToAction("Details", new Dictionary<string, object>()
+        {
+            {"id", id}
+        });
     }
 }
