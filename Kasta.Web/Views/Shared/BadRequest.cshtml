@@ -1,0 +1,11 @@
+@model BadRequestViewModel?
+@{
+    ViewData["Title"] = "Bad Request";
+    Layout = "_Layout";
+}
+<h1>Bad Request</h1>
+<p>The request that was made has invalid user input.</p>
+@if (!string.IsNullOrEmpty(Model?.Message))
+{
+    <p>@Model!.Message</p>
+}
