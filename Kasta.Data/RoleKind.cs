@@ -25,6 +25,10 @@ public static class RoleKind
     [RoleKindElement]
     public const string LinkShortenerCreateVanity = nameof(LinkShortenerCreateVanity);
 
+    [Description("User can give a file a \"vanity\" url")]
+    [RoleKindElement]
+    public const string FileCreateVanity = nameof(FileCreateVanity);
+
     /// <summary>
     /// User can view the System Mailbox.
     /// </summary>
