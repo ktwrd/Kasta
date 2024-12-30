@@ -171,6 +171,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         }
         return target;
     }
+    public async Task<bool> FileExistsAsync(string id)
+    {
+        return await Files.AnyAsync(e => e.Id == id || e.ShortUrl == id);
+    }
 
     public async Task<List<FileModel>> GetFilesCreatedBy(UserModel user)
     {
