@@ -67,7 +67,7 @@ public class KastaConfig
     public KastaAuthConfig? Auth { get; set; }
 
     [XmlElement("Database")]
-    public KastaDatabaseConfigElement Database { get; set; } = new();
+    public PostgreSQLConfigElement Database { get; set; } = new();
 
     [Required]
     [XmlElement("S3")]
@@ -110,28 +110,6 @@ public class KastaAuthConfig
 {
     [XmlElement("OAuth")]
     public List<KastaOAuthConfigElement> OAuth { get; set; } = [];
-}
-
-public class KastaDatabaseConfigElement
-{
-    [DefaultValue("postgres")]
-    [XmlAttribute("Host")]
-    public string Hostname { get; set; } = "postgres";
-
-    [DefaultValue(5432)]
-    [XmlAttribute("Port")]
-    public int Port { get; set; } = 5432;
-
-    [DefaultValue("kasta")]
-    [XmlAttribute("Name")]
-    public string Name { get; set; } = "kasta";
-
-    [DefaultValue("postgres")]
-    [XmlElement("Username")]
-    public string Username { get; set; } = "postgres";
-    [DefaultValue("")]
-    [XmlElement("Password")]
-    public string Password { get; set; } = "";
 }
 
 public class KastaOAuthConfigElement
