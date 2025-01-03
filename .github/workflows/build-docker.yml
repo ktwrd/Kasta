@@ -35,4 +35,4 @@ jobs:
           context: .
           file: Kasta.Web/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest-main
+          tags: ghcr.io/ktwrd/Kasta:latest-main
