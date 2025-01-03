@@ -113,7 +113,7 @@ public class FileWebService
         }
 
         var sys = new SystemSettingsProxy(_db);
-        if (sys.S3UsePresignedUrl && !string.IsNullOrEmpty(sys.S3PresignedUrlBase) && new Regex("^http(s|)").IsMatch(sys.S3PresignedUrlBase))
+        if (sys.S3UsePresignedUrl/* && !string.IsNullOrEmpty(sys.S3PresignedUrlBase) && new Regex("^http(s|)").IsMatch(sys.S3PresignedUrlBase) */)
         {
             var url = await _s3.GeneratePresignedURL(relativeLocation, TimeSpan.FromMinutes(15));
             // var sb = new StringBuilder();
