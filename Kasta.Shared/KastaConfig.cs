@@ -80,4 +80,7 @@ public class KastaConfig
     [DefaultValue("UTC")]
     [XmlElement(nameof(DefaultTimezone))]
     public string DefaultTimezone { get; set; } = "UTC";
+
+    [XmlElement(nameof(Cache))]
+    public CacheConfigElement Cache { get; set; } = new();
 }
