@@ -286,4 +286,31 @@ public class SystemSettingsProxy
             SetValue(GeoIpDatabaseLocationKey, value);
         }
     }
+
+    public const string S3UsePresignedUrlKey = "s3_usePresignedUrl";
+    public const bool S3UsePresignedUrlDefault = false;
+    public bool S3UsePresignedUrl
+    {
+        get
+        {
+            return GetBool(S3UsePresignedUrlKey, S3UsePresignedUrlDefault);
+        }
+        set
+        {
+            SetValue(S3UsePresignedUrlKey, value);
+        }
+    }
+    public const string S3PresignedUrlBaseKey = "s3_presignedUrlBase";
+    public const string S3PresignedUrlBaseDefault = ""; 
+    public string S3PresignedUrlBase
+    {
+        get
+        {
+            return GetString(S3PresignedUrlBaseKey, S3PresignedUrlBaseDefault);
+        }
+        set
+        {
+            SetValue(S3PresignedUrlBaseKey, value);
+        }
+    }
 }

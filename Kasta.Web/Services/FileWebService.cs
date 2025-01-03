@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Amazon.S3.Model;
 using Kasta.Data;
 using Kasta.Data.Models;
@@ -108,6 +110,23 @@ public class FileWebService
             relativeLocation = model.Preview.RelativeLocation;
             filename = model.Preview.Filename;
             mimeType = model.Preview.MimeType;
+        }
+
+        var sys = new SystemSettingsProxy(_db);
+        if (sys.S3UsePresignedUrl && !string.IsNullOrEmpty(sys.S3PresignedUrlBase) && new Regex("^http(s|)").IsMatch(sys.S3PresignedUrlBase))
+        {
+            var url = await _s3.GeneratePresignedURL(relativeLocation, TimeSpan.FromMinutes(15));
+            // var sb = new StringBuilder();
+            // sb.Append(sys.S3PresignedUrlBase);
+            // var parsedUrl = new Uri(url);
+            // if (!sys.S3PresignedUrlBase.EndsWith('/') && !parsedUrl.PathAndQuery.StartsWith('/'))
+            // {
+            //     sb.Append('/');
+            // }
+            // sb.Append(parsedUrl.PathAndQuery);
+            context.Response.Headers.Location = new(url);
+            context.Response.StatusCode = 301;
+            return new EmptyResult();
         }
         var obj = await _s3.GetObject(relativeLocation);
         if (obj == null)

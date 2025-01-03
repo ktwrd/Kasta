@@ -120,28 +120,16 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
 
     public IQueryable<FileModel> SearchFiles(string? query, string? userId = null)
     {
-        if (string.IsNullOrEmpty(query))
+        var queryable = Files.AsQueryable();
+        if (!string.IsNullOrEmpty(userId))
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Files;
-            }
-            else
-            {
-                return Files.Where(e => e.CreatedByUserId == userId);
-            }
+            queryable = queryable.Where(e => e.CreatedByUserId == userId);
         }
-        else
+        if (!string.IsNullOrEmpty(query))
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Files.Where(e => e.SearchVector.Matches(query));
-            }
-            else
-            {
-                return Files.Where(e => e.SearchVector.Matches(query) && e.CreatedByUserId == userId);
-            }
+            queryable = queryable.Where(e => e.SearchVector.Matches(query) || e.Filename.StartsWith(query) || e.Filename.EndsWith(query));
         }
+        return queryable;
     }
 
     public async Task<FileModel?> GetFileAsync(string id)
@@ -311,7 +299,9 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                 b.HasGeneratedTsVectorColumn(
                         p => p.SearchVector, "english", p => new
                         {
-                            p.Filename
+                            p.Filename,
+                            p.MimeType,
+                            p.ShortUrl
                         })
                     .HasIndex(p => p.SearchVector).HasMethod("GIN");
 

@@ -87,6 +87,19 @@ public class S3Service
         var c = _client;
         var response = await c.DeleteObjectAsync(request);
         return response;
-        
+    }
+
+    public async Task<string> GeneratePresignedURL(string location, TimeSpan duration)
+    {
+        var cfg = KastaConfig.Get();
+        var request = new GetPreSignedUrlRequest()
+        {
+            BucketName = cfg.S3.BucketName,
+            Key = location,
+            Expires = DateTime.UtcNow.AddSeconds(duration.TotalSeconds)
+        };
+        var response = await _client.GetPreSignedURLAsync(request);
+        _log.Trace($"Fetched presigned url {response} for object {location} (expires in {duration})");
+        return response;
     }
 }

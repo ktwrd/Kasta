@@ -107,6 +107,25 @@
             HelpText = "Location for Maximind GeoIP Database ([see docs](https://dev.maxmind.com/geoip/)). **Must contain City data for Timezones**."
         })
     </div>
+    <hr/>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = "s3EnablePresignUrl",
+            State = Model.SystemSettings.S3UsePresignedUrl,
+            Name = nameof(Model.SystemSettings.S3UsePresignedUrl),
+            Label = "S3 - Use Presigned Urls",
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+        {
+            Id = "s3PresignUrlBase",
+            Value = Model.SystemSettings.S3PresignedUrlBase,
+            Name = nameof(Model.SystemSettings.S3PresignedUrlBase),
+            DisplayName = "S3 - Presigned URL Base"
+        })
+    </div>
     <button class="btn btn-success mt-3" type="submit">
         <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         Save
