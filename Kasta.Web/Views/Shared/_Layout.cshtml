@@ -3,9 +3,11 @@
 @using Kasta.Web.Helpers
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
 @inject ApplicationDbContext _db
+@inject IHttpContextAccessor ctx
 @{
     UserLimitModel? userLimit = null;
     var systemSettings = _db.GetSystemSettings();
@@ -93,6 +95,19 @@
     {
         enableNavbar = ViewData["Navbar"]?.ToString() == "true";
     }
+
+    TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
+    if (ctx.HttpContext != null)
+    {
+        var tz = ctx.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
+    ViewData["TargetTimezone"] = targetTimezone;
+
+
 }
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@bootstrapThemeAttributeValue">

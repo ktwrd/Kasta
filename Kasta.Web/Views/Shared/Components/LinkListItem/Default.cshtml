@@ -13,7 +13,11 @@
     }
 
     TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
-    if (ctx.HttpContext != null)
+    if (ViewData.ContainsKey("TargetTimezone"))
+    {
+        targetTimezone = (TimeZoneInfo)ViewData["TargetTimezone"]!;
+    }
+    else if (ctx.HttpContext != null)
     {
         var tz = ctx.HttpContext.GetUserTimeZone();
         if (tz != null)

@@ -8,7 +8,11 @@
     Layout = "_Layout";
     
     TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
-    if (ContextAccessor.HttpContext != null)
+    if (ViewData.ContainsKey("TargetTimezone"))
+    {
+        targetTimezone = (TimeZoneInfo)ViewData["TargetTimezone"]!;
+    }
+    else if (ContextAccessor.HttpContext != null)
     {
         var tz = ContextAccessor.HttpContext.GetUserTimeZone();
         if (tz != null)
