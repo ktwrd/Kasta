@@ -115,6 +115,7 @@
             State = Model.SystemSettings.S3UsePresignedUrl,
             Name = nameof(Model.SystemSettings.S3UsePresignedUrl),
             Label = "S3 - Use Presigned Urls",
+            HelpText = "**This will expose your S3 Bucket Name** since Kasta only supports directly calling the S3 client to create a signed URL.\n\nAll signed URLs will only last 15min"
         })
     </div>
     <button class="btn btn-success mt-3" type="submit">
