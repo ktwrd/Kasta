@@ -11,13 +11,8 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
     {
         var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
         var cfg = KastaConfig.Get();
-        var b = new NpgsqlConnectionStringBuilder();
-        b.Host = cfg.Database.Hostname;
-        b.Port = cfg.Database.Port;
-        b.Username = cfg.Database.Username;
-        b.Password = cfg.Database.Password;
-        b.Database = cfg.Database.Name;
-        builder.UseNpgsql(b.ToString());
+        var connectionString = cfg.Database.ToConnectionString();
+        builder.UseNpgsql(connectionString);
 
         return new ApplicationDbContext(builder.Options);
     }

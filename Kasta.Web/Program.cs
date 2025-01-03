@@ -78,14 +78,8 @@ public static class Program
             options =>
             {
                 var cfg = KastaConfig.Get();
-                var b = new NpgsqlConnectionStringBuilder();
-                b.Host = cfg.Database.Hostname;
-                b.Port = cfg.Database.Port;
-                b.Username = cfg.Database.Username;
-                b.Password = cfg.Database.Password;
-                b.Database = cfg.Database.Name;
-                b.IncludeErrorDetail = true;
-                options.UseNpgsql(b.ToString());
+                var connectionString = cfg.Database.ToConnectionString();
+                options.UseNpgsql(connectionString);
 
                 if (IsDevelopment)
                 {
