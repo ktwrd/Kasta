@@ -18,7 +18,6 @@ public class SystemSettingsParams
     public bool EnableGeoIP { get; set; }
     public string GeoIPDatabaseLocation { get;set; } = "";
     public bool S3UsePresignedUrl { get; set; }
-    public string S3PresignedUrlBase { get; set; } = "";
 
     public long? DefaultUploadQuotaReal
     {
@@ -66,7 +65,6 @@ public class SystemSettingsParams
         proxy.EnableGeoIp = EnableGeoIP;
         proxy.GeoIpDatabaseLocation = GeoIPDatabaseLocation;
         proxy.S3UsePresignedUrl = S3UsePresignedUrl;
-        proxy.S3PresignedUrlBase = S3PresignedUrlBase;
     }
 
     public void Get(ApplicationDbContext db)
@@ -84,6 +82,5 @@ public class SystemSettingsParams
         EnableGeoIP = proxy.EnableGeoIp;
         GeoIPDatabaseLocation = proxy.GeoIpDatabaseLocation;
         S3UsePresignedUrl = proxy.S3UsePresignedUrl;
-        S3PresignedUrlBase = proxy.S3PresignedUrlBase;
     }
 }

@@ -300,17 +300,4 @@ public class SystemSettingsProxy
             SetValue(S3UsePresignedUrlKey, value);
         }
     }
-    public const string S3PresignedUrlBaseKey = "s3_presignedUrlBase";
-    public const string S3PresignedUrlBaseDefault = ""; 
-    public string S3PresignedUrlBase
-    {
-        get
-        {
-            return GetString(S3PresignedUrlBaseKey, S3PresignedUrlBaseDefault);
-        }
-        set
-        {
-            SetValue(S3PresignedUrlBaseKey, value);
-        }
-    }
 }

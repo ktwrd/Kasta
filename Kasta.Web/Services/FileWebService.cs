@@ -113,17 +113,9 @@ public class FileWebService
         }
 
         var sys = new SystemSettingsProxy(_db);
-        if (sys.S3UsePresignedUrl/* && !string.IsNullOrEmpty(sys.S3PresignedUrlBase) && new Regex("^http(s|)").IsMatch(sys.S3PresignedUrlBase) */)
+        if (sys.S3UsePresignedUrl)
         {
             var url = await _s3.GeneratePresignedURL(relativeLocation, TimeSpan.FromMinutes(15));
-            // var sb = new StringBuilder();
-            // sb.Append(sys.S3PresignedUrlBase);
-            // var parsedUrl = new Uri(url);
-            // if (!sys.S3PresignedUrlBase.EndsWith('/') && !parsedUrl.PathAndQuery.StartsWith('/'))
-            // {
-            //     sb.Append('/');
-            // }
-            // sb.Append(parsedUrl.PathAndQuery);
             context.Response.Headers.Location = new(url);
             context.Response.StatusCode = 301;
             return new EmptyResult();
