@@ -35,7 +35,8 @@
         
         <div class="row">
             <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
-                <form class="mr-1" asp-controller="Home" asp-action="Index">
+                <form class="mr-1" asp-controller="Home" asp-action="Index" method="GET">
+                    <input type="hidden" name="page" value="@Model.Page" />
                     <div class="input-group">
                         <input class="form-control" type="text" name="search" placeholder="Search" value="@Model.SearchQuery"/>
                         <button class="btn btn-secondary" type="submit"><i class="bi bi-search"></i></button>
