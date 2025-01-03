@@ -124,34 +124,22 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         {
             if (string.IsNullOrEmpty(userId))
             {
-                return Files
-                    .Include(e => e.CreatedByUser)
-                    .Include(e => e.Preview)
-                    .Include(e => e.ImageInfo);
+                return Files;
             }
             else
             {
-                return Files.Where(e => e.CreatedByUserId == userId)
-                    .Include(e => e.CreatedByUser)
-                    .Include(e => e.Preview)
-                    .Include(e => e.ImageInfo);
+                return Files.Where(e => e.CreatedByUserId == userId);
             }
         }
         else
         {
             if (string.IsNullOrEmpty(userId))
             {
-                return Files.Where(e => e.SearchVector.Matches(query))
-                    .Include(e => e.CreatedByUser)
-                    .Include(e => e.Preview)
-                    .Include(e => e.ImageInfo);
+                return Files.Where(e => e.SearchVector.Matches(query));
             }
             else
             {
-                return Files.Where(e => e.SearchVector.Matches(query) && e.CreatedByUserId == userId)
-                    .Include(e => e.CreatedByUser)
-                    .Include(e => e.Preview)
-                    .Include(e => e.ImageInfo);
+                return Files.Where(e => e.SearchVector.Matches(query) && e.CreatedByUserId == userId);
             }
         }
     }
