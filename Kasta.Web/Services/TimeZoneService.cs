@@ -14,12 +14,14 @@ public class TimeZoneService : IDisposable
         RefreshDatabase?.Invoke();
     }
     private readonly ApplicationDbContext _db;
+    private readonly SystemSettingsProxy _systemSettings;
 
     private readonly ILogger<TimeZoneService> _logger;
     public TimeZoneService(IServiceProvider services, ILogger<TimeZoneService> logger)
     {
         _logger = logger;
         _db = services.GetRequiredService<ApplicationDbContext>();
+        _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
         RefreshDatabase += EnsureMaxmind;
         EnsureMaxmind();
     }
@@ -117,36 +119,41 @@ public class TimeZoneService : IDisposable
         }
         return null;
     }
-
+    private object EnsureMaxmindLock = new object();
     private void EnsureMaxmind()
     {
-        var sys = _db.GetSystemSettings();
-        bool disable = sys.EnableGeoIP == false;
+        var tsnow = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (tsnow - 5 < _ensureMaxmindLast)
+        {
+            return;
+        }
+        _ensureMaxmindLast = tsnow;
+        bool disable = _systemSettings.EnableGeoIp == false;
         if (disable && _geoipDatabase == null)
         {
             _geoipDatabaseLocation = null;
             return;
         }
-        if (sys.EnableGeoIP)
+        if (_systemSettings.EnableGeoIp)
         {
-            if (string.IsNullOrEmpty(sys.GeoIPDatabaseLocation))
+            if (string.IsNullOrEmpty(_systemSettings.GeoIpDatabaseLocation))
             {
                 disable = true;
             }
-            else if (!File.Exists(sys.GeoIPDatabaseLocation))
+            else if (!File.Exists(_systemSettings.GeoIpDatabaseLocation))
             {
                 disable = true;
             }
             else
             {
-                if (_geoipDatabaseLocation != sys.GeoIPDatabaseLocation)
+                if (_geoipDatabaseLocation != _systemSettings.GeoIpDatabaseLocation)
                 {
                     try
                     { _geoipDatabase?.Dispose(); }
                     catch {}
 
-                    _geoipDatabase = new DatabaseReader(sys.GeoIPDatabaseLocation);
-                    _geoipDatabaseLocation = sys.GeoIPDatabaseLocation;
+                    _geoipDatabase = new DatabaseReader(_systemSettings.GeoIpDatabaseLocation);
+                    _geoipDatabaseLocation = _systemSettings.GeoIpDatabaseLocation;
                 }
             }
         }
@@ -168,10 +175,14 @@ public class TimeZoneService : IDisposable
 
     private DatabaseReader? _geoipDatabase;
     private string? _geoipDatabaseLocation;
+    private long _ensureMaxmindLast = 0;
 
     public TimeZoneInfo? FromIpAddress(string address)
     {
-        EnsureMaxmind();
+        lock (EnsureMaxmindLock)
+        {
+            EnsureMaxmind();
+        }
         if (_geoipDatabase == null) return null;
 
         if (_geoipDatabase.TryCity(address, out var city))
