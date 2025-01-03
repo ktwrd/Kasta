@@ -32,6 +32,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Kasta.Web/Dockerfile
+          file: Dockerfile
           push: true
           tags: ghcr.io/ktwrd/kasta:latest-main
