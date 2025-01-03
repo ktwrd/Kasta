@@ -10,6 +10,7 @@ using Kasta.Web.Helpers;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 
 namespace Kasta.Web.Services;
@@ -105,11 +106,12 @@ public class FileWebService
         string relativeLocation = model.RelativeLocation;
         string filename = model.Filename;
         string? mimeType = model.MimeType;
-        if (model.Preview != null && preview)
+        var filePreview = await _db.FilePreviews.Where(e => e.Id == model.Id).FirstOrDefaultAsync();
+        if (filePreview != null && preview)
         {
-            relativeLocation = model.Preview.RelativeLocation;
-            filename = model.Preview.Filename;
-            mimeType = model.Preview.MimeType;
+            relativeLocation = filePreview.RelativeLocation;
+            filename = filePreview.Filename;
+            mimeType = filePreview.MimeType;
         }
 
         var sys = new SystemSettingsProxy(_db);

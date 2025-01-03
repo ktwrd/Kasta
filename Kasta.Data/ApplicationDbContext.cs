@@ -132,19 +132,22 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         return queryable;
     }
 
-    public async Task<FileModel?> GetFileAsync(string id)
+    public async Task<FileModel?> GetFileAsync(string id, bool includeAuthor = false, bool includePreview = false, bool includeImageInfo = false)
     {
-        var target = await Files.Where(e => e.Id == id)
-                .Include(e => e.CreatedByUser)
-                .Include(e => e.Preview)
-                .Include(e => e.ImageInfo).FirstOrDefaultAsync();
-        if (target == null)
+        var query = Files.Where(e => e.Id == id || e.ShortUrl == id);
+        if (includeAuthor)
         {
-            target = await Files.Where(e => e.ShortUrl == id)
-                .Include(e => e.CreatedByUser)
-                .Include(e => e.Preview)
-                .Include(e => e.ImageInfo).FirstOrDefaultAsync();
+            query = query.Include(e => e.CreatedByUser);
         }
+        if (includePreview)
+        {
+            query = query.Include(e => e.Preview);
+        }
+        if (includeImageInfo)
+        {
+            query = query.Include(e => e.ImageInfo);
+        }
+        var target = await query.FirstOrDefaultAsync();
         return target;
     }
     public async Task<bool> FileExistsAsync(string id)

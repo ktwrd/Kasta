@@ -39,7 +39,7 @@ public class FileController : Controller
             return View("NotFound");
         }
         _log.LogDebug($"Fetching file with requested ID \"{id}\"");
-        var file = await _db.GetFileAsync(id);
+        var file = await _db.GetFileAsync(id, includeAuthor: true, includePreview: true, includeImageInfo: true);
         if (file == null)
         {
             Response.StatusCode = 404;
@@ -115,7 +115,7 @@ public class FileController : Controller
             return View("NotFound");
         }
         _log.LogDebug($"Fetching file with requested ID \"{id}\"");
-        var file = await _db.GetFileAsync(id);
+        var file = await _db.GetFileAsync(id, includeAuthor: false, includePreview: true, includeImageInfo: true);
         if (file == null)
         {
             Response.StatusCode = 404;
