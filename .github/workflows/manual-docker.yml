@@ -42,7 +42,6 @@ jobs:
         id: push
         uses: docker/build-push-action@v5
         with:
-          context: .
           file: Dockerfile
           push: true
           tags: |
@@ -54,7 +53,6 @@ jobs:
         id: push-latest
         uses: docker/build-push-action@v5
         with:
-          context: .
           file: Dockerfile
           push: true
           tags: |
