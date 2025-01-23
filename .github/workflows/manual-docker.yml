@@ -1,0 +1,62 @@
+name: Manual Docker Publish
+on:
+  workflow_dispatch:
+    inputs:
+      docker-tag:
+        description: 'Docker Tag'
+        required: true
+      latest:
+        description: 'Mark as latest docker tag?'
+        required: true
+        default: 'false'
+
+jobs:
+  build:
+    name: Push Docker Image to Dockerhub & ghcr.io
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Build and push Docker images
+        id: push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ghcr.io/ktwrd/kasta:${{ github.event.inputs.docker-tag }}
+            ktwrd/kasta:${{ github.event.inputs.docker-tag }}
+
+      - if: ${{ github.event.inputs.latest == 'true' }}
+        name: Mark Docker Image as Latest
+        id: push-latest
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ghcr.io/ktwrd/kasta:latest
+            ktwrd/kasta:latest
