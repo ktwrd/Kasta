@@ -398,6 +398,8 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Configuration Files
 .env
 .env.*
 !.env.example
@@ -405,4 +407,11 @@ FodyWeavers.xsd
 config.xml
 config*xml
 !config.example.xml
+
+# Test Data
 private
+
+# Docker Stuff
+docker-compose.yml
+docker-compose*.yml
+!docker-compose.example.yml
