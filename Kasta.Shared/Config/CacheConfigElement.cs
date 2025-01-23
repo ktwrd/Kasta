@@ -81,6 +81,10 @@ public class InMemoryCacheElement
 public class RedisCacheElement
 {
     [DefaultValue(true)]
+    [XmlAttribute("Enable")]
+    public bool Enable { get; set; }
+
+    [DefaultValue(true)]
     [XmlElement(nameof(EnableLogging))]
     public bool EnableLogging { get; set; }
 
