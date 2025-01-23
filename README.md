@@ -1,4 +1,8 @@
 # Kasta
+![GitHub Release](https://img.shields.io/github/v/release/ktwrd/kasta)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/ktwrd/kasta/main) 
+![GitHub License](https://img.shields.io/github/license/ktwrd/kasta)
+
 A Simple self-hostable File Sharing Service written in C#. Supports displaying media (image, video, audio), [ShareX](https://github.com/ShareX/ShareX) config generation, [rustgrab](https://github.com/ktwrd/rustgrab) support, and stores files with pretty much any S3-compatible service.
 
 ![Screenshot of the Kasta web application, displaying a list of uploaded images with their; filename, date created, file size, sharing status, and file size.](https://kate.pet/img/blog/firefox_1506_K10H17LkIG.png)
