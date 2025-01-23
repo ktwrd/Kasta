@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Kasta>
+    <!-- ==== External Authentication Configuration -->
+    <Auth>
+        <!-- Authentik Example. If you're not using oauth, then keep this commented out. -->
+        <!--
+        <OAuth id="authentik" DisplayName="Authentik" Enabled="true">
+            <ClientId>xxxxxx</ClientId>
+            <ClientSecret>xxxxxxx</ClientSecret>
+            <Endpoint>https://authentik.company/application/o/kasta/</Endpoint>
+            <ValidateIssuer>false</ValidateIssuer>
+            <Scope>email</Scope>
+            <Scope>openid</Scope>
+            <Scope>profile</Scope>
+            <Jwt>
+                <Item name="name">name</Item>
+                <Item name="role">roles</Item>
+            </Jwt>
+        </OAuth>
+        -->
+    </Auth>
+
+    <!-- PostgreSQL Connection Settings. "Name" attribute is the name of your database.
+        NOTE: You must already have an existing database & account created on the instance
+               that Kasta is using. -->
+    <!-- If you're using the exact same credentials in docker-compose.example.yml,
+         then you don't need to change anything for this section. -->
+    <Database Host="db" Port="5432" Name="kasta">
+        <Username>kasta</Username>
+        <Password>changeme123</Password>
+    </Database>
+
+    <!-- AWS S3 Configuration.-->
+    <S3>
+        <!-- Your S3 Service URL. (make sure that ur bucket isn't in this!!) -->
+        <ServiceUrl>http://s3.ap-southeast-2.amazonaws.com</ServiceUrl>
+        <AccessKey>xxxxxxxxxxxx</AccessKey>
+        <AccessSecret>xxxxxxxxxx</AccessSecret>
+        <!-- Name of the bucket. -->
+        <BucketName>myreallycools3bucket</BucketName>
+        <!--
+            ==== Uncomment this if you are using an S3-compatible service like Wasabi or Cloudflare R2
+        <ForcePathStyle>true</ForcePathStyle>
+        -->
+    </S3>
+
+    <!-- Database Caching Options.
+        Note: If nothing is defined in the Cache element, then
+              an in-memory cache will be used by default. -->
+    <Cache>
+        <!-- Cache Key prefix. This shouldn't be changed. -->
+        <CachePrefix>EF_Kasta_</CachePrefix>
+
+        <!-- Redis-compatible server for caching -->
+        <Redis Enabled="false">
+            <EnableLogging>true</EnableLogging>
+            <DBConfig>
+                <!-- Make sure that your password and endpoint is correct!-->
+                <Password>mysupersecretpassword</Password>
+                <AllowAdmin>true</AllowAdmin>
+                <Endpoint Host="redis" Port="6380" />
+            </DBConfig>
+        </Redis>
+    </Cache>
+
+    <!-- URL where Kasta will be hosted on -->
+    <Endpoint>https://kasta.example.com</Endpoint>
+
+    <!-- Value is a TZ Identifier (see column on following wikipedia link)
+        https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List
+        
+        If you're on linux, you can also do "ls /usr/share/zoneinfo/" to see
+        the available timezones. -->
+    <DefaultTimezone>UTC</DefaultTimezone>
+</Kasta>
