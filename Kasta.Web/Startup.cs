@@ -150,6 +150,7 @@ public class Startup
                     options.Password.RequireNonAlphanumeric = false;
                 })
                 .AddRoles<IdentityRole>()
+                .AddUserManager<CustomUserManager<UserModel>>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
     }
     private void ConfigureAuthenticationServices(IServiceCollection services)
