@@ -150,7 +150,7 @@ public class Startup
                     options.Password.RequireNonAlphanumeric = false;
                 })
                 .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>();
     }
     private void ConfigureAuthenticationServices(IServiceCollection services)
     {
@@ -206,6 +206,7 @@ public class Startup
     }
     private void ConfigureCacheServices(IServiceCollection services)
     {
+        var logger = NLog.LogManager.GetLogger(nameof(ConfigureCacheServices));
         var cfg = KastaConfig.Get();
 
         if (cfg.Cache.InMemory == null && cfg.Cache.Redis == null)
@@ -225,33 +226,18 @@ public class Startup
         services.AddEasyCaching(options =>
         {
             cfg = KastaConfig.Get();
-
-            if (cfg.Cache.Redis == null)
+            var enableRedis = cfg.Cache.Redis?.Enable ?? false;
+            if (enableRedis)
             {
-                var memoryConfig = cfg.Cache.InMemory ?? new();
-                options.UseInMemory(config =>
+                enableRedis = cfg.Cache.Redis!.DbConfig.Endpoints.Count >= 1;
+                if (!enableRedis)
                 {
-                    config.DBConfig = new EasyCaching.InMemory.InMemoryCachingOptions()
-                    {
-                        ExpirationScanFrequency = memoryConfig.DbConfig.ExpirationScanFrequency,
-                        SizeLimit  = memoryConfig.DbConfig.SizeLimit,
-                        EnableReadDeepClone = memoryConfig.DbConfig.EnableReadDeepClone,
-                        EnableWriteDeepClone = memoryConfig.DbConfig.EnableWriteDeepClone
-                    };
-
-                    config.MaxRdSecond = memoryConfig.MaxRandomSeconds;
-                    config.EnableLogging = memoryConfig.EnableLogging;
-                    config.LockMs = memoryConfig.LockMilliseconds;
-                    config.SleepMs = memoryConfig.SleepMilliseconds;
-                }, "InMemory");
-            }
-            else
-            {
-                var redisConfig = cfg.Cache.Redis;
-                if (redisConfig.DbConfig.Endpoints.Count < 1)
-                {
-                    throw new InvalidDataException("No endpoints provided for Redis Cache!");
+                    logger.Warn("Disabling Redis Cache since no endpoints are defined.");
                 }
+            }
+            if (enableRedis)
+            {
+                var redisConfig = cfg.Cache.Redis!;
                 options.UseRedis(config =>
                 {
                     config.DBConfig = new()
@@ -293,6 +279,25 @@ public class Startup
                     };
                     so.CustomResolvers = CompositeResolver.Create(formatters, formatterResolvers);
                 }, "Pack");
+            }
+            else
+            {
+                var memoryConfig = cfg.Cache.InMemory ?? new();
+                options.UseInMemory(config =>
+                {
+                    config.DBConfig = new EasyCaching.InMemory.InMemoryCachingOptions()
+                    {
+                        ExpirationScanFrequency = memoryConfig.DbConfig.ExpirationScanFrequency,
+                        SizeLimit  = memoryConfig.DbConfig.SizeLimit,
+                        EnableReadDeepClone = memoryConfig.DbConfig.EnableReadDeepClone,
+                        EnableWriteDeepClone = memoryConfig.DbConfig.EnableWriteDeepClone
+                    };
+
+                    config.MaxRdSecond = memoryConfig.MaxRandomSeconds;
+                    config.EnableLogging = memoryConfig.EnableLogging;
+                    config.LockMs = memoryConfig.LockMilliseconds;
+                    config.SleepMs = memoryConfig.SleepMilliseconds;
+                }, "InMemory");
             }
         });
     }
