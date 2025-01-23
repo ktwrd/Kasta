@@ -29,7 +29,6 @@ public static class FeatureFlags
         return EnvironmentHelper.ParseInt(envKey, defaultValue);
     }
     #endregion
-    public static string S3BucketName => ParseString("S3_Bucket", "");
     public static string Endpoint => KastaConfig.Get().Endpoint;
 
     public static string SentryDsn => ParseString("SentryDsn", "");
