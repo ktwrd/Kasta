@@ -1,12 +1,10 @@
 ﻿services:
   web:
-    build:
-      context: .
-      dockerfile: Kasta.Web/Dockerfile
+    image: ghcr.io/ktwrd/kasta:latest
     depends_on:
       - db
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     volumes:
       - ./config.xml:/config.xml
   db:
