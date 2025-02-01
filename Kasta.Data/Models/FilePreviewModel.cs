@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Kasta.Data.Models;
 
@@ -10,6 +11,8 @@ public class FilePreviewModel
         Id = Guid.Empty.ToString();
         CreatedAt = DateTimeOffset.UtcNow;
     }
+    [Required]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
     [AuditIgnore]
     public FileModel File { get; set; }
@@ -21,11 +24,14 @@ public class FilePreviewModel
     /// <summary>
     /// Relative location in the S3 bucket
     /// </summary>
+    [MaxLength(500)]
     public string RelativeLocation { get; set; }
+    [MaxLength(250)]
     public string Filename { get; set; }
     /// <summary>
     /// Mime type of the file. Should be an image of some sort.
     /// </summary>
+    [MaxLength(150)]
     public string MimeType { get; set; }
 
     /// <summary>

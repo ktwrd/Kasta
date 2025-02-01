@@ -15,6 +15,8 @@ public class ShortLinkModel
         IsVanity = false;
     }
 
+    [Required]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 

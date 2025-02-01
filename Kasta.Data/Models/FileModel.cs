@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NpgsqlTypes;
 
@@ -13,6 +14,8 @@ public class FileModel
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
+    [Required]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
     public string Filename { get; set; }
     public string RelativeLocation { get; set; }

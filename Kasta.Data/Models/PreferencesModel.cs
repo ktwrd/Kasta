@@ -6,9 +6,13 @@ namespace Kasta.Data.Models;
 public class PreferencesModel
 {
     public const string TableName = "Preferences";
+
+    /// <summary>
+    /// Primary Key and identifier for this configuration model.
+    /// </summary>
     [Required]
     [MaxLength(100)]
-    public string Key { get; set; }
+    public string Key { get; set; } = string.Empty;
 
     [MaxLength(2000)]
     public string? Value { get; set; }

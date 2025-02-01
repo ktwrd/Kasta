@@ -15,6 +15,7 @@ public class UserSettingModel
     /// <summary>
     /// Foreign Key to <see cref="UserModel"/>
     /// </summary>
+    [Required]
     public string Id { get; set; }
     [AuditIgnore]
     public UserModel User { get; set; }

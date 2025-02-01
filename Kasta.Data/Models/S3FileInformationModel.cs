@@ -1,8 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Kasta.Data.Models;
 
 public class S3FileInformationModel
 {
     public const string TableName = "S3FileInformation";
+    [Required]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
     [AuditIgnore]
     public FileModel File { get; set; }

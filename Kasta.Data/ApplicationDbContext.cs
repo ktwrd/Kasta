@@ -298,6 +298,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                 b.HasKey(e => e.Id);
                 b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
                 b.HasIndex(e => e.Filename).IsUnique(false);
+                b.HasIndex(e => e.MimeType).IsUnique(false);
 
                 b.HasGeneratedTsVectorColumn(
                         p => p.SearchVector, "english", p => new

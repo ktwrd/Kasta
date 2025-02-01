@@ -14,6 +14,8 @@ public class FileImageInfoModel
     /// <summary>
     /// Foreign Key to <see cref="FileModel"/>
     /// </summary>
+    [Required]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
     [AuditIgnore]
     public FileModel File { get; set; }

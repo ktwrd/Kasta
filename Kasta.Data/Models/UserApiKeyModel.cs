@@ -9,8 +9,10 @@ public class UserApiKeyModel
     public UserApiKeyModel()
     {
         Id = Guid.NewGuid().ToString();
+        UserId = Guid.Empty.ToString();
         CreatedAt = DateTimeOffset.UtcNow;
         Token = GenerateToken();
+        CreatedByUserId = null;
     }
     private static string GenerateToken()
     {
@@ -24,7 +26,16 @@ public class UserApiKeyModel
         }
         return res.ToString();
     }
+    /// <summary>
+    /// Primary Key & Unique Identifier for this Api Key
+    /// </summary>
+    [Required]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
+    /// <summary>
+    /// <see cref="UserModel.Id"/> that this Api Key is for
+    /// </summary>
+    [Required]
     public string UserId { get; set; }
     [AuditIgnore]
     public UserModel User { get; set; }
@@ -35,6 +46,9 @@ public class UserApiKeyModel
     public string Token { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
+    /// <summary>
+    /// <see cref="UserModel.Id"/> that created this Api Key.
+    /// </summary>
     public string? CreatedByUserId { get; set; }
     [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }

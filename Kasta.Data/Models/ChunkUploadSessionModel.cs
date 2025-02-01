@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Kasta.Data.Models;
@@ -10,6 +11,8 @@ public class ChunkUploadSessionModel
         Id = Guid.NewGuid().ToString();
         CreatedAt = DateTimeOffset.UtcNow;
     }
+    [Required]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
 
     public string? UserId { get; set; }
