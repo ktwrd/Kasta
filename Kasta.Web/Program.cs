@@ -21,7 +21,7 @@ public static class Program
         {
             Environment.SetEnvironmentVariable("_KASTA_RUNNING_IN_DOCKER", "true");
         }
-        if (IsDevelopment)
+        if (IsDevelopment || FeatureFlags.ShowPrivateInformationWithAspNet)
         {
             IdentityModelEventSource.ShowPII = true;
             IdentityModelEventSource.LogCompleteSecurityArtifact = true;
