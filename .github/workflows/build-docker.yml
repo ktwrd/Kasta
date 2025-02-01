@@ -105,7 +105,7 @@ jobs:
 
       - name: Build & Publish DEV Image
         if: "!startsWith(github.ref, 'refs/tags/')"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v5
         with:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: Dockerfile
@@ -118,7 +118,7 @@ jobs:
 
       - name: Build & Publish LATEST Image
         if: startsWith(github.ref, 'refs/tags/')
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v5
         with:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           file: Dockerfile
