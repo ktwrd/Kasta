@@ -35,4 +35,5 @@ public static class FeatureFlags
 
     public static string XmlConfigLocation => ParseString("CONFIG_LOCATION", RunningInDocker ? "/config.xml" : "./config.xml");
     public static bool RunningInDocker => ParseBool("_KASTA_RUNNING_IN_DOCKER", false);
+    public static bool ShowPrivateInformationWithAspNet => ParseBool("AspNet_ShowPrivateInformation", false);
 }
