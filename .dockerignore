@@ -23,6 +23,7 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/config.xml
+dist
 private
 LICENSE
 LICENSE.txt
