@@ -6,7 +6,7 @@
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
-      - ./config.xml:/config.xml
+      - ./kasta-config:/config
   db:
     image: postgres:17-alpine
     environment:

@@ -44,7 +44,8 @@ services:
     ports:
       - "127.0.0.1:8080:8080" # will only forward ports to localhost for security reasons.
     volumes:
-      - ./config.xml:/config.xml
+	  # Configuration file defaults to /config/kasta.xml
+      - ./kasta-config/:/config
     depends_on:
       - db
 volumes:
@@ -53,7 +54,7 @@ volumes:
 
 ### Important Note
 
-The first user that is created will be given the "Administrator" role, so make sure that it's only accessible to YOU when it's first deployed.
+The first user that is created will be given the "Administrator" role, so make sure that your deployment is **only accessible locally at first**. By default, anyone can register for an account, so secure your deployment in the "System" tab when you first log in.
 
 ## Database Migrations for Development
 When trying to do database migrations for development, make sure that the `CONFIG_LOCATION` environment variable is set to where your `config.xml` file is located so the Database Context can successfully create a connection string.

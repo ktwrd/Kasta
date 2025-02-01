@@ -105,6 +105,19 @@ public static class Program
         var logger = LogManager.GetLogger(nameof(CheckConfiguration));
         try
         {
+            // We know for sure that the default configuration location used
+            // by Kasta is "/config", and that this will only happen on Docker.
+            //
+            // This is here just to be sure that the creation of the config
+            // directory will not fail.
+            if (IsDocker)
+            {
+                if (!Directory.Exists("/config"))
+                {
+                    Directory.CreateDirectory("/config");
+                }
+            }
+            
             logger.Info($"Using File: {FeatureFlags.XmlConfigLocation}");
             if (string.IsNullOrEmpty(FeatureFlags.XmlConfigLocation))
             {
