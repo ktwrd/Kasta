@@ -1,16 +1,36 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kasta.Web", "Kasta.Web\Kasta.Web.csproj", "{B6331DEF-C080-42A7-935D-57902628EF25}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B9A25966-6CF4-494F-A836-0C3AE391F0D2}"
-	ProjectSection(SolutionItems) = preProject
-		docker-compose.yml = docker-compose.yml
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kasta.Data", "Kasta.Data\Kasta.Data.csproj", "{C9E93B22-0BAC-44C0-91F6-28E292767EF5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kasta.Shared", "Kasta.Shared\Kasta.Shared.csproj", "{482ACAAA-111A-4658-A973-D664C0188FEC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{ED111730-A93F-4BF6-B229-819CC1CB0A0A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{0F8922A5-015A-4AC0-AE68-9BBCE377FB02}"
+	ProjectSection(SolutionItems) = preProject
+		.env.example = .env.example
+		config.example.xml = config.example.xml
+		docker-compose.example.yml = docker-compose.example.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "User", "User", "{1980224B-61F8-44E5-9831-A2D49A0AE70C}"
+	ProjectSection(SolutionItems) = preProject
+		.env = .env
+		config.xml = config.xml
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github Actions", "Github Actions", "{17F9AEC3-9014-47C4-9750-44B699B05F5C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{03B7F681-4641-4D0D-AABA-6978077ED151}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build-docker.yml = .github\workflows\build-docker.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +50,13 @@ Global
 		{482ACAAA-111A-4658-A973-D664C0188FEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{482ACAAA-111A-4658-A973-D664C0188FEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{482ACAAA-111A-4658-A973-D664C0188FEC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0F8922A5-015A-4AC0-AE68-9BBCE377FB02} = {ED111730-A93F-4BF6-B229-819CC1CB0A0A}
+		{1980224B-61F8-44E5-9831-A2D49A0AE70C} = {ED111730-A93F-4BF6-B229-819CC1CB0A0A}
+		{03B7F681-4641-4D0D-AABA-6978077ED151} = {17F9AEC3-9014-47C4-9750-44B699B05F5C}
 	EndGlobalSection
 EndGlobal
