@@ -9,6 +9,9 @@
         <RootNamespace>Kasta.Web</RootNamespace>
         <FileVersion>0.8.0</FileVersion>
         <AssemblyVersion>0.8.0</AssemblyVersion>
+        <RepositoryUrl>https://github.com/ktwrd/Kasta</RepositoryUrl>
+        <Copyright>Copyright (c) Kate Ward</Copyright>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -40,6 +43,16 @@
         <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>
+    <Target Name="CopyAfterBuild" AfterTargets="AfterBuild">
+        <Copy SourceFiles="..\LICENSE.txt" DestinationFolder="$(OutDir)" />
+        <Copy SourceFiles="..\config.example.xml" DestinationFolder="$(OutDir)" />
+        <Copy SourceFiles="..\.env.example" DestinationFolder="$(OutDir)" />
+    </Target>
+    <Target Name="CopyOnPublish" AfterTargets="Publish">
+        <Copy SourceFiles="..\LICENSE.txt" DestinationFolder="$(PublishDir)" />
+        <Copy SourceFiles="..\config.example.xml" DestinationFolder="$(PublishDir)" />
+        <Copy SourceFiles="..\.env.example" DestinationFolder="$(PublishDir)" />
+    </Target>
 
     <ItemGroup>
       <ProjectReference Include="..\Kasta.Data\Kasta.Data.csproj" />
