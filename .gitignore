@@ -410,6 +410,7 @@ config*xml
 
 # Test Data
 private
+dist
 
 # Docker Stuff
 docker-compose.yml
