@@ -43,6 +43,11 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+      <EmbeddedResource Include="..\config.example.xml">
+        <Link>config.example.xml</Link>
+      </EmbeddedResource>
+      <Content Remove="nlog.config" />
+      <EmbeddedResource Include="nlog.config" />
     </ItemGroup>
     <Target Name="CopyAfterBuild" AfterTargets="AfterBuild">
         <Copy SourceFiles="..\LICENSE.txt" DestinationFolder="$(OutDir)" />
