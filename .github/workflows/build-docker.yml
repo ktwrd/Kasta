@@ -107,7 +107,8 @@ jobs:
         if: "!startsWith(github.ref, 'refs/tags/')"
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/amd64,linux/arm64
+          # linux/arm64 builds are disabled due to funky errors
+          platforms: linux/amd64
           file: Dockerfile
           push: true
           tags: |
@@ -120,7 +121,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/amd64,linux/arm64
+          # linux/arm64 builds are disabled due to funky errors
+          platforms: linux/amd64
           file: Dockerfile
           push: true
           tags: |
