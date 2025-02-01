@@ -10,6 +10,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kasta.Shared", "Kasta.Shared\Kasta.Shared.csproj", "{482ACAAA-111A-4658-A973-D664C0188FEC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{ED111730-A93F-4BF6-B229-819CC1CB0A0A}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{0F8922A5-015A-4AC0-AE68-9BBCE377FB02}"
 	ProjectSection(SolutionItems) = preProject
@@ -29,7 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github Actions", "Github Ac
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{03B7F681-4641-4D0D-AABA-6978077ED151}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\build-docker.yml = .github\workflows\build-docker.yml
+		.github\workflows\build.yml = .github\workflows\build.yml
 	EndProjectSection
 EndProject
 Global
