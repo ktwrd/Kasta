@@ -26,36 +26,37 @@ public static class Program
             IdentityModelEventSource.ShowPII = true;
             IdentityModelEventSource.LogCompleteSecurityArtifact = true;
         }
-        if (!string.IsNullOrEmpty(FeatureFlags.XmlConfigLocation))
-        {
-            if (!File.Exists(FeatureFlags.XmlConfigLocation))
-            {
-                new KastaConfig().WriteToFile(FeatureFlags.XmlConfigLocation);
-                Console.WriteLine($"Wrote blank config file to {FeatureFlags.XmlConfigLocation}");
-            }
-        }
+
+        RunServer(ref args);
+    }
+
+    private static void RunServer(ref string[] args)
+    {
         var h = Host.CreateDefaultBuilder(args)
-        .UseNLog().ConfigureWebHostDefaults(webBuilder =>
-        {
-            webBuilder
-                .UseStartup<Startup>()
-                .UseSentry(opts =>
+            .UseNLog().ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder
+                    .UseStartup<Startup>();
+                if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
                 {
-                    opts.Dsn = FeatureFlags.SentryDsn;
-                    opts.SendDefaultPii = true;
-                    opts.MinimumBreadcrumbLevel = LogLevel.Trace;
-                    opts.MinimumEventLevel = LogLevel.Warning;
-                    opts.AttachStacktrace = true;
-                    opts.DiagnosticLevel = SentryLevel.Debug;
-                    opts.TracesSampleRate = 1.0;
-                    opts.MaxRequestBodySize = Sentry.Extensibility.RequestSize.Always;
-                    #if DEBUG
-                    opts.Debug = true;
-                    #else
-                    opts.Debug = false;
-                    #endif
-                });
-        });
+                    webBuilder.UseSentry(opts =>
+                    {
+                        opts.Dsn = FeatureFlags.SentryDsn;
+                        opts.SendDefaultPii = true;
+                        opts.MinimumBreadcrumbLevel = LogLevel.Trace;
+                        opts.MinimumEventLevel = LogLevel.Warning;
+                        opts.AttachStacktrace = true;
+                        opts.DiagnosticLevel = SentryLevel.Debug;
+                        opts.TracesSampleRate = 1.0;
+                        opts.MaxRequestBodySize = Sentry.Extensibility.RequestSize.Always;
+#if DEBUG
+                        opts.Debug = true;
+#else
+                        opts.Debug = false;
+#endif
+                    });
+                }
+            });
         h.RunConsoleAsync().Wait();
     }
 }
