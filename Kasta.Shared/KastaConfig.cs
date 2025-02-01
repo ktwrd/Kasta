@@ -26,14 +26,10 @@ public class KastaConfig
     }
     public void WriteToFile(string location)
     {
-        var xml = new XmlSerializer(GetType());
-        using var sww = new StringWriter();
-        using (var wr = XmlWriter.Create(sww, new() {Indent = true}))
-        {
-            xml.Serialize(wr, this);
-        }
-        var content = sww.ToString();
-        File.WriteAllText(location, content);
+        using var file = new FileStream(location, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+        file.SetLength(0);
+        file.Seek(0, SeekOrigin.Begin);
+        Write(file);
     }
 
     public void ReadFromFile(string location)
@@ -61,6 +57,17 @@ public class KastaConfig
         {
             f.SetValue(this, f.GetValue(data));
         }
+    }
+
+    public void Write(Stream stream)
+    {
+        var serializer = new XmlSerializer(GetType());
+        var options = new XmlWriterSettings()
+        {
+            Indent = true
+        };
+        using var writer = XmlWriter.Create(stream, options);
+        serializer.Serialize(writer, this);
     }
 
     [XmlElement("Auth")]
