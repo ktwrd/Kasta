@@ -1,4 +1,6 @@
-﻿using Kasta.Data.Models;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Kasta.Data.Models;
 using Kasta.Data.Models.Audit;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
@@ -28,6 +30,11 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
 
     public void EnsureInitialRoles()
     {
+        var rolesExist = Database.SqlQuery<object>(FormattableStringFactory.Create("SELECT FROM information_schema.tables WHERE table_name = 'AspNetRoles'")).Any();
+        if (!rolesExist)
+        {
+            return;
+        }
         var trans = Database.BeginTransaction();
         try
         {
