@@ -83,6 +83,9 @@ public class KastaConfig
     [XmlElement("Kestrel")]
     public KestrelConfigElement? Kestrel { get; set; }
 
+    [XmlElement("Sentry")]
+    public SentryConfigElement? Sentry { get; set; }
+
     [DefaultValue("http://localhost:5280")]
     [XmlElement(nameof(Endpoint))]
     public string Endpoint { get; set; } = "http://localhost:5280";

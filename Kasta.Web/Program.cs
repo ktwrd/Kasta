@@ -151,19 +151,10 @@ public static class Program
                 {
                     webBuilder.UseSentry(opts =>
                     {
-                        opts.Dsn = FeatureFlags.SentryDsn;
-                        opts.SendDefaultPii = true;
+                        var cfg = KastaConfig.Get();
                         opts.MinimumBreadcrumbLevel = LogLevel.Trace;
                         opts.MinimumEventLevel = LogLevel.Warning;
-                        opts.AttachStacktrace = true;
-                        opts.DiagnosticLevel = SentryLevel.Debug;
-                        opts.TracesSampleRate = 1.0;
                         opts.MaxRequestBodySize = Sentry.Extensibility.RequestSize.Always;
-#if DEBUG
-                        opts.Debug = true;
-#else
-                        opts.Debug = false;
-#endif
                     });
                 }
             });
@@ -189,22 +180,88 @@ public static class Program
             LogManager.Configuration.AddSentry(
                 opts =>
                 {
-                    opts.Dsn = FeatureFlags.SentryDsn;
-                    opts.SendDefaultPii = true;
                     opts.MinimumBreadcrumbLevel = NLog.LogLevel.Trace;
                     opts.MinimumEventLevel = NLog.LogLevel.Warn;
-                    opts.AttachStacktrace = true;
-                    opts.DiagnosticLevel = SentryLevel.Debug;
-                    opts.TracesSampleRate = 1.0;
-#if DEBUG
-                    opts.Debug = true;
-#else
-                        opts.Debug = false;
-#endif
+                    SetSentryOptions(opts);
                 });
         }
     }
+    private static void SetSentryOptions(SentryOptions opts)
+    {
+        opts.Dsn = FeatureFlags.SentryDsn;
+        opts.Release = typeof(Program).Assembly.GetName().Version?.ToString();
+        opts.SendDefaultPii = true;
+        opts.AttachStacktrace = true;
+        opts.DiagnosticLevel = SentryLevel.Debug;
+        opts.TracesSampleRate = 1.0;
+#if DEBUG
+        opts.Debug = true;
+#else
+        opts.Debug = false;
+#endif
+        if (File.Exists(FeatureFlags.XmlConfigLocation))
+        {
+            PopulateSentryOptionsFromConfig(opts);
+        }
+    }
+    private static void PopulateSentryOptionsFromConfig(SentryOptions opts)
+    {
+        var cfg = KastaConfig.Get();
+        if (cfg.Sentry != null)
+        {
+            if (cfg.Sentry.SampleRate != null && cfg.Sentry.SampleRate.HasValue)
+            {
+                if (cfg.Sentry.SampleRate < 0.0f)
+                {
+                    opts.SampleRate = null;
+                }
+                else if (cfg.Sentry.SampleRate <= 1.0f)
+                {
+                    opts.SampleRate = cfg.Sentry.SampleRate.Value;
+                }
+                else if (cfg.Sentry.SampleRate > 1.0f)
+                {
+                    opts.SampleRate = cfg.Sentry.SampleRate.Value % 1.0f;
+                }
+            }
 
+            if (cfg.Sentry.ProfilesSampleRate != null && cfg.Sentry.ProfilesSampleRate.HasValue)
+            {
+                if (cfg.Sentry.ProfilesSampleRate < 0.0f)
+                {
+                    opts.ProfilesSampleRate = null;
+                }
+                else if (cfg.Sentry.ProfilesSampleRate <= 1.0f)
+                {
+                    opts.ProfilesSampleRate = cfg.Sentry.ProfilesSampleRate.Value;
+                }
+                else if (cfg.Sentry.ProfilesSampleRate > 1.0f)
+                {
+                    opts.ProfilesSampleRate = cfg.Sentry.ProfilesSampleRate.Value % 1.0f;
+                }
+            }
+
+            if (cfg.Sentry.TracesSampleRate != null && cfg.Sentry.TracesSampleRate.HasValue)
+            {
+                if (cfg.Sentry.TracesSampleRate < 0.0f)
+                {
+                    opts.TracesSampleRate = null;
+                }
+                else if (cfg.Sentry.TracesSampleRate <= 1.0f)
+                {
+                    opts.TracesSampleRate = cfg.Sentry.TracesSampleRate.Value;
+                }
+                else if (cfg.Sentry.TracesSampleRate > 1.0f)
+                {
+                    opts.TracesSampleRate = cfg.Sentry.TracesSampleRate.Value % 1.0f;
+                }
+            }
+        }
+        else
+        {
+            opts.TracesSampleRate = 1.0;
+        }
+    }
     private static void CheckConfiguration()
     {
         var logger = LogManager.GetLogger(nameof(CheckConfiguration));
