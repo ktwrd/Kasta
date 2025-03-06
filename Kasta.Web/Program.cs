@@ -4,6 +4,7 @@ using NLog;
 using NLog.Web;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Trace = System.Diagnostics.Trace;
+using MinDataRate = Microsoft.AspNetCore.Server.Kestrel.Core.MinDataRate;
 
 namespace Kasta.Web;
 
@@ -42,6 +43,110 @@ public static class Program
             {
                 webBuilder
                     .UseStartup<Startup>();
+                
+                var cfg = KastaConfig.Get();
+                webBuilder.UseKestrel(opts =>
+                {
+                    if (cfg?.Kestrel?.Limits != null)
+                    {
+                        var limits = cfg.Kestrel.Limits;
+                        if (limits.MaxResponseBufferSize != null)
+                        {
+                            if (limits.MaxResponseBufferSize == -1)
+                            {
+                                opts.Limits.MaxResponseBufferSize = -1;
+                            }
+                            else
+                            {
+                                opts.Limits.MaxResponseBufferSize = limits.MaxResponseBufferSize.Value;
+                            }
+                        }
+                        if (limits.MaxRequestBufferSize != null)
+                        {
+                            if (limits.MaxRequestBufferSize == -1)
+                            {
+                                opts.Limits.MaxRequestBufferSize = null;
+                            }
+                            else
+                            {
+                                opts.Limits.MaxRequestBufferSize = limits.MaxRequestBufferSize.Value;
+                            }
+                        }
+                        if (limits.MaxRequestLineSize != null && limits.MaxRequestLineSize.HasValue)
+                        {
+                            opts.Limits.MaxRequestLineSize = limits.MaxRequestLineSize.Value;
+                        }
+                        if (limits.MaxRequestHeadersTotalSize != null && limits.MaxRequestHeadersTotalSize.HasValue)
+                        {
+                            opts.Limits.MaxRequestHeadersTotalSize = limits.MaxRequestHeadersTotalSize.Value;
+                        }
+                        if (limits.MaxRequestHeaderCount != null && limits.MaxRequestHeaderCount.HasValue)
+                        {
+                            opts.Limits.MaxRequestHeaderCount = limits.MaxRequestHeaderCount.Value;
+                        }
+                        if (limits.MaxRequestBodySize != null)
+                        {
+                            if (limits.MaxRequestBodySize == -1)
+                            {
+                                opts.Limits.MaxRequestBodySize = null;
+                            }
+                            else
+                            {
+                                opts.Limits.MaxRequestBodySize = limits.MaxRequestBodySize.Value;
+                            }
+                        }
+                        if (limits.KeepAliveTimeout != null)
+                        {
+                            opts.Limits.KeepAliveTimeout = limits.KeepAliveTimeout.ToTimeSpan();
+                        }
+                        if (limits.RequestHeadersTimeout != null)
+                        {
+                            opts.Limits.RequestHeadersTimeout = limits.RequestHeadersTimeout.ToTimeSpan();
+                        }
+                        if (limits.MaxConcurrentConnections != null)
+                        {
+                            if (limits.MaxConcurrentConnections == -1)
+                            {
+                                opts.Limits.MaxConcurrentConnections = null;
+                            }
+                            else
+                            {
+                                opts.Limits.MaxConcurrentConnections = limits.MaxConcurrentConnections.Value;
+                            }
+                        }
+                        if (limits.MaxConcurrentUpgradedConnections != null)
+                        {
+                            if (limits.MaxConcurrentUpgradedConnections == -1)
+                            {
+                                opts.Limits.MaxConcurrentUpgradedConnections = null;
+                            }
+                            else
+                            {
+                                opts.Limits.MaxConcurrentUpgradedConnections = limits.MaxConcurrentUpgradedConnections.Value;
+                            }
+                        }
+
+                        if (limits.EnforceMinRequestBodyDataRate == false)
+                        {
+                            opts.Limits.MinRequestBodyDataRate = null;
+                        }
+                        else if (limits.MinRequestBodyDataRate != null)
+                        {
+                            var dataRate = limits.MinRequestBodyDataRate;
+                            opts.Limits.MinRequestBodyDataRate = new MinDataRate(dataRate.BytesPerSecond, dataRate.GracePeriod.ToTimeSpan());
+                        }
+
+                        if (limits.EnforceMinResponseDataRate == false)
+                        {
+                            opts.Limits.MinResponseDataRate = null;
+                        }
+                        else if (limits.MinResponseDataRate != null)
+                        {
+                            var dataRate = limits.MinResponseDataRate;
+                            opts.Limits.MinResponseDataRate = new MinDataRate(dataRate.BytesPerSecond, dataRate.GracePeriod.ToTimeSpan());
+                        }
+                    }
+                });
                 if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
                 {
                     webBuilder.UseSentry(opts =>

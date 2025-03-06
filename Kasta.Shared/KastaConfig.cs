@@ -80,6 +80,9 @@ public class KastaConfig
     [XmlElement("S3")]
     public S3ConfigElement S3 { get; set; } = new();
 
+    [XmlElement("Kestrel")]
+    public KestrelConfigElement? Kestrel { get; set; }
+
     [DefaultValue("http://localhost:5280")]
     [XmlElement(nameof(Endpoint))]
     public string Endpoint { get; set; } = "http://localhost:5280";

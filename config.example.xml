@@ -63,6 +63,13 @@
         </Redis>
     </Cache>
 
+    <Kestrel>
+        <Limits>
+            <!-- Max upload size to 50 MB -->
+            <MaxRequestBodySize>52428800</MaxRequestBodySize>
+        </Limits>
+    </Kestrel>
+
     <!-- URL where Kasta will be hosted on -->
     <Endpoint>https://kasta.example.com</Endpoint>
 
