@@ -151,7 +151,7 @@ public static class Program
                 {
                     webBuilder.UseSentry(opts =>
                     {
-                        var cfg = KastaConfig.Get();
+                        SetSentryOptions(opts);
                         opts.MinimumBreadcrumbLevel = LogLevel.Trace;
                         opts.MinimumEventLevel = LogLevel.Warning;
                         opts.MaxRequestBodySize = Sentry.Extensibility.RequestSize.Always;
@@ -180,9 +180,9 @@ public static class Program
             LogManager.Configuration.AddSentry(
                 opts =>
                 {
+                    SetSentryOptions(opts);
                     opts.MinimumBreadcrumbLevel = NLog.LogLevel.Trace;
                     opts.MinimumEventLevel = NLog.LogLevel.Warn;
-                    SetSentryOptions(opts);
                 });
         }
     }
