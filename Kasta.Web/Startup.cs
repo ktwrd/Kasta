@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
@@ -131,6 +132,12 @@ public class Startup
         services.AddDbContextPool<ApplicationDbContext>(
             options =>
             {
+                options.ConfigureWarnings(
+                    w => {
+                        if (FeatureFlags.SuppressPendingModelChangesWarning) {
+                            w.Ignore(RelationalEventId.PendingModelChangesWarning);
+                        }
+                    });
                 var cfg = KastaConfig.Get();
                 var connectionString = cfg.Database.ToConnectionString();
                 options.UseNpgsql(connectionString);
