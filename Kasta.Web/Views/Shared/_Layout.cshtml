@@ -107,20 +107,18 @@
     }
     ViewData["TargetTimezone"] = targetTimezone;
 
-
+    var title = ViewData["Title"]?.ToString();
+    if (title != null && !string.IsNullOrEmpty(appTitle))
+    {
+        title += "- " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
+    }
 }
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@bootstrapThemeAttributeValue">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>@ViewData["Title"]
-        @if (!string.IsNullOrEmpty(appTitle))
-        {
-            var a = appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
-            @Html.Raw($"- {a}")
-        }
-    </title>
+    <title>@title</title>
     <link rel="stylesheet" href="~/lib/dropzone/css/dropzone.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
