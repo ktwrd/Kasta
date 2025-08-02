@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using NLog;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
 
 namespace Kasta.Web;
@@ -49,8 +50,11 @@ public class Startup
                 var services = scope.ServiceProvider;
 
                 var context = services.GetRequiredService<ApplicationDbContext>();
-                if (context.Database.GetPendingMigrations().Any())
+                var migrations = context.Database.GetPendingMigrations().ToList();
+                if (migrations.Any())
                 {
+                    var logger = LogManager.GetCurrentClassLogger();
+                    logger.Info("Applying the following migrations:" + Environment.NewLine + string.Join(Environment.NewLine, migrations.Select(e => "- " + e)));
                     context.Database.Migrate();
                 }
             }
@@ -60,10 +64,10 @@ public class Startup
         {
             using (var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().CreateSession())
             {
+                ctx.EnsureInitialRoles();
                 var trans = ctx.Database.BeginTransaction();
                 try
                 {
-                    ctx.EnsureInitialRoles();
                     var s = ctx.GetSystemSettings();
                     ctx.SaveChanges();
                     trans.Commit();

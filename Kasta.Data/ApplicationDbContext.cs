@@ -346,8 +346,8 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
             b.HasIndex(e => e.UserId).IsUnique(false);
             b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
             b.HasOne(e => e.CreatedByUser)
-                .WithOne()
-                .HasForeignKey<UserApiKeyModel>(e => e.CreatedByUserId)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
                 .IsRequired(false);
         });
         builder.Entity<S3FileInformationModel>(

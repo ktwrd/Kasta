@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using NpgsqlTypes;
 
 #nullable disable
 
@@ -10,6 +11,14 @@ namespace Kasta.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropIndex(
+                name: "IX_File_SearchVector",
+                table: "File");
+
+            migrationBuilder.DropColumn(
+                name: "SearchVector",
+                table: "File");
+            
             migrationBuilder.AlterColumn<string>(
                 name: "Id",
                 table: "UserSettings",
@@ -122,11 +131,33 @@ namespace Kasta.Data.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
+            
+            migrationBuilder.AddColumn<NpgsqlTsVector>(
+                    name: "SearchVector",
+                    table: "File",
+                    type: "tsvector",
+                    nullable: false)
+                .Annotation("Npgsql:TsVectorConfig", "english")
+                .Annotation("Npgsql:TsVectorProperties", new[] { "Filename", "MimeType", "ShortUrl" });
+
+            migrationBuilder.CreateIndex(
+                    name: "IX_File_SearchVector",
+                    table: "File",
+                    column: "SearchVector")
+                .Annotation("Npgsql:IndexMethod", "GIN");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropIndex(
+                name: "IX_File_SearchVector",
+                table: "File");
+
+            migrationBuilder.DropColumn(
+                name: "SearchVector",
+                table: "File");
+            
             migrationBuilder.AlterColumn<string>(
                 name: "Id",
                 table: "UserSettings",
@@ -239,6 +270,20 @@ namespace Kasta.Data.Migrations
                 oldClrType: typeof(string),
                 oldType: "character varying(36)",
                 oldMaxLength: 36);
+            
+            migrationBuilder.AddColumn<NpgsqlTsVector>(
+                    name: "SearchVector",
+                    table: "File",
+                    type: "tsvector",
+                    nullable: false)
+                .Annotation("Npgsql:TsVectorConfig", "english")
+                .Annotation("Npgsql:TsVectorProperties", new[] { "Filename", "MimeType", "ShortUrl" });
+
+            migrationBuilder.CreateIndex(
+                    name: "IX_File_SearchVector",
+                    table: "File",
+                    column: "SearchVector")
+                .Annotation("Npgsql:IndexMethod", "GIN");
         }
     }
 }
