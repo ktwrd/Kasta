@@ -57,12 +57,12 @@ public class KastaConfig
             return;
         }
 
-        foreach (var p in GetType().GetProperties(BindingFlags.Instance))
+        foreach (var p in GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             p.SetValue(this, p.GetValue(data));
         }
 
-        foreach (var f in GetType().GetFields(BindingFlags.Instance))
+        foreach (var f in GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
         {
             f.SetValue(this, f.GetValue(data));
         }
