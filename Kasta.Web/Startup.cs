@@ -1,3 +1,4 @@
+using System.Net;
 using EFCoreSecondLevelCacheInterceptor;
 using Kasta.Data;
 using Kasta.Data.Models;
@@ -91,6 +92,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        ConfigureForwardedHeadersOptions(services);
         ConfigureDatabaseServices(services);
         ConfigureAuthenticationServices(services);
         ConfigureCacheServices(services);
@@ -124,6 +126,48 @@ public class Startup
                 opts.Id = cfg.DefaultTimezone;   
             }
             opts.RequestTimeZoneProviders.Add(new IPAddressRequestTimeZoneProvider());
+        });
+    }
+
+    private void ConfigureForwardedHeadersOptions(IServiceCollection services)
+    {
+        var cfg = KastaConfig.Instance;
+        if (cfg.Proxy == null) return;
+        var parsedProxyAddresses = new List<IPAddress>();
+        var ipAddressValueMapping = new List<(string, IPAddress)>()
+        {
+            ("any", IPAddress.Any),
+            ("loopback", IPAddress.Loopback),
+            ("localhost", IPAddress.Loopback),
+            ("ipv6any", IPAddress.IPv6Any),
+            ("ipv6loopback", IPAddress.IPv6Loopback),
+        };
+        foreach (var addr in cfg.Proxy.KnownProxies.Distinct())
+        {
+            var altTarget = ipAddressValueMapping
+                .Where(e => e.Item1.Equals(addr, StringComparison.InvariantCultureIgnoreCase))
+                .Select(e => e.Item2)
+                .FirstOrDefault();
+            if (altTarget != null)
+            {
+                parsedProxyAddresses.Add(altTarget);
+            }
+            else
+            {
+                if (!IPAddress.TryParse(addr, out var ipAddr))
+                {
+                    throw new InvalidOperationException($"Invalid IP Address format for Known Proxy address: \"{addr}\"");
+                }
+                parsedProxyAddresses.Add(ipAddr);
+            }
+        }
+        services.Configure<ForwardedHeadersOptions>(opts =>
+        {
+            foreach (var a in parsedProxyAddresses) opts.KnownProxies.Add(a);
+            if (cfg.Proxy.ForwardedHeaders.HasValue)
+            {
+                opts.ForwardedHeaders = cfg.Proxy.ForwardedHeaders.Value;
+            }
         });
     }
     private void ConfigureDatabaseServices(IServiceCollection services)

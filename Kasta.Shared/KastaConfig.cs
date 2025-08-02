@@ -93,6 +93,9 @@ public class KastaConfig
 
     [XmlElement("Sentry")]
     public SentryConfigElement? Sentry { get; set; }
+    
+    [XmlElement("Proxy")]
+    public ProxyConfigElement? Proxy { get; set; }
 
     [DefaultValue("http://localhost:5280")]
     [XmlElement(nameof(Endpoint))]
