@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -10,7 +11,7 @@ public class KastaConfig
 {
     private static KastaConfig InternalGet()
     {
-        var location = FeatureFlags.XmlConfigLocation;
+        var location = Path.GetFullPath(FeatureFlags.XmlConfigLocation);
         if (!File.Exists(location))
         {
             throw new InvalidOperationException($"Cannot get config since {location} doesn't exist (via {nameof(FeatureFlags)}.{nameof(FeatureFlags.XmlConfigLocation)})");
@@ -56,12 +57,12 @@ public class KastaConfig
             return;
         }
 
-        foreach (var p in GetType().GetProperties())
+        foreach (var p in GetType().GetProperties(BindingFlags.Instance))
         {
             p.SetValue(this, p.GetValue(data));
         }
 
-        foreach (var f in GetType().GetFields())
+        foreach (var f in GetType().GetFields(BindingFlags.Instance))
         {
             f.SetValue(this, f.GetValue(data));
         }

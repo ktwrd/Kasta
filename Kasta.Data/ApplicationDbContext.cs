@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Kasta.Data.Models;
 using Kasta.Data.Models.Audit;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -11,16 +10,11 @@ namespace Kasta.Data;
 
 public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyContext
 {
-    private static bool InitTaskRan = false;
     private readonly DbContextOptions<ApplicationDbContext> _ops;
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
         _ops = options;
-        if (!InitTaskRan)
-        {
-            EnsureInitialRoles();
-        }
     }
 
     public ApplicationDbContext CreateSession()

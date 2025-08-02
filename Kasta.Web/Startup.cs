@@ -63,6 +63,7 @@ public class Startup
                 var trans = ctx.Database.BeginTransaction();
                 try
                 {
+                    ctx.EnsureInitialRoles();
                     var s = ctx.GetSystemSettings();
                     ctx.SaveChanges();
                     trans.Commit();

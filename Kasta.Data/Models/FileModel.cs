@@ -17,9 +17,19 @@ public class FileModel
     [Required]
     [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
+    
+    [MaxLength(1000)]
     public string Filename { get; set; }
+    
+    [MaxLength(2000)]
     public string RelativeLocation { get; set; }
+
+    [MaxLength(100)]
     public string ShortUrl { get; set; }
+    /// <summary>
+    /// MIME Type of the file
+    /// </summary>
+    [MaxLength(150)]
     public string? MimeType { get; set; }
     
     /// <summary>

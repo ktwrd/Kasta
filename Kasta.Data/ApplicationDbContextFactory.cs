@@ -12,7 +12,9 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
         var cfg = KastaConfig.Instance;
         var connectionString = cfg.Database.ToConnectionString();
-        connectionString += ";Include Error Detail=true";
+        if (!connectionString.EndsWith(';'))
+            connectionString += ";";
+        connectionString += "Include Error Detail=true";
         builder.UseNpgsql(connectionString);
 
         return new ApplicationDbContext(builder.Options);
