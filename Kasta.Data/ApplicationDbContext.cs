@@ -119,9 +119,11 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         return (result, lastPage);
     }
 
-    public IQueryable<FileModel> SearchFiles(string? query, string? userId = null)
+    public IQueryable<FileModel> SearchFiles(string? query, string? userId = null, bool asNoTracking = false)
     {
         var queryable = Files.AsQueryable();
+        if (asNoTracking)
+            queryable = queryable.AsNoTracking();
         if (!string.IsNullOrEmpty(userId))
         {
             queryable = queryable.Where(e => e.CreatedByUserId == userId);
@@ -133,9 +135,9 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         return queryable;
     }
 
-    public async Task<FileModel?> GetFileAsync(string id, bool includeAuthor = false, bool includePreview = false, bool includeImageInfo = false)
+    public async Task<FileModel?> GetFileAsync(string id, bool includeAuthor = false, bool includePreview = false, bool includeImageInfo = false, bool asNoTracking = false)
     {
-        var query = Files.Where(e => e.Id == id || e.ShortUrl == id);
+        var query = (asNoTracking ? Files.AsNoTracking() : Files).Where(e => e.Id == id || e.ShortUrl == id);
         if (includeAuthor)
         {
             query = query.Include(e => e.CreatedByUser);
@@ -156,9 +158,9 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         return await Files.AnyAsync(e => e.Id == id || e.ShortUrl == id);
     }
 
-    public async Task<List<FileModel>> GetFilesCreatedBy(UserModel user)
+    public async Task<List<FileModel>> GetFilesCreatedBy(UserModel user, bool asNoTracking = false)
     {
-        var result = await Files
+        var result = await (asNoTracking ? Files.AsNoTracking() : Files)
             .Where(e => e.CreatedByUserId == user.Id)
             .Include(e => e.CreatedByUser)
             .Include(e => e.Preview)
@@ -166,69 +168,64 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
             .ToListAsync();
         return result;
     }
-    public FileModel? GetFile(string id)
+    public FileModel? GetFile(string id, bool asNoTracking = false)
     {
-        var target = Files.Where(e => e.Id == id).Include(e => e.Preview).FirstOrDefault();
+        var q = (asNoTracking ? Files.AsNoTracking() : Files);
+        var target = q.Where(e => e.Id == id).Include(e => e.Preview).FirstOrDefault();
         if (target == null)
         {
-            target = Files.Where(e => e.ShortUrl == id).Include(e => e.Preview).FirstOrDefault();
+            target = q.Where(e => e.ShortUrl == id).Include(e => e.Preview).FirstOrDefault();
         }
         return target;
     }
     public UserSettingModel GetUserSettings(UserModel user)
     {
-        var r = UserSettings.Where(e => e.Id == user.Id).FirstOrDefault();
+        var r = UserSettings
+            .AsNoTracking()
+            .FirstOrDefault(e => e.Id == user.Id);
         if (r == null)
         {
-            using (var ctx = CreateSession())
+            using var ctx = CreateSession();
+            using var transaction = ctx.Database.BeginTransaction();
+            try
             {
-                using (var transaction = ctx.Database.BeginTransaction())
+                r = new UserSettingModel()
                 {
-                    try
-                    {
-                        r = new UserSettingModel()
-                        {
-                            Id = user.Id
-                        };
-                        ctx.UserSettings.Add(r);
-                        ctx.SaveChanges();
-                        transaction.Commit();
-                    }
-                    catch
-                    {
-                        transaction.Rollback();
-                        throw;
-                    }
-                }
+                    Id = user.Id
+                };
+                ctx.UserSettings.Add(r);
+                ctx.SaveChanges();
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
             }
         }
         return r;
     }
     public async Task<UserSettingModel> GetUserSettingsAsync(UserModel user)
     {
-        var r = await UserSettings.Where(e => e.Id == user.Id).FirstOrDefaultAsync();
+        var r = await UserSettings.FirstOrDefaultAsync(e => e.Id == user.Id);
         if (r == null)
         {
-            using (var ctx = CreateSession())
+            await using var ctx = CreateSession();
+            await using var transaction = await ctx.Database.BeginTransactionAsync();
+            try
             {
-                using (var transaction = ctx.Database.BeginTransaction())
+                r = new UserSettingModel()
                 {
-                    try
-                    {
-                        r = new UserSettingModel()
-                        {
-                            Id = user.Id
-                        };
-                        await ctx.UserSettings.AddAsync(r);
-                        await ctx.SaveChangesAsync();
-                        await transaction.CommitAsync();
-                    }
-                    catch
-                    {
-                        await transaction.RollbackAsync();
-                        throw;
-                    }
-                }
+                    Id = user.Id
+                };
+                await ctx.UserSettings.AddAsync(r);
+                await ctx.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
         }
         return r;

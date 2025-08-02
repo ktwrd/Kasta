@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Web.Helpers;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web.Models;
 
@@ -25,7 +26,9 @@ public class SystemSettingsParams
 
     private PreferencesModel GetPreferenceModel(ApplicationDbContext db, string key, bool insert = true)
     {
-        var d = db.Preferences.FirstOrDefault(e => e.Key == key);
+        var d = db.Preferences
+            .AsNoTracking()
+            .FirstOrDefault(e => e.Key == key);
         if (d == null)
         {
             d = new()

@@ -65,7 +65,8 @@ public class FileService
                     e => e.Id,
                     FileImageInfoModel.TableName));
 
-            previewLocation = await ctx.FilePreviews.Where(e => e.Id == file.Id).Select(e => e.RelativeLocation)
+            previewLocation = await ctx.FilePreviews.Where(e => e.Id == file.Id)
+                .Select(e => e.RelativeLocation)
                 .FirstOrDefaultAsync();
 
             await ctx.ChunkUploadSessions.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
@@ -116,7 +117,8 @@ public class FileService
                 .Select(e => e.Preview!.Size)
                 .SumAsync();
 
-            var limitModel = await ctx.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
+            var limitModel = await ctx.UserLimits
+                .FirstOrDefaultAsync(e => e.UserId == user.Id);
             if (limitModel == null)
             {
                 limitModel = new()

@@ -31,6 +31,7 @@ public class FileController : Controller
     }
 
     [HttpGet("~/d/{id}")]
+    [HttpGet("~/File/Details/{id}")]
     public async Task<IActionResult> Details(string id)
     {
         if (string.IsNullOrEmpty(id))

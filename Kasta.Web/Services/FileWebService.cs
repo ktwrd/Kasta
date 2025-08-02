@@ -106,7 +106,9 @@ public class FileWebService
         string relativeLocation = model.RelativeLocation;
         string filename = model.Filename;
         string? mimeType = model.MimeType;
-        var filePreview = await _db.FilePreviews.Where(e => e.Id == model.Id).FirstOrDefaultAsync();
+        var filePreview = await _db.FilePreviews
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == model.Id);
         if (filePreview != null && preview)
         {
             relativeLocation = filePreview.RelativeLocation;

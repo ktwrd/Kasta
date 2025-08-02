@@ -32,12 +32,16 @@ public class MailboxController : Controller
             page = 1;
         }
 
-        var query = _db.SystemMailboxMessages.Where(e => e.IsDeleted == false)
+        var query = _db.SystemMailboxMessages
+            .AsNoTracking()
+            .Where(e => e.IsDeleted == false)
             .Select(e => new {e.Id, e.Subject, e.Seen, e.CreatedAt});
         
         if (showDeleted)
         {
-            query = _db.SystemMailboxMessages.Where(e => e.IsDeleted == true)
+            query = _db.SystemMailboxMessages
+                .AsNoTracking()
+                .Where(e => e.IsDeleted == true)
                 .Select(e => new {e.Id, e.Subject, e.Seen, e.CreatedAt});
         }
 
@@ -66,11 +70,13 @@ public class MailboxController : Controller
     public async Task<IActionResult> ViewMessage(
         [FromQuery] string id)
     {
-        var model = await _db.SystemMailboxMessages.Where(e => e.Id == id).FirstOrDefaultAsync();
+        var model = await _db.SystemMailboxMessages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id);
         if (model == null)
         {
             Response.StatusCode = 404;
-            return View("NotFound", new NotFoundViewModel()
+            return View("NotFound", new NotFoundViewModel
             {
                 Message = $"Could not find message with Id `{id}`",
             });
@@ -81,7 +87,7 @@ public class MailboxController : Controller
             try
             {
                 await using var ctx = _db.CreateSession();
-                var trans = await ctx.Database.BeginTransactionAsync();
+                await using var trans = await ctx.Database.BeginTransactionAsync();
                 try
                 {
                     await ctx.SystemMailboxMessages.Where(e => e.Id == model.Id)
@@ -92,11 +98,11 @@ public class MailboxController : Controller
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Failed to mark message with Id {model.Id} as seen");
+                    _logger.LogError(ex, "Failed to mark message with Id {ModelId} as seen", model.Id);
                     await trans.RollbackAsync();
                     throw new ApplicationException($"Failed to mark message with Id {model.Id} as seen.", ex);
                 }
-                _logger.LogDebug($"Marked message {model.Id} as seen.");
+                _logger.LogDebug("Marked message {ModelId} as seen", model.Id);
             }
             catch (Exception ex)
             {

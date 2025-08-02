@@ -35,6 +35,25 @@ public class ApiShortLinkController : Controller
 
         _logger = logger;
     }
+    
+    private async Task<UserModel?> GetUserOrFromToken(string? token)
+    {
+        var user = await _userManager.GetUserAsync(HttpContext.User);
+        if (user == null && !string.IsNullOrEmpty(token))
+        {
+            var u = await _db.UserApiKeys
+                .AsNoTracking()
+                .Where(e => e.Token == token)
+                .Include(e => e.User)
+                .FirstOrDefaultAsync();
+            if (u != null)
+            {
+                user = u.User;
+            }
+        }
+
+        return user;
+    }
 
     [HttpGet("~/api/v1/Link/{value}")]
     [HttpGet("~/l/{value}")]
@@ -50,8 +69,12 @@ public class ApiShortLinkController : Controller
             };
         }
 
-        var model = await _db.ShortLinks.Where(e => e.Id == value).FirstOrDefaultAsync();
-        model ??= await _db.ShortLinks.Where(e => e.ShortLink == value).FirstOrDefaultAsync();
+        var model = await _db.ShortLinks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == value);
+        model ??= await _db.ShortLinks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.ShortLink == value);
 
         if (model == null)
         {
@@ -80,15 +103,7 @@ public class ApiShortLinkController : Controller
         [FromForm] CreateShortLinkRequest contract,
         [FromQuery] string? token = null)
     {
-        var user = await _userManager.GetUserAsync(HttpContext.User);
-        if (user == null && !string.IsNullOrEmpty(token))
-        {
-            var u = await _db.UserApiKeys.Where(e => e.Token == token).Include(e => e.User).FirstOrDefaultAsync();
-            if (u != null)
-            {
-                user = u.User;
-            }
-        }
+        var user = await GetUserOrFromToken(token);
         if (user == null)
         {
             HttpContext.Response.StatusCode = 403;

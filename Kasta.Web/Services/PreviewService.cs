@@ -94,7 +94,7 @@ public class PreviewService
             return null;
         }
 
-        using var stream = _fileService.GetStream(file, out var r);
+        await using var stream = _fileService.GetStream(file, out var r);
         try
         {
             var result = await CreateImagePreview(file, stream);

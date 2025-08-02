@@ -45,12 +45,18 @@ public class UserController : Controller
             vm.Page,
             50,
             out var lastPage);
+        var allFiles = await _db.Files.AsNoTracking().Select(e => new { e.Id, e.CreatedByUserId }).ToListAsync();
+        var allFileIds = allFiles.Select(e => e.Id).ToList();
+        var allPreviewFileIds = await _db.FilePreviews.AsNoTracking()
+            .Where(e => allFileIds.Contains(e.Id))
+            .Select(e => e.Id)
+            .ToListAsync();
         foreach (var user in vm.Users)
         {
-            var files = await _db.Files.Where(e => e.CreatedByUserId == user.Id).Select(e => e.Id).ToListAsync();
-            var previewFileCount = await _db.FilePreviews.Where(e => files.Contains(e.Id)).LongCountAsync();
+            var ourFileIds = allFiles.Where(e => e.CreatedByUserId == user.Id).Select(e => e.Id).ToList();
+            var previewFileCount = allPreviewFileIds.Where(e => ourFileIds.Contains(e)).LongCount();
             vm.UserPreviewFileCount[user.Id] = previewFileCount;
-            vm.UserFileCount[user.Id] = files.LongCount();
+            vm.UserFileCount[user.Id] = ourFileIds.LongCount();
         }
         vm.IsLastPage = lastPage;
 
@@ -76,10 +82,12 @@ public class UserController : Controller
         };
 
         var roles = await _db.Roles
+            .AsNoTracking()
             .ToListAsync();
         vm.Roles = roles.ToDictionary(e => e.Id, e => e);
 
         var userRoles = await _db.UserRoles
+            .AsNoTracking()
             .Where(e => e.UserId == targetUser.Id)
             .ToListAsync();
         vm.UserRoles = userRoles.ToDictionary(e => e.RoleId, e => e.UserId);
@@ -148,13 +156,36 @@ public class UserController : Controller
                     }
                 }
                 roleIdAddList = roleIdAddList.Where(e => existingRoles.Contains(e) == false).ToList();
-                roleIdAddList = await ctx.Roles.Where(e => roleIdAddList.Contains(e.Id)).Select(e => e.Id).ToListAsync();
+                var targetRoleIdAddList = await ctx.Roles
+                    .AsNoTracking()
+                    .Where(e => roleIdAddList.Contains(e.Id))
+                    .Select(e => e.Id)
+                    .ToListAsync();
 
-                await ctx.UserRoles.Where(e => e.UserId == userId).Where(e => roleIdRemoveList.Contains(e.RoleId)).ExecuteDeleteAsync();
+                await ctx.UserRoles
+                    .Where(e => e.UserId == userId).Where(e => roleIdRemoveList.Contains(e.RoleId))
+                    .ExecuteDeleteAsync();
 
-                foreach (var roleId in roleIdAddList)
+                var existingUserRoleIds = await ctx.UserRoles
+                    .AsNoTracking()
+                    .Where(e => e.UserId == userId)
+                    .Select(e => e.RoleId)
+                    .ToListAsync();
+                foreach (var roleId in targetRoleIdAddList.Where(e => !existingUserRoleIds.Contains(e)))
                 {
-                    if (await ctx.UserRoles.Where(e => e.UserId == userId && e.RoleId == roleId).AnyAsync() == false)
+                    var m = new IdentityUserRole<string>()
+                    {
+                        UserId = userId,
+                        RoleId = roleId
+                    };
+                    await ctx.UserRoles.AddAsync(m);
+                }
+                /*foreach (var roleId in targetRoleIdAddList)
+                {
+                    var condition = await ctx.UserRoles
+                        .Where(e => e.UserId == userId && e.RoleId == roleId)
+                        .AnyAsync();
+                    if (!condition)
                     {
                         var m = new IdentityUserRole<string>()
                         {
@@ -163,7 +194,7 @@ public class UserController : Controller
                         };
                         await ctx.UserRoles.AddAsync(m);
                     }
-                }
+                }*/
 
                 await ctx.SaveChangesAsync();
                 await trans.CommitAsync();
@@ -183,8 +214,15 @@ public class UserController : Controller
 
     private async Task<RoleDetailsComponentViewModel> GetRoleDetailsComponentViewModel(string userId)
     {
-        var roles = await _db.Roles.Where(e => e.Name != null).ToListAsync();
-        var userRoles = await _db.UserRoles.Where(e => e.UserId == userId).Select(e => e.RoleId).ToListAsync();
+        var roles = await _db.Roles
+            .AsNoTracking()
+            .Where(e => e.Name != null)
+            .ToListAsync();
+        var userRoles = await _db.UserRoles
+            .AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .Select(e => e.RoleId)
+            .ToListAsync();
         var vm = new RoleDetailsComponentViewModel()
         {
             UserId = userId,
@@ -277,7 +315,9 @@ public class UserController : Controller
 
     private async Task<EditDetailsComponentViewModel> GetEditDetailsComponentViewModel(string userId)
     {
-        var limit = await _db.UserLimits.Where(e => e.UserId == userId).FirstOrDefaultAsync();
+        var limit = await _db.UserLimits
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.UserId == userId);
         var vm = new EditDetailsComponentViewModel()
         {
             UserId = userId,

@@ -67,7 +67,7 @@ public class UploadService
                 var imageInfo = _fileService.GenerateFileImageInfo(fileModel, fileStream);
                 if (imageInfo != null)
                 {
-                    ctx.FileImageInfos.Add(imageInfo);
+                    await ctx.FileImageInfos.AddAsync(imageInfo);
                     await ctx.SaveChangesAsync();
                 }
             }
@@ -116,7 +116,7 @@ public class UploadService
             {
                 CreatedByUserId = user.Id
             };
-            ctx.Files.Add(fileModel);
+            await ctx.Files.AddAsync(fileModel);
 
             var fileInfo = new S3FileInformationModel()
             {
@@ -124,14 +124,14 @@ public class UploadService
                 FileSize = @params.TotalSize!.Value,
                 ChunkSize = @params.ChunkSize!.Value
             };
-            ctx.S3FileInformations.Add(fileInfo);
+            await ctx.S3FileInformations.AddAsync(fileInfo);
 
             var sessionModel = new ChunkUploadSessionModel()
             {
                 FileId = fileModel.Id,
                 UserId = user.Id
             };
-            ctx.ChunkUploadSessions.Add(sessionModel);
+            await ctx.ChunkUploadSessions.AddAsync(sessionModel);
 
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();

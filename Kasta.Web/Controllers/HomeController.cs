@@ -58,7 +58,9 @@ public class HomeController : Controller
             viewModel.IsLastPage = lastPage;
 
             var systemSettings = _db.GetSystemSettings();
-            var userQuota = _db.UserLimits.Where(e => e.UserId == userModel.Id).FirstOrDefault();
+            var userQuota = _db.UserLimits
+                .AsNoTracking()
+                .FirstOrDefault(e => e.UserId == userModel.Id);
             viewModel.SpaceUsed = SizeHelper.BytesToString(userQuota?.SpaceUsed ?? 0);
             if (systemSettings.EnableQuota)
             {
@@ -103,7 +105,9 @@ public class HomeController : Controller
         {
             vm.Page = page.Value;
         }
-        var query = _db.ShortLinks.OrderByDescending(v => v.CreatedAt);
+        var query = _db.ShortLinks
+            .AsNoTracking()
+            .OrderByDescending(v => v.CreatedAt);
         (vm.Links, vm.IsLastPage) = await _db.PaginateAsync(query, vm.Page, 50);
         return View("LinkList", vm);
     }
@@ -128,8 +132,12 @@ public class HomeController : Controller
             return View("NotAuthorized");
         }
 
-        var model = await _db.ShortLinks.Where(e => e.Id == value).FirstOrDefaultAsync();
-        model ??= await _db.ShortLinks.Where(e => e.ShortLink == value).FirstOrDefaultAsync();
+        var model = await _db.ShortLinks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == value);
+        model ??= await _db.ShortLinks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.ShortLink == value);
 
         if (model == null)
         {
@@ -186,7 +194,9 @@ public class HomeController : Controller
             throw new InvalidOperationException($"Unable to fetch User model even though user is logged in?");
         }
         
-        var userLimit = await _db.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
+        var userLimit = await _db.UserLimits
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.UserId == user.Id);
         var systemSettings = _db.GetSystemSettings();
         if (systemSettings.EnableQuota)
         {

@@ -29,7 +29,11 @@ public class LinkShortenerWebService
         var user = await _userManager.GetUserAsync(controller.HttpContext.User);
         if (user == null && !string.IsNullOrEmpty(token))
         {
-            var u = await _db.UserApiKeys.Where(e => e.Token == token).Include(e => e.User).FirstOrDefaultAsync();
+            var u = await _db.UserApiKeys
+                .AsNoTracking()
+                .Where(e => e.Token == token)
+                .Include(e => e.User)
+                .FirstOrDefaultAsync();
             if (u != null)
             {
                 user = u.User;
@@ -40,8 +44,12 @@ public class LinkShortenerWebService
             return DeleteShortenedLinkResult.NotAuthorized;
         }
 
-        var model = await _db.ShortLinks.Where(e => e.Id == value).FirstOrDefaultAsync();
-        model ??= await _db.ShortLinks.Where(e => e.ShortLink == value).FirstOrDefaultAsync();
+        var model = await _db.ShortLinks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == value);
+        model ??= await _db.ShortLinks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.ShortLink == value);
 
         if (model == null)
         {
@@ -50,7 +58,10 @@ public class LinkShortenerWebService
         
         if (model.CreatedByUserId != user.Id)
         {
-            var adminRoleId = await _db.Roles.Where(e => e.NormalizedName == RoleKind.Administrator.ToUpper()).Select(e => e.Id).FirstOrDefaultAsync();
+            var adminRoleId = await _db.Roles
+                .Where(e => e.NormalizedName == RoleKind.Administrator.ToUpper())
+                .Select(e => e.Id)
+                .FirstOrDefaultAsync();
             if (adminRoleId != null)
             {
                 if (await _db.UserRoles.Where(e => e.UserId == user.Id && e.RoleId == adminRoleId).AnyAsync() == false)

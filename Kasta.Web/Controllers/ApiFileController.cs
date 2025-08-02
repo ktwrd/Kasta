@@ -39,6 +39,25 @@ public class ApiFileController : Controller
         _logger = logger;
     }
 
+    private async Task<UserModel?> GetUserOrFromToken(string? token)
+    {
+        var user = await _userManager.GetUserAsync(HttpContext.User);
+        if (user == null && !string.IsNullOrEmpty(token))
+        {
+            var u = await _db.UserApiKeys
+                .AsNoTracking()
+                .Where(e => e.Token == token)
+                .Include(e => e.User)
+                .FirstOrDefaultAsync();
+            if (u != null)
+            {
+                user = u.User;
+            }
+        }
+
+        return user;
+    }
+
     [HttpGet("~/f/{value}")]
     public Task<IActionResult> GetFileShort(string value, [FromQuery] bool preview = false, [FromQuery] bool download = false)
     {
@@ -54,15 +73,7 @@ public class ApiFileController : Controller
     [HttpPost("~/api/v1/File/Upload/Form")]
     public async Task<IActionResult> UploadBasic(IFormFile file, [FromForm] string? filename = null, [FromForm] string? token = null)
     {
-        var user = await _userManager.GetUserAsync(HttpContext.User);
-        if (user == null && !string.IsNullOrEmpty(token))
-        {
-            var u = await _db.UserApiKeys.Where(e => e.Token == token).Include(e => e.User).FirstOrDefaultAsync();
-            if (u != null)
-            {
-                user = u.User;
-            }
-        }
+        var user = await GetUserOrFromToken(token);
         if (user == null)
         {
             return new JsonResult(new JsonErrorResponseModel()
@@ -71,16 +82,18 @@ public class ApiFileController : Controller
             });
         }
 
-        var userLimit = await _db.UserLimits.Where(e => e.UserId == user.Id).FirstOrDefaultAsync();
+        var userLimit = await _db.UserLimits
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.UserId == user.Id);
         var systemSettings = _db.GetSystemSettings();
         if (systemSettings.EnableQuota)
         {
-            long spaceUsed = userLimit?.SpaceUsed ?? 0;
+            var spaceUsed = userLimit?.SpaceUsed ?? 0;
             if ((spaceUsed + file.Length) > (userLimit?.MaxStorage ?? systemSettings.DefaultStorageQuotaReal ?? 0))
             {
                 HttpContext.Response.StatusCode = 401;
                 return Json(
-                    new JsonErrorResponseModel()
+                    new JsonErrorResponseModel
                     {
                         Message = "Not enough storage to upload file."
                     });
@@ -90,7 +103,7 @@ public class ApiFileController : Controller
             {
                 HttpContext.Response.StatusCode = 400;
                 return Json(
-                    new JsonErrorResponseModel()
+                    new JsonErrorResponseModel
                     {
                         Message = $"Provided file exceeds maximum file size"
                     });
@@ -98,9 +111,9 @@ public class ApiFileController : Controller
         }
         
         FileModel data;
-        using (var stream = file.OpenReadStream())
+        await using (var stream = file.OpenReadStream())
         {
-            string fn = file.FileName;
+            var fn = file.FileName;
             if (!string.IsNullOrEmpty(filename))
             {
                 fn = filename;
@@ -125,15 +138,7 @@ public class ApiFileController : Controller
     [HttpPost("~/api/v1/File/{id}/Delete")]
     public async Task<IActionResult> Delete(string id, [FromQuery] string? token = null)
     {
-        var user = await _userManager.GetUserAsync(HttpContext.User);
-        if (user == null && !string.IsNullOrEmpty(token))
-        {
-            var u = await _db.UserApiKeys.Where(e => e.Token == token).Include(e => e.User).FirstOrDefaultAsync();
-            if (u != null)
-            {
-                user = u.User;
-            }
-        }
+        var user = await GetUserOrFromToken(token);
         if (user == null)
         {
             return new JsonResult(new JsonErrorResponseModel()

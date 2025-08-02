@@ -205,12 +205,14 @@ public class TimeZoneService : IDisposable
         foreach (var p in trustedProxies)
         {
             var headerMapping = _db.TrustedProxyHeaderMappings
+                .AsNoTracking()
                 .Where(e => e.TrustedProxyId == p.Id)
                 .Where(e => e.TrustedProxyHeaderId != null)
                 .ToList();
             foreach (var m in headerMapping)
             {
                 var trustedProxyRecords = _db.TrustedProxyHeaders
+                    .AsNoTracking()
                     .Where(e => e.Id == m.TrustedProxyHeaderId && e.Enable == true)
                     .ToList();
                 foreach (var h in trustedProxyRecords)

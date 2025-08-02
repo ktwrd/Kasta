@@ -30,7 +30,10 @@ public class ProfileController : Controller
             throw new InvalidOperationException($"Cannot view profile when user is null");
         }
         var settings = await _db.GetUserSettingsAsync(user);
-        var keys = await _db.UserApiKeys.Where(e => e.UserId == user.Id).ToListAsync();
+        var keys = await _db.UserApiKeys
+            .AsNoTracking()
+            .Where(e => e.UserId == user.Id)
+            .ToListAsync();
         var vm = new ProfileViewModel()
         {
             User = user,
@@ -52,8 +55,8 @@ public class ProfileController : Controller
         }
 
 
-        using var ctx = _db.CreateSession();
-        var transaction = await ctx.Database.BeginTransactionAsync();
+        await using var ctx = _db.CreateSession();
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {
             var settings = await ctx.GetUserSettingsAsync(currentUser);
@@ -111,21 +114,17 @@ public class ProfileController : Controller
             WriteIndented = true
         });
         var ms = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
-        using (var ctx = _db.CreateSession())
+        await using var ctx = _db.CreateSession();
+        await using var trans = await ctx.Database.BeginTransactionAsync();
+        try
         {
-            using (var trans = await ctx.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    await ctx.UserApiKeys.AddAsync(apiKey);
-                    await ctx.SaveChangesAsync();
-                    await trans.CommitAsync();
-                }
-                catch
-                {
-                    await trans.RollbackAsync();
-                }
-            }
+            await ctx.UserApiKeys.AddAsync(apiKey);
+            await ctx.SaveChangesAsync();
+            await trans.CommitAsync();
+        }
+        catch
+        {
+            await trans.RollbackAsync();
         }
         return new FileStreamResult(ms, "application/json")
         {
@@ -165,21 +164,17 @@ public class ProfileController : Controller
             WriteIndented = true
         });
         var ms = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
-        using (var ctx = _db.CreateSession())
+        await using var ctx = _db.CreateSession();
+        await using var trans = await ctx.Database.BeginTransactionAsync();
+        try
         {
-            using (var trans = ctx.Database.BeginTransaction())
-            {
-                try
-                {
-                    await ctx.UserApiKeys.AddAsync(apiKey);
-                    trans.Commit();
-                    ctx.SaveChanges();
-                }
-                catch
-                {
-                    trans.Rollback();
-                }
-            }
+            await ctx.UserApiKeys.AddAsync(apiKey);
+            await ctx.SaveChangesAsync();
+            await trans.CommitAsync();
+        }
+        catch
+        {
+            await trans.RollbackAsync();
         }
         return new FileStreamResult(ms, "application/json")
         {
@@ -198,20 +193,18 @@ public class ProfileController : Controller
                 $"User returned null from {typeof(UserManager<UserModel>)} (method: {nameof(_userManager.GetUserAsync)})");
         }
 
-        using (var ctx = _db.CreateSession())
+        await using var ctx = _db.CreateSession();
+        await using var trans = await ctx.Database.BeginTransactionAsync();
+        try
         {
-            using var trans = ctx.Database.BeginTransaction();
-            try
-            {
-                await ctx.UserApiKeys.Where(e => e.UserId == currentUser.Id).ExecuteDeleteAsync();
-                trans.Commit();
-                ctx.SaveChanges();
-            }
-            catch
-            {
-                trans.Rollback();
-                throw;
-            }
+            await ctx.UserApiKeys.Where(e => e.UserId == currentUser.Id).ExecuteDeleteAsync();
+            await ctx.SaveChangesAsync();
+            await trans.CommitAsync();
+        }
+        catch
+        {
+            await trans.RollbackAsync();
+            throw;
         }
         return new RedirectToActionResult(nameof(Index), "Profile", null);
     }
