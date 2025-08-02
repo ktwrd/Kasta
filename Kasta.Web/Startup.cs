@@ -9,6 +9,7 @@ using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -252,11 +253,22 @@ public class Startup
                     if (item.ValidateIssuer == false)
                     {
                         options.TokenValidationParameters.ValidateIssuerSigningKey = false;
-                        options.TokenValidationParameters.SignatureValidator = (a, b) =>
-                        {
-                            return new JsonWebToken(a);
-                        };
+                        options.TokenValidationParameters.SignatureValidator
+                            = (a, _) => new JsonWebToken(a);
                     }
+
+                    // added in v0.9.2
+                    Task EnsureHttpsRedirect(RedirectContext ctx)
+                    {
+                        if (KastaConfig.Instance.Endpoint.StartsWith("https://") &&
+                            ctx.ProtocolMessage.RedirectUri.StartsWith("http://"))
+                        {
+                            ctx.ProtocolMessage.RedirectUri = "https://" + ctx.ProtocolMessage.RedirectUri[7..];
+                        }
+                        return Task.CompletedTask;
+                    }
+                    options.Events.OnRedirectToIdentityProvider += EnsureHttpsRedirect;
+                    options.Events.OnRedirectToIdentityProviderForSignOut += EnsureHttpsRedirect;
                 });
         }
     }
