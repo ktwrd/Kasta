@@ -44,7 +44,7 @@ public static class Program
                 webBuilder
                     .UseStartup<Startup>();
                 
-                var cfg = KastaConfig.Get();
+                var cfg = KastaConfig.Instance;
                 webBuilder.UseKestrel(opts =>
                 {
                     if (cfg?.Kestrel?.Limits != null)
@@ -206,7 +206,7 @@ public static class Program
     }
     private static void PopulateSentryOptionsFromConfig(SentryOptions opts)
     {
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
         if (cfg.Sentry != null)
         {
             if (cfg.Sentry.SampleRate != null && cfg.Sentry.SampleRate.HasValue)

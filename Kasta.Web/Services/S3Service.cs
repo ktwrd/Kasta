@@ -20,7 +20,7 @@ public class S3Service
 
     public void InitializeClient()
     {
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
         var config = new AmazonS3Config()
         {
             ServiceURL = cfg.S3.ServiceUrl,
@@ -36,7 +36,7 @@ public class S3Service
     }
     public async Task<GetObjectResponse> GetObject(string location)
     {
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
         // Create a GetObject request
         var request = new GetObjectRequest
         {
@@ -55,7 +55,7 @@ public class S3Service
     }
     public async Task<GetObjectResponse> UploadObject(Stream stream, string location)
     {
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
         var c = _client;
         var fileTransferUtility = new TransferUtility(c);
         var fileTransferUtilityRequest = new TransferUtilityUploadRequest
@@ -75,7 +75,7 @@ public class S3Service
 
     public async Task<DeleteObjectResponse> DeleteObject(string location)
     {
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
         // Create a DeleteObject request
         var request = new DeleteObjectRequest()
         {
@@ -91,7 +91,7 @@ public class S3Service
 
     public async Task<string> GeneratePresignedURL(string location, TimeSpan duration)
     {
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
         var request = new GetPreSignedUrlRequest()
         {
             BucketName = cfg.S3.BucketName,

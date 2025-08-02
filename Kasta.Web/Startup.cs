@@ -114,7 +114,7 @@ public class Startup
         services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
         services.AddRequestTimeZone(opts =>
         {
-            var cfg = KastaConfig.Get();
+            var cfg = KastaConfig.Instance;
             if (string.IsNullOrEmpty(cfg.DefaultTimezone))
             {
                 opts.Id = "UTC";
@@ -138,7 +138,7 @@ public class Startup
                             w.Ignore(RelationalEventId.PendingModelChangesWarning);
                         }
                     });
-                var cfg = KastaConfig.Get();
+                var cfg = KastaConfig.Instance;
                 var connectionString = cfg.Database.ToConnectionString();
                 options.UseNpgsql(connectionString);
 
@@ -162,7 +162,7 @@ public class Startup
     }
     private void ConfigureAuthenticationServices(IServiceCollection services)
     {
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
         if (cfg.Auth?.OAuth.Count < 1) return;
         
         var auth = services.AddAuthentication()
@@ -215,7 +215,7 @@ public class Startup
     private void ConfigureCacheServices(IServiceCollection services)
     {
         var logger = NLog.LogManager.GetLogger(nameof(ConfigureCacheServices));
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
 
         if (cfg.Cache.InMemory == null && cfg.Cache.Redis == null)
         {
@@ -233,7 +233,7 @@ public class Startup
 
         services.AddEasyCaching(options =>
         {
-            cfg = KastaConfig.Get();
+            cfg = KastaConfig.Instance;
             var enableRedis = cfg.Cache.Redis?.Enable ?? false;
             if (enableRedis)
             {

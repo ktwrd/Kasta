@@ -8,21 +8,29 @@ namespace Kasta.Shared;
 [XmlRoot("Kasta")]
 public class KastaConfig
 {
-    public static KastaConfig? Instance { get; set; }
-    public static KastaConfig Get()
+    private static KastaConfig InternalGet()
     {
-        if (Instance != null)
-        {
-            return Instance;
-        }
         var location = FeatureFlags.XmlConfigLocation;
         if (!File.Exists(location))
         {
             throw new InvalidOperationException($"Cannot get config since {location} doesn't exist (via {nameof(FeatureFlags)}.{nameof(FeatureFlags.XmlConfigLocation)})");
         }
-        Instance = new();
-        Instance.ReadFromFile(location);
-        return Instance;
+        var i = new KastaConfig();
+        i.ReadFromFile(location);
+        return i;
+    }
+    private static KastaConfig? InternalInstance { get; set; }
+
+    public static KastaConfig Instance
+    {
+        get
+        {
+            if (InternalInstance == null)
+            {
+                InternalInstance = InternalGet();
+            }
+            return InternalInstance;
+        }
     }
     public void WriteToFile(string location)
     {

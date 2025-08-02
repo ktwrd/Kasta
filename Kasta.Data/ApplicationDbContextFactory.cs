@@ -10,7 +10,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
     ApplicationDbContext IDesignTimeDbContextFactory<ApplicationDbContext>.CreateDbContext(string[] args)
     {
         var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        var cfg = KastaConfig.Get();
+        var cfg = KastaConfig.Instance;
         var connectionString = cfg.Database.ToConnectionString();
         connectionString += ";Include Error Detail=true";
         builder.UseNpgsql(connectionString);
