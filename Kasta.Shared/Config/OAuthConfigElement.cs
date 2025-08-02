@@ -45,6 +45,18 @@ public class OAuthConfigElement
     [Required]
     [XmlElement(nameof(ValidateIssuer))]
     public bool ValidateIssuer { get; set; }
+    
+    /// <summary>
+    /// <para><b>Summary from <c>Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectOptions.UseTokenLifetime</c></b></para>
+    /// Indicates that the authentication session lifetime (e.g. cookies) should match that of the authentication token.
+    /// If the token does not provide lifetime information then normal session lifetimes will be used.
+    /// This is disabled by default.
+    /// </summary>
+    /// <remarks>
+    /// When <see langword="null"/>, then the value won't be set, and it'll use whatever the default value is in <c>OpenIdConnectOptions</c>.
+    /// </remarks>
+    [XmlElement(nameof(UseTokenLifetime))]
+    public bool? UseTokenLifetime { get; set; }
 
     [Required]
     [XmlElement("Scope")]

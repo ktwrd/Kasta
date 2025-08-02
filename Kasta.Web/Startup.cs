@@ -233,6 +233,10 @@ public class Startup
                     // options.GetClaimsFromUserInfoEndpoint = true;
                     options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
                     options.TokenValidationParameters.RoleClaimType = "roles";
+                    if (item.UseTokenLifetime.HasValue)
+                    {
+                        options.UseTokenLifetime = item.UseTokenLifetime.Value;
+                    }
                     foreach (var inner in item.Jwt?.Items ?? [])
                     {
                         switch (inner.InternalName)
