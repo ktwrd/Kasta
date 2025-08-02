@@ -183,6 +183,9 @@ public class FileService
         if (files.Count < 1)
         {
             _log.Trace("No files to process :3");
+            await _mailbox.CreateMessageAsync("Generate File Metadata - No Action Taken", [
+                "No files could be found to generate metadata.",
+            ]);
             return;
         }
         
@@ -213,6 +216,9 @@ public class FileService
         if (files.Count < 1)
         {
             _log.Trace($"No files to process :3");
+            _mailbox.CreateMessage("Generate File Metadata - No Action Taken", [
+                "No files could be found to generate metadata.",
+            ]);
             return;
         }
         var start = DateTimeOffset.UtcNow;
