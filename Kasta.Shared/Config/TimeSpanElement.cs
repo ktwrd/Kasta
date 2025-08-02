@@ -56,16 +56,16 @@ public class TimeSpanElement
 
     public TimeSpan ToTimeSpan()
     {
-        if (Ticks != null && Ticks.HasValue)
+        if (Ticks is not null)
         {
             return new TimeSpan(Ticks.Value);
         }
-        int d = Days == null ? 0 : Days.HasValue ? Days.Value : 0;
-        int h = Hours == null ? 0 : Hours.HasValue ? Hours.Value : 0;
-        int min = Minutes == null ? 0 : Minutes.HasValue ? Minutes.Value : 0;
-        int s = Seconds == null ? 0 : Seconds.HasValue ? Seconds.Value : 0;
-        int ms = Milliseconds == null ? 0 : Milliseconds.HasValue ? Milliseconds.Value : 0;
-        int mics = Microseconds == null ? 0 : Microseconds.HasValue ? Microseconds.Value : 0;
+        var d = Days.GetValueOrDefault(0);
+        var h = Hours.GetValueOrDefault(0);
+        var min = Minutes.GetValueOrDefault(0);
+        var s = Seconds.GetValueOrDefault(0);
+        var ms = Milliseconds.GetValueOrDefault(0);
+        var mics = Microseconds.GetValueOrDefault(0);
         return new TimeSpan(
             d,
             h,

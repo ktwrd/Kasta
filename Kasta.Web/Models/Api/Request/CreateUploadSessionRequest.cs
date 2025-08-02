@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Kasta.Web.Models;
+namespace Kasta.Web.Models.Api.Request;
 
 [Serializable]
 public class CreateUploadSessionRequest

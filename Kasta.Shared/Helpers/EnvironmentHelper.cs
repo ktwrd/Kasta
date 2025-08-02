@@ -65,22 +65,20 @@ internal class EnvironmentFileHandler
     }
     [DefaultValue(true)]
     public bool UseEnvironmentAsFallback { get; private set; } = true;
-    private Dictionary<string, string> Values = [];
+    private readonly Dictionary<string, string> Values = [];
     internal string? FindValue(string key)
     {
         lock (Values)
         {
             foreach (var (k, v) in Values)
             {
-                if (k.Trim().ToLower() == key.Trim().ToLower())
+                if (k.Trim().Equals(key.Trim(), StringComparison.InvariantCultureIgnoreCase))
                     return v;
             }
         }
-        if (UseEnvironmentAsFallback)
-        {
-            return Environment.GetEnvironmentVariable(key);
-        }
-        return null;
+        return UseEnvironmentAsFallback
+            ? Environment.GetEnvironmentVariable(key)
+            : null;
     }
     private readonly Logger _log = LogManager.GetCurrentClassLogger();
     private void Parse()
@@ -191,8 +189,9 @@ internal class EnvironmentFileHandler
     /// <summary>
     /// Parse environment variable as boolean from environment file, or <see cref="Environment"/> when <see cref="UseEnvironmentAsFallback"/> is set to <see langword="true"/>
     /// </summary>
+    /// <param name="envKey">Environment Key to search in</param>
     /// <param name="defaultValue">Used when environment variable is not set.</param>
-    /// <param name="exists">Set to true when the <paramref name="envKey"/> provided exists in the <c>.env</c> file or the actual environment (when allowed)</para>
+    /// <param name="exists">Set to true when the <paramref name="envKey"/> provided exists in the <c>.env</c> file or the actual environment (when allowed)</param>
     /// <returns><see langword="true"/> when value is <c>true</c> or <c>1</c>, <see langword="false"/> when value is <c>false</c> or <c>0</c>. Otherwise <paramref name="defaultValue"/> is returned.</returns>
     public bool GetBool(string envKey, bool defaultValue, out bool exists)
     {

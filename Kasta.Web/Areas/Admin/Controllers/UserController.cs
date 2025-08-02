@@ -75,10 +75,13 @@ public class UserController : Controller
             User = targetUser
         };
 
-        var roles = await _db.Roles.ToListAsync();
+        var roles = await _db.Roles
+            .ToListAsync();
         vm.Roles = roles.ToDictionary(e => e.Id, e => e);
 
-        var userRoles = await _db.UserRoles.Where(e => e.UserId == targetUser.Id).ToListAsync();
+        var userRoles = await _db.UserRoles
+            .Where(e => e.UserId == targetUser.Id)
+            .ToListAsync();
         vm.UserRoles = userRoles.ToDictionary(e => e.RoleId, e => e.UserId);
 
         return View("Details", vm);
@@ -106,18 +109,21 @@ public class UserController : Controller
     {
         if (!await _db.UserExistsAsync(userId))
         {
-            var userIdSanitized = userId.Replace("<", "&lt;").Replace(">", "&gt;");
+            var userIdSanitized = userId.Replace("<", "&lt;").Replace(">", "&gt;").Replace("\\", "");
             Response.StatusCode = 200;
             return Content($"<div class=\"alert alert-danger\" role=\"alert\">Could not find User with Id <code>{userIdSanitized}</code></div>");
         }
 
-        using (var ctx = _db.CreateSession())
+        await using (var ctx = _db.CreateSession())
         {
-            var trans = ctx.Database.BeginTransaction();
+            await using var trans = await ctx.Database.BeginTransactionAsync();
 
             try
             {
-                var existingRoles = await ctx.UserRoles.Where(e => e.UserId == userId).Select(e => e.RoleId).ToListAsync();
+                var existingRoles = await ctx.UserRoles
+                    .Where(e => e.UserId == userId)
+                    .Select(e => e.RoleId)
+                    .ToListAsync();
 
                 var roleIdRemoveList = new List<string>();
                 var roleIdAddList = new List<string>();
@@ -215,9 +221,9 @@ public class UserController : Controller
             return Content($"<div class=\"alert alert-danger\" role=\"alert\">Could not find User with Id <code>{userIdSanitized}</code></div>");
         }
 
-        using (var ctx = _db.CreateSession())
+        await using (var ctx = _db.CreateSession())
         {
-            var trans = ctx.Database.BeginTransaction();
+            await using var trans = await ctx.Database.BeginTransactionAsync();
 
             try
             {
@@ -227,10 +233,10 @@ public class UserController : Controller
                     throw new InvalidOperationException($"WTF??? Checked if the user ({userId}) exists outside of new context, but it doesn't??");
                 }
 
-                long? storageParse = body.EnableStorageQuota || string.IsNullOrEmpty(body.StorageQuotaValue)
+                var storageParse = body.EnableStorageQuota || string.IsNullOrEmpty(body.StorageQuotaValue)
                     ? null
                     : SizeHelper.ParseToByteCount(body.StorageQuotaValue!);
-                long? uploadParse= body.EnableUploadLimit || string.IsNullOrEmpty(body.UploadLimitValue)
+                var uploadParse= body.EnableUploadLimit || string.IsNullOrEmpty(body.UploadLimitValue)
                     ? null
                     : SizeHelper.ParseToByteCount(body.UploadLimitValue!);
 
@@ -248,8 +254,8 @@ public class UserController : Controller
                 {
                     await ctx.UserLimits.Where(e => e.UserId == user.Id)
                         .ExecuteUpdateAsync(e =>
-                            e.SetProperty(e => e.MaxFileSize, uploadParse)
-                             .SetProperty(e => e.MaxStorage, storageParse)
+                            e.SetProperty(p => p.MaxFileSize, uploadParse)
+                             .SetProperty(p => p.MaxStorage, storageParse)
                         );
                 }
 

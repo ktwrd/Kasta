@@ -10,12 +10,15 @@ public class S3FileChunkModel
     {
         Id = Guid.NewGuid().ToString();
     }
+    
     [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
 
     [MaxLength(DatabaseHelper.GuidLength)]
     public string FileId { get; set; }
+    
     public int ChunkIndex { get; set; }
+    
     [MaxLength(200)]
     public string Sha256Hash { get; set; }
 

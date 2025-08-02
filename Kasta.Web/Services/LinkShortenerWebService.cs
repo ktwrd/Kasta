@@ -59,21 +59,20 @@ public class LinkShortenerWebService
                 }
             }
         }
-        using (var ctx = _db.CreateSession())
+
+        await using var ctx = _db.CreateSession();
+        await using var trans = await ctx.Database.BeginTransactionAsync();
+        try
         {
-            var trans = await ctx.Database.BeginTransactionAsync();
-            try
-            {
-                await ctx.ShortLinks.Where(e => e.Id == model.Id).ExecuteDeleteAsync();
-                await ctx.SaveChangesAsync();
-                await trans.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                await trans.RollbackAsync();
-                logger.LogError($"Failed to delete {nameof(ShortLinkModel)} where Id={model.Id}\n{ex}");
-                throw;
-            }
+            await ctx.ShortLinks.Where(e => e.Id == model.Id).ExecuteDeleteAsync();
+            await ctx.SaveChangesAsync();
+            await trans.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            await trans.RollbackAsync();
+            logger.LogError(ex, "Failed to delete {0} where Id={ModelId}", nameof(ShortLinkModel), model.Id);
+            throw;
         }
 
         return DeleteShortenedLinkResult.Success;

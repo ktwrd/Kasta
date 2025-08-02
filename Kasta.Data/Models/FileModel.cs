@@ -21,20 +21,30 @@ public class FileModel
     public string RelativeLocation { get; set; }
     public string ShortUrl { get; set; }
     public string? MimeType { get; set; }
+    
+    /// <summary>
+    /// File Size. Measured in bytes.
+    /// </summary>
     public long Size { get; set; }
 
+    /// <summary>
+    /// When <see langword="false"/>, then only the creator can access this file.
+    /// </summary>
     [DefaultValue(true)]
     public bool Public { get; set; } = true;
 
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string? CreatedByUserId { get; set; }
+    
+    [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
     
     [AuditIgnore]
     public FilePreviewModel? Preview { get; set; }
     [AuditIgnore]
     public FileImageInfoModel? ImageInfo { get; set; }
-
-    public DateTimeOffset CreatedAt { get; set; }
 
     [AuditIgnore]
     public S3FileInformationModel? S3FileInformation { get; set; }

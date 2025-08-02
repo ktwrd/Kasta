@@ -7,6 +7,6 @@ public class FormTextViewComponent : ViewComponent
 {
     public Task<IViewComponentResult> InvokeAsync(FormTextComponentViewModel data)
     {
-        return Task.Run(() => (IViewComponentResult)View("Default", data));
+        return Task.Run(IViewComponentResult () => View("Default", data));
     }
 }

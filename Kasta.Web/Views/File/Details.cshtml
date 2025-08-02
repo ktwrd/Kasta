@@ -1,8 +1,7 @@
-@using Kasta.Data.Models
 @using Kasta.Web.Helpers
 @using Vivet.AspNetCore.RequestTimeZone.Extensions
 @model FileDetailViewModel
-@inject IHttpContextAccessor ctx
+@inject IHttpContextAccessor ContextAccessor
 
 @{
     ViewData["Title"] = $"{Model.File.Filename}";
@@ -16,9 +15,9 @@
     {
         targetTimezone = (TimeZoneInfo)ViewData["TargetTimezone"]!;
     }
-    else if (ctx.HttpContext != null)
+    else if (ContextAccessor.HttpContext != null)
     {
-        var tz = ctx.HttpContext.GetUserTimeZone();
+        var tz = ContextAccessor.HttpContext.GetUserTimeZone();
         if (tz != null)
         {
             targetTimezone = tz;

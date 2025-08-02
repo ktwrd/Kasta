@@ -16,25 +16,22 @@ public class CustomUserManager<TUser> : UserManager<TUser>
         ILookupNormalizer keyNormalizer,
         IdentityErrorDescriber errors,
         IServiceProvider services,
-        ILogger<UserManager<TUser>> logger,
+        ILogger<CustomUserManager<TUser>> logger,
         ApplicationDbContext db)
         : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
     {
         _db = db;
     }
-    public class UserCreatedEventArgs
+    
+    public class UserCreatedEventArgs(string userId, IdentityResult result)
     {
-        public string UserId {get; private set;}
-        public IdentityResult Result {get; private set;}
+        public string UserId { get; private set; } = userId;
+        public IdentityResult Result { get; private set; } = result;
         public bool Success => Result.Succeeded;
-        public UserCreatedEventArgs(string userId, IdentityResult result)
-        {
-            UserId = userId;
-            Result = result;
-        }
     }
+    
     /// <summary>
-    /// Invoked when <see cref="CreateUser(TUser)"/> has been called.
+    /// Invoked when <see cref="CreateAsync(TUser)"/> has been called.
     /// </summary>
     public event EventHandler<UserCreatedEventArgs>? UserCreated;
     private void OnUserCreated(UserCreatedEventArgs e)
@@ -60,51 +57,68 @@ public class CustomUserManager<TUser> : UserManager<TUser>
             // Add user to administrators role.
             if (previousCount == 0)
             {
-                using (var ctx = _db.CreateSession())
+                await using var ctx = _db.CreateSession();
+                ctx.EnsureInitialRoles();
+
+                var trans = await ctx.Database.BeginTransactionAsync();
+                try
                 {
-                    ctx.EnsureInitialRoles();
-
-                    var trans = await ctx.Database.BeginTransactionAsync();
-                    try
-                    {
-                        var targetNormalizedName = RoleKind.Administrator.ToUpper();
+                    var targetNormalizedName = RoleKind.Administrator.ToUpper();
                         
-                        var adminRole = await ctx.Roles
-                            .Where(e => e.NormalizedName == targetNormalizedName)
-                            .FirstOrDefaultAsync();
+                    var adminRole = await ctx.Roles
+                        .Where(e => e.NormalizedName == targetNormalizedName)
+                        .FirstOrDefaultAsync();
 
-                        if (adminRole == null)
-                        {
-                            throw new InvalidDataException($"Failed to find Role where {nameof(IdentityRole<string>.NormalizedName)} equals {targetNormalizedName}");
-                        }
-                        if (await ctx.UserRoles.Where(e => e.RoleId == adminRole.Id && e.UserId == user.Id).AnyAsync() == false)
-                        {
-                            // Add the new user role
-                            await ctx.UserRoles.AddAsync(new IdentityUserRole<string>()
-                            {
-                                UserId = user.Id,
-                                RoleId = adminRole.Id
-                            });
-                        }
-                        else
-                        {
-                            Logger.LogDebug($"User {user.Email} ({user.Id}) already has the role {adminRole.Name} ({adminRole.Id}). This is weird since they're the first user to sign up!");
-                        }
-                        await trans.CommitAsync();
-                        Logger.LogInformation($"Granted role {adminRole.Name} ({adminRole.Id}) to the first user who signed up, {user.Email} ({user.Id})");
-                    }
-                    catch (Exception ex)
+                    if (adminRole == null)
                     {
-                        Logger.LogError(ex, $"Failed to grant user {user.Email} ({user.Id}) the \"{RoleKind.Administrator}\" role.");
-                        await trans.RollbackAsync();
+                        throw new InvalidDataException($"Failed to find Role where {nameof(IdentityRole<string>.NormalizedName)} equals {targetNormalizedName}");
                     }
+                    if (await ctx.UserRoles.Where(e => e.RoleId == adminRole.Id && e.UserId == user.Id).AnyAsync() == false)
+                    {
+                        // Add the new user role
+                        await ctx.UserRoles.AddAsync(new IdentityUserRole<string>()
+                        {
+                            UserId = user.Id,
+                            RoleId = adminRole.Id
+                        });
+                    }
+                    else
+                    {
+                        Logger.LogDebug(
+                            "User {UserEmail} ({UserId}) already has the role {AdminRoleName} ({AdminRoleId}). This is weird since they're the first user to sign up",
+                            user.Email,
+                            user.Id,
+                            adminRole.Name,
+                            adminRole.Id);
+                    }
+                    await trans.CommitAsync();
+                    Logger.LogInformation(
+                        "Granted role {AdminRoleName} ({AdminRoleId}) to the first user who signed up, {UserEmail} ({UserId})",
+                        adminRole.Name,
+                        adminRole.Id,
+                        user.Email,
+                        user.Id);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex,
+                        "Failed to grant user {USerEmail} ({UserId}) the \"{Role}\" role",
+                        user.Email,
+                        user.Id,
+                        RoleKind.Administrator);
+                    await trans.RollbackAsync();
                 }
             }
         }
         else
         {
-            Logger.LogWarning($"Failed to creat user {user.Email} ({user.Id})\n" +
-                string.Join("\n", result.Errors.Select(e => $"{e.Code}: {e.Description}")));
+            var formattedResultErrors = Environment.NewLine + string.Join(Environment.NewLine,
+                result.Errors.Select(e => $"{e.Code}: {e.Description}"));
+            Logger.LogWarning(
+                "Failed to create user {UserEmail} ({UserId}) {FormattedResultErrors}",
+                user.Email,
+                user.Id,
+                formattedResultErrors);
         }
         OnUserCreated(new(user.Id, result));
         return result;

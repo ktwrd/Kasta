@@ -2,7 +2,8 @@
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Helpers;
-using Kasta.Web.Models;
+using Kasta.Web.Models.Api.Request;
+using Kasta.Web.Models.Api.Response;
 using Kasta.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

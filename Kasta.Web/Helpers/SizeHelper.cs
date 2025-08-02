@@ -19,9 +19,9 @@ public static class SizeHelper
 
         var actualRegex = new Regex(@"^([0-9]+(|(\.[0-9]+)))(b|k|m|g|t|kb|mb|gb|tb)$", RegexOptions.IgnoreCase);
         var match = actualRegex.Match(value.Trim());
-        var t = match.Groups[match.Groups.Count - 1].Value.ToLower();
+        var t = match.Groups[^1].Value.ToLower();
         long result = 0;
-        if (match.Groups[1].Value.Contains("."))
+        if (match.Groups[1].Value.Contains('.'))
         {
             if (decimal.TryParse(match.Groups[1].Value, out var a))
             {

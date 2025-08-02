@@ -7,6 +7,6 @@ public class BreadcrumbViewComponent : ViewComponent
 {
     public Task<IViewComponentResult> InvokeAsync(List<BreadcrumbViewComponentItemModel> model)
     {
-        return Task.Run(() => (IViewComponentResult)View("Default", model));
+        return Task.Run(IViewComponentResult () => View("Default", model));
     }
 }

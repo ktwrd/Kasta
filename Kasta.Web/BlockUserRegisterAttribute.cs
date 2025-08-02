@@ -4,21 +4,13 @@ using Kasta.Web.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-public class BlockUserRegisterAttribute : TypeFilterAttribute
-{
-    public BlockUserRegisterAttribute()
-    : base(typeof(BlockUserRegisterFilter))
-    {
+namespace Kasta.Web;
 
-    }
-}
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+public class BlockUserRegisterAttribute() : TypeFilterAttribute(typeof(BlockUserRegisterFilter));
 
 public class BlockUserRegisterFilter : IAuthorizationFilter
 {
-    public BlockUserRegisterFilter()
-    {
-    }
     public void OnAuthorization(AuthorizationFilterContext context)
     {
         if (context == null)

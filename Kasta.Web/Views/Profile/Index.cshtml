@@ -1,6 +1,4 @@
-﻿@using Kasta.Data.Models
-@using Kasta.Web.Models
-@using Kasta.Web.Models.Components
+﻿@using Kasta.Web.Models.Components
 @model ProfileViewModel
 
 @{
@@ -62,7 +60,7 @@
                     <hr/>
                     <div class="btn-group">
                         <a asp-controller="Profile" asp-action="GenerateShareXConfig" class="btn btn-primary">Get ShareX Config</a>
-                        <a asp-controller="Profile" asp-action="GenerateRustgrabConfig" class="btn btn-primary">Get rustgrab Config</a>
+                        <a asp-controller="Profile" asp-action="GenerateRustGrabConfig" class="btn btn-primary">Get <code>rustgrab</code> Config</a>
                         <a asp-controller="Profile" asp-action="DeleteAllApiKeys" class="btn btn-danger">Delete all API Keys</a>
                     </div>
                 </form>

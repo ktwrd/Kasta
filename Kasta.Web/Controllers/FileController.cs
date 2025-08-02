@@ -114,7 +114,7 @@ public class FileController : Controller
             scope?.Dispose();
             return View("NotFound");
         }
-        _log.LogDebug($"Fetching file with requested ID \"{id}\"");
+        _log.LogDebug("Fetching file with requested ID \"{Id}\"", id);
         var file = await _db.GetFileAsync(id, includeAuthor: false, includePreview: true, includeImageInfo: true);
         if (file == null)
         {
@@ -156,9 +156,9 @@ public class FileController : Controller
             throw new InvalidOperationException($"Action has {nameof(AuthorizeAttribute)}, but {nameof(_userManager.GetUserAsync)} returned null?!?!?!?!?!?!?");
         }
 
-        using (var ctx = _db.CreateSession())
+        await using (var ctx = _db.CreateSession())
         {
-            var trans = await ctx.Database.BeginTransactionAsync();
+            await using var trans = await ctx.Database.BeginTransactionAsync();
             try
             {
                 await ctx.Files
@@ -186,7 +186,7 @@ public class FileController : Controller
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, $"Failed to update record {nameof(FileModel)} (where id={file.Id}) set {nameof(file.ShortUrl)} to \"{id}\"");
+                _log.LogError(ex, "Failed to update record {ModelName} (where id={FileId}) set {PropertyName} to \"{Id}\"", nameof(FileModel), file.Id, nameof(file.ShortUrl), id);
                 scope?.Dispose();
                 await trans.RollbackAsync();
                 throw;

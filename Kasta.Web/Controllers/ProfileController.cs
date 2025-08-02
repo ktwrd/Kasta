@@ -135,7 +135,7 @@ public class ProfileController : Controller
 
     [AuthRequired]
     [HttpGet]
-    public async Task<IActionResult> GenerateRustgrabConfig()
+    public async Task<IActionResult> GenerateRustGrabConfig()
     {
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null)

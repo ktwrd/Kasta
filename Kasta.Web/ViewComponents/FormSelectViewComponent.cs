@@ -7,6 +7,6 @@ public class FormSelectViewComponent : ViewComponent
 {
     public Task<IViewComponentResult> InvokeAsync(FormSelectComponentViewModel data)
     {
-        return Task.Run(() => (IViewComponentResult)View("Default", data));
+        return Task.Run(IViewComponentResult () => View("Default", data));
     }
 }

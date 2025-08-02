@@ -37,5 +37,5 @@ public class S3ConfigElement
     
     [XmlAttribute("ForcePathStyle")]
     [DefaultValue(false)]
-    public bool ForcePathStyle { get; set; } = false;
+    public bool ForcePathStyle { get; set; }
 }

@@ -1,7 +1,6 @@
-using ImageMagick;
 using Kasta.Data;
 using Kasta.Data.Models;
-using Kasta.Web.Models;
+using Kasta.Web.Models.Api.Request;
 using NLog;
 
 namespace Kasta.Web.Services;
@@ -39,12 +38,12 @@ public class UploadService
         };
         fileModel.RelativeLocation = $"{fileModel.Id}/{fileModel.Filename}";
 
-        using var ctx = _db.CreateSession();
-        using var transaction = await ctx.Database.BeginTransactionAsync();
+        await using var ctx = _db.CreateSession();
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {
             var tmpFilename = Path.GetTempFileName();
-            using (var fs = File.Open(tmpFilename, FileMode.OpenOrCreate, FileAccess.Write))
+            await using (var fs = File.Open(tmpFilename, FileMode.OpenOrCreate, FileAccess.Write))
             {
                 await stream.CopyToAsync(fs);
             }
@@ -63,9 +62,9 @@ public class UploadService
                 await _previewService.Create(ctx, fileModel, s3UploadSource);
             }
 
-            using (var fstream = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            await using (var fileStream = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                var imageInfo = _fileService.GenerateFileImageInfo(fileModel, fstream);
+                var imageInfo = _fileService.GenerateFileImageInfo(fileModel, fileStream);
                 if (imageInfo != null)
                 {
                     ctx.FileImageInfos.Add(imageInfo);
@@ -88,6 +87,7 @@ public class UploadService
         await _fileService.RecalculateSpaceUsed(user);
         return fileModel;
     }
+    
     public async Task<ChunkUploadSessionModel> CreateSession(UserModel user, CreateUploadSessionRequest @params)
     {
         if (string.IsNullOrEmpty(@params.Filename))
@@ -97,7 +97,7 @@ public class UploadService
 
         if (@params.ChunkSize > ChunkLimit)
         {
-            throw new BadHttpRequestException(String.Format("Maximum chunk size is {0} bytes", ChunkLimit));
+            throw new BadHttpRequestException($"Maximum chunk size is {ChunkLimit} bytes");
         }
         if (@params.ChunkSize < 1)
         {
@@ -108,8 +108,8 @@ public class UploadService
             throw new BadHttpRequestException("Total size must be greater than zero");
         }
 
-        using var ctx = _db.CreateSession();
-        using var transaction = ctx.Database.BeginTransaction();
+        await using var ctx = _db.CreateSession();
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {
             var fileModel = new FileModel()

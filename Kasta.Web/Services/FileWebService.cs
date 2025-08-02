@@ -117,7 +117,7 @@ public class FileWebService
         var sys = new SystemSettingsProxy(_db);
         if (sys.S3UsePresignedUrl)
         {
-            var url = await _s3.GeneratePresignedURL(relativeLocation, TimeSpan.FromMinutes(15));
+            var url = await _s3.GeneratePresignedUrl(relativeLocation, TimeSpan.FromMinutes(15));
             context.Response.Headers.Location = new(url);
             context.Response.StatusCode = 301;
             return new EmptyResult();

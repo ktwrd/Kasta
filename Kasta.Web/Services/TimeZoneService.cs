@@ -1,8 +1,8 @@
 using System.Net;
 using GeoTimeZone;
 using Kasta.Data;
-using Kasta.Web.Helpers;
 using MaxMind.GeoIP2;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web.Services;
 
@@ -39,32 +39,32 @@ public class TimeZoneService : IDisposable
             _logger.LogError(ex, $"Failed to remove method {nameof(EnsureMaxmind)} from static event {nameof(RefreshDatabase)}");
         }
 
-        if (_geoipDatabase != null)
+        if (_geoIpDatabase != null)
         {
             try
             {
-                _geoipDatabase?.Dispose();
+                _geoIpDatabase?.Dispose();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to dispose {nameof(_geoipDatabase)}");
+                _logger.LogError(ex, $"Failed to dispose {nameof(_geoIpDatabase)}");
             }
         }
         try
         {
-            _geoipDatabase = null;
+            _geoIpDatabase = null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to set {nameof(_geoipDatabase)} to null");
+            _logger.LogError(ex, $"Failed to set {nameof(_geoIpDatabase)} to null");
         }
         try
         {
-            _geoipDatabaseLocation = null;
+            _geoIpDatabaseLocation = null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to set {nameof(_geoipDatabaseLocation)} to null");
+            _logger.LogError(ex, $"Failed to set {nameof(_geoIpDatabaseLocation)} to null");
         }
 
         _disposed = true;
@@ -73,65 +73,61 @@ public class TimeZoneService : IDisposable
     public TimeZoneInfo? FromCoordinates(double latitude, double longitude)
     {
         var result = TimeZoneLookup.GetTimeZone(latitude, longitude);
-        string TrimLower(string f)
-        {
-            return f.Trim().ToLower();
-        }
-        if (result.Result.Trim().ToLower() == "utc")
+        var resultValue = result.Result.Trim();
+        if (resultValue.Equals("utc", StringComparison.InvariantCultureIgnoreCase))
         {
             return TimeZoneInfo.Utc;
         }
 
-        bool Check(TimeZoneInfo tz, string req)
-        {
-            if (TrimLower(tz.Id) == req)
-            {
-                return true;
-            }
-            if (TrimLower(tz.StandardName) == req)
-            {
-                return true;
-            }
-            if (TimeZoneInfo.TryConvertIanaIdToWindowsId(req, out var win))
-            {
-                if (TrimLower(tz.Id) == TrimLower(win))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-        
-        var detectedTimezone = TrimLower(result.Result);
         foreach (var tz in TimeZoneInfo.GetSystemTimeZones())
         {
-            if (Check(tz, detectedTimezone))
+            if (Check(tz, resultValue))
             {
                 return tz;
             }
             foreach (var inner in result.AlternativeResults)
             {
-                if (Check(tz, TrimLower(inner)))
+                if (Check(tz, inner.Trim()))
                 {
                     return tz;
                 }
             }
         }
         return null;
+
+        bool Check(TimeZoneInfo tz, string req)
+        {
+            if (tz.Id.Equals(req, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+            if (tz.StandardName.Equals(req, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+            if (TimeZoneInfo.TryConvertIanaIdToWindowsId(req, out var win))
+            {
+                if (tz.Id.Equals(win, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
-    private object EnsureMaxmindLock = new object();
+    private readonly Lock _ensureMaxmindLock = new();
     private void EnsureMaxmind()
     {
-        var tsnow = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        if (tsnow - 5 < _ensureMaxmindLast)
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (now - 5 < _ensureMaxmindLast)
         {
             return;
         }
-        _ensureMaxmindLast = tsnow;
-        bool disable = _systemSettings.EnableGeoIp == false;
-        if (disable && _geoipDatabase == null)
+        _ensureMaxmindLast = now;
+        var disable = _systemSettings.EnableGeoIp == false;
+        if (disable && _geoIpDatabase == null)
         {
-            _geoipDatabaseLocation = null;
+            _geoIpDatabaseLocation = null;
             return;
         }
         if (_systemSettings.EnableGeoIp)
@@ -146,53 +142,52 @@ public class TimeZoneService : IDisposable
             }
             else
             {
-                if (_geoipDatabaseLocation != _systemSettings.GeoIpDatabaseLocation)
+                if (_geoIpDatabaseLocation != _systemSettings.GeoIpDatabaseLocation)
                 {
                     try
-                    { _geoipDatabase?.Dispose(); }
+                    { _geoIpDatabase?.Dispose(); }
                     catch {}
 
-                    _geoipDatabase = new DatabaseReader(_systemSettings.GeoIpDatabaseLocation);
-                    _geoipDatabaseLocation = _systemSettings.GeoIpDatabaseLocation;
+                    _geoIpDatabase = new DatabaseReader(_systemSettings.GeoIpDatabaseLocation);
+                    _geoIpDatabaseLocation = _systemSettings.GeoIpDatabaseLocation;
                 }
             }
         }
 
         if (disable)
         {
-            if (_geoipDatabase != null)
+            if (_geoIpDatabase != null)
             {
                 try
                 {
-                    _geoipDatabase.Dispose();
+                    _geoIpDatabase.Dispose();
                 }
                 catch {}
-                _geoipDatabase = null;
+                _geoIpDatabase = null;
             }
-            _geoipDatabaseLocation = null;
+            _geoIpDatabaseLocation = null;
         }
     }
 
-    private DatabaseReader? _geoipDatabase;
-    private string? _geoipDatabaseLocation;
+    private DatabaseReader? _geoIpDatabase;
+    private string? _geoIpDatabaseLocation;
     private long _ensureMaxmindLast = 0;
 
     public TimeZoneInfo? FromIpAddress(string address)
     {
-        lock (EnsureMaxmindLock)
+        lock (_ensureMaxmindLock)
         {
             EnsureMaxmind();
         }
-        if (_geoipDatabase == null) return null;
+        if (_geoIpDatabase == null) return null;
 
-        if (_geoipDatabase.TryCity(address, out var city))
+        if (!_geoIpDatabase.TryCity(address, out var city)) return null;
+        
+        var lat = city?.Location.Latitude;
+        var lng = city?.Location.Longitude;
+        if (lat != null && lng != null)
         {
-            var lat = city?.Location.Latitude;
-            var lng = city?.Location.Longitude;
-            if (lat != null && lng != null)
-            {
-                return FromCoordinates((double)lat, (double)lng);
-            }
+            return FromCoordinates((double)lat, (double)lng);
         }
         return null;
     }
@@ -209,28 +204,34 @@ public class TimeZoneService : IDisposable
         if (trustedProxies.Count == 0) return null;
         foreach (var p in trustedProxies)
         {
-            var headerMapping = _db.TrustedProxyHeaderMappings.Where(e => e.TrustedProxyId == p.Id).Where(e => e.TrustedProxyHeaderId != null).ToList();
+            var headerMapping = _db.TrustedProxyHeaderMappings
+                .Where(e => e.TrustedProxyId == p.Id)
+                .Where(e => e.TrustedProxyHeaderId != null)
+                .ToList();
             foreach (var m in headerMapping)
             {
-                foreach (var h in _db.TrustedProxyHeaders.Where(e => e.Id == m.TrustedProxyHeaderId && e.Enable == true).ToList())
+                var trustedProxyRecords = _db.TrustedProxyHeaders
+                    .Where(e => e.Id == m.TrustedProxyHeaderId && e.Enable == true)
+                    .ToList();
+                foreach (var h in trustedProxyRecords)
                 {
                     if (context.Request.Headers.TryGetValue(h.HeaderName, out var hv))
                     {
-                        var hvs = Array.Empty<string>();
-                        if (hv.Count == 1 && hv.ToString().Contains(","))
+                        string[] headerValues;
+                        if (hv.Count == 1 && hv.ToString().Contains(','))
                         {
-                            hvs = hv.ToString().Split(",").Select(e => e.Trim()).ToArray();
+                            headerValues = hv.ToString().Split(',').Select(e => e.Trim()).ToArray();
                         }
                         else
                         {
-                            hvs = (string[])hv.Where(e => e != null).ToArray()!;
+                            headerValues = (string[])hv.Where(e => e != null).ToArray()!;
                         }
-                        if (hvs.Length > 0)
+
+                        if (headerValues.Length <= 0) continue;
+                        
+                        if (IPAddress.TryParse(headerValues[0], out var ipa))
                         {
-                            if (IPAddress.TryParse(hvs[0], out var ipa))
-                            {
-                                return ipa.ToString();
-                            }
+                            return ipa.ToString();
                         }
                     }
                 }

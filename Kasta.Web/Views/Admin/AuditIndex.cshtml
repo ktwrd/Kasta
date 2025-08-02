@@ -1,6 +1,6 @@
 @using Kasta.Data
 @using Microsoft.EntityFrameworkCore
-@inject ApplicationDbContext _db
+@inject ApplicationDbContext Database
 
 @{
     ViewData["Title"] = "Audit - Admin";
@@ -19,7 +19,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var master in _db.Audit.Include(e => e.CreatedByUser).ToList())
+        @foreach (var master in Database.Audit.Include(e => e.CreatedByUser).ToList())
         {
             <tr>
                 <th>@master.EntityName</th>

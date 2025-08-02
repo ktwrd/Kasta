@@ -1,4 +1,4 @@
-using Kasta.Web.Models;
+using Kasta.Web.Models.Components;
 
 namespace Kasta.Web.Areas.Admin.Models.System;
 

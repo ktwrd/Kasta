@@ -96,11 +96,11 @@ public class RedisCacheElement
     {
         [Required]
         [XmlAttribute(nameof(Host))]
-        public string Host { get; set; } = "";
+        public string Host { get; set; }
 
         [Required]
         [XmlAttribute(nameof(Port))]
-        public int Port { get; set; } = 6379;
+        public int Port { get; set; }
 
         public RedisCacheEndpointElement()
             : this("127.0.0.1", 6379)

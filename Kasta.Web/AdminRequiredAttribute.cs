@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Reflection;
 using Kasta.Data.Models;
 using Kasta.Web.Models;
+using Kasta.Web.Models.Api.Response;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -32,7 +33,7 @@ public class AdminRequiredAttribute : ActionFilterAttribute
             context.HttpContext.Response.StatusCode = 401;
             if (UseJsonResult)
             {
-                context.Result = new JsonResult(new JsonErrorResponseModel()
+                context.Result = new JsonResult(new JsonErrorResponseModel
                 {
                     Message = "Not Authorized"
                 });
@@ -44,7 +45,7 @@ public class AdminRequiredAttribute : ActionFilterAttribute
                     ViewName = "NotAuthorized",
                     ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary())
                     {
-                        Model = new NotAuthorizedViewModel()
+                        Model = new NotAuthorizedViewModel
                         {
                             RequireLogin = true
                         }

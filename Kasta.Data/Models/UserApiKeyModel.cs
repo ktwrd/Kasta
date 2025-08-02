@@ -35,10 +35,14 @@ public class UserApiKeyModel
     /// <summary>
     /// <see cref="UserModel.Id"/> that this Api Key is for
     /// </summary>
+
     [Required]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string UserId { get; set; }
+    
     [AuditIgnore]
     public UserModel User { get; set; }
+    
     [MaxLength(200)]
     public string? Purpose { get; set; }
 
@@ -49,7 +53,9 @@ public class UserApiKeyModel
     /// <summary>
     /// <see cref="UserModel.Id"/> that created this Api Key.
     /// </summary>
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string? CreatedByUserId { get; set; }
+
     [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }
 }

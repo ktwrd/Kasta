@@ -7,6 +7,6 @@ public class LinkListItemViewComponent : ViewComponent
 {
     public Task<IViewComponentResult> InvokeAsync(LinkListItemComponentViewModel link)
     {
-        return Task.Run(() => (IViewComponentResult)View("Default", link));
+        return Task.Run(IViewComponentResult () => View("Default", link));
     }
 }

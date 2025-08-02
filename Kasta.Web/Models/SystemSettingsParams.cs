@@ -19,21 +19,10 @@ public class SystemSettingsParams
     public string GeoIPDatabaseLocation { get;set; } = "";
     public bool S3UsePresignedUrl { get; set; }
 
-    public long? DefaultUploadQuotaReal
-    {
-        get
-        {
-            return SizeHelper.ParseToByteCount(DefaultUploadQuota);
-        }
-    }
+    public long? DefaultUploadQuotaReal => SizeHelper.ParseToByteCount(DefaultUploadQuota);
 
-    public long? DefaultStorageQuotaReal
-    {
-        get
-        {
-            return SizeHelper.ParseToByteCount(DefaultStorageQuota);
-        }
-    }
+    public long? DefaultStorageQuotaReal => SizeHelper.ParseToByteCount(DefaultStorageQuota);
+
     private PreferencesModel GetPreferenceModel(ApplicationDbContext db, string key, bool insert = true)
     {
         var d = db.Preferences.FirstOrDefault(e => e.Key == key);

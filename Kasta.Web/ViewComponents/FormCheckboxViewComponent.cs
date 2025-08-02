@@ -7,8 +7,6 @@ public class FormCheckboxViewComponent : ViewComponent
 {
     public Task<IViewComponentResult> InvokeAsync(FormCheckboxComponentViewModel data)
     {
-        return Task.Run(() => {
-            return (IViewComponentResult)View("Default", data);
-        });
+        return Task.Run(IViewComponentResult () => View("Default", data));
     }
 }

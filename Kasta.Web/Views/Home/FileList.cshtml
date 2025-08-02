@@ -1,21 +1,16 @@
 @using Microsoft.AspNetCore.Identity
 @using Kasta.Data
 @using Kasta.Data.Models
-@using Kasta.Web.Helpers
 @using Kasta.Web.Models.Components
-@using Microsoft.EntityFrameworkCore
-@using Vivet.AspNetCore.RequestTimeZone.Extensions
-@inject ApplicationDbContext _db
-@inject SignInManager<UserModel> SignInManager
+@inject ApplicationDbContext Database
 @inject UserManager<UserModel> UserManager
-@inject IHttpContextAccessor HttpContextAccessor
 @model FileListViewModel
 
 @{
     ViewData["Title"] = "Files";
     Layout = "_Layout";
     var userModel = await UserManager.GetUserAsync(User);
-    var userSetting = await _db.GetUserSettingsAsync(userModel!);
+    var userSetting = await Database.GetUserSettingsAsync(userModel!);
 }
 
 

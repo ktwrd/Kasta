@@ -2,6 +2,7 @@ using Kasta.Data;
 using Kasta.Web.Areas.Admin.Models.System;
 using Kasta.Web.Helpers;
 using Kasta.Web.Models;
+using Kasta.Web.Models.Components;
 using Kasta.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

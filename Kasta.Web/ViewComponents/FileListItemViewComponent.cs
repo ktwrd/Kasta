@@ -8,6 +8,6 @@ public class FileListItemViewComponent : ViewComponent
 {
     public Task<IViewComponentResult> InvokeAsync(FileListItemComponentViewModel file)
     {
-        return Task.Run(() => (IViewComponentResult)View("Default", file));
+        return Task.Run(IViewComponentResult () => View("Default", file));
     }
 }

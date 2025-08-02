@@ -22,12 +22,10 @@ public class LinkListItemComponentViewModel
     public string GenerateAction(IUrlHelper url, string action, string controller, Dictionary<string, object> parameters)
     {
         var u = url.Action(action, controller, parameters);
-        if (string.IsNullOrEmpty(u))
-        {
-            var j = string.Join(", ", parameters.Select(e => $"{e.Key}, {e.Value}"));
-            var js = string.IsNullOrEmpty(j) ? "" : $" ({j})";
-            throw new InvalidDataException($"Failed to generate Action Url for {nameof(controller)}={controller}, {nameof(action)}={action}" + js);
-        }
-        return u;
+        if (!string.IsNullOrEmpty(u)) return u;
+        
+        var j = string.Join(", ", parameters.Select(e => $"{e.Key}, {e.Value}"));
+        var js = string.IsNullOrEmpty(j) ? "" : $" ({j})";
+        throw new InvalidDataException($"Failed to generate Action Url for {nameof(controller)}={controller}, {nameof(action)}={action}" + js);
     }
 }

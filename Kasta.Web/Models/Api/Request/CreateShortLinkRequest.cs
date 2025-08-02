@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace Kasta.Web.Models;
+namespace Kasta.Web.Models.Api.Request;
 
 public class CreateShortLinkRequest
 {

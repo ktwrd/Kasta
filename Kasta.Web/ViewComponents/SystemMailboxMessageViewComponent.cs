@@ -7,6 +7,6 @@ public class SystemMailboxMessageViewComponent : ViewComponent
 {
     public Task<IViewComponentResult> InvokeAsync(SystemMailboxMessageModel model)
     {
-        return Task.Run(() => (IViewComponentResult)View("Default", model));
+        return Task.Run(IViewComponentResult () => View("Default", model));
     }
 }

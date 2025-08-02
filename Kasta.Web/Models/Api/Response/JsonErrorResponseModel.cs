@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Kasta.Web.Models;
+namespace Kasta.Web.Models.Api.Response;
 
 public class JsonErrorResponseModel
 {

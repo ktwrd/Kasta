@@ -35,7 +35,7 @@ public class FormCheckboxComponentViewModel
     {
         get
         {
-            string s = "form-check";
+            var s = "form-check";
             if (Margin)
             {
                 s += " mb-3";
@@ -48,19 +48,11 @@ public class FormCheckboxComponentViewModel
         }
     }
     public string? HelpText { get; set; }
-    public string CheckboxRole
+    public string CheckboxRole => Kind switch
     {
-        get
-        {
-            switch (Kind)
-            {
-                case CheckboxKind.Switch:
-                    return "switch";
-                default:
-                    return "";
-            }
-        }
-    }
+        CheckboxKind.Switch => "switch",
+        _ => ""
+    };
     [DefaultValue(CheckboxKind.Normal)]
     public CheckboxKind Kind { get; set; } = CheckboxKind.Normal;
     /// <summary>

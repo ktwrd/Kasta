@@ -2,15 +2,9 @@
 
 namespace Kasta.Web.Services;
 
-public class S3ObjectNotFoundException : ApplicationException
+public class S3ObjectNotFoundException(GetObjectRequest request, GetObjectResponse response)
+    : ApplicationException($"Could not find object {request.Key} in bucket {request.BucketName}")
 {
-    public GetObjectRequest Request { get; set; }
-    public GetObjectResponse Response { get; set; }
-
-    public S3ObjectNotFoundException(GetObjectRequest request, GetObjectResponse response)
-        : base($"Could not find object {request.Key} in bucket {request.BucketName}")
-    {
-        Request = request;
-        Response = response;
-    }
+    public GetObjectRequest Request { get; set; } = request;
+    public GetObjectResponse Response { get; set; } = response;
 }

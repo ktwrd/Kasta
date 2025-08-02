@@ -1,11 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-namespace Kasta.Web.Models;
+namespace Kasta.Web.Models.Components;
 
 public class BaseAlertViewModel
 {
     public string? AlertType { get; set; }
+    
     public string? AlertClass
     {
         get
@@ -35,6 +36,7 @@ public class BaseAlertViewModel
             return string.Join(" ", list);
         }
     }
+    
     private static ReadOnlyCollection<string> ValidAlertTypes => new List<string>()
     {
         "primary",
@@ -44,11 +46,15 @@ public class BaseAlertViewModel
         "warning",
         "info"
     }.AsReadOnly();
+    
     public string? AlertContent { get; set; }
+    
     [DefaultValue(true)]
     public bool ShowAlertCloseButton { get; set; } = true;
+    
     [DefaultValue(true)]
     public bool AlertContentAsMarkdown { get; set; } = true;
+    
     [DefaultValue(false)]
     public bool AlertIsSmall { get; set; } = false;
 }

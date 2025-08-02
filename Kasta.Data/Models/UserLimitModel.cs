@@ -11,9 +11,13 @@ public class UserLimitModel
     {
         UserId = Guid.Empty.ToString();
     }
+    
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string UserId { get; set; }
+
     [AuditIgnore]
     public UserModel User { get; set; }
+    
     public long? MaxFileSize { get; set; }
     public long? MaxStorage { get; set; }
 

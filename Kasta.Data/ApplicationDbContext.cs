@@ -40,7 +40,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         {
             foreach (var item in RoleKind.ToList())
             {
-                if (Roles.Where(e => e.Name == item.Name).Any() == false)
+                if (Roles.Any(e => e.Name == item.Name) == false)
                 {
                     Roles.Add(new IdentityRole()
                     {

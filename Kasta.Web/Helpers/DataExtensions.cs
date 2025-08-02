@@ -17,45 +17,37 @@ public static class DataExtensions
     }
     private static string GetFileUrlId(FileModel file)
     {
-        if (string.IsNullOrEmpty(file.ShortUrl))
-        {
-            return file.Id;
-        }
-        return file.ShortUrl;
+        return string.IsNullOrEmpty(file.ShortUrl)
+            ? file.Id
+            : file.ShortUrl;
     }
     private static string GetLinkUrlId(ShortLinkModel link)
     {
-        if (string.IsNullOrEmpty(link.ShortLink))
-        {
-            return link.Id;
-        }
-        return link.ShortLink;
+        return string.IsNullOrEmpty(link.ShortLink)
+            ? link.Id
+            : link.ShortLink;
     }
     public static string GetDownloadUrl(this FileModel file)
     {
         var fileUrlId = GetFileUrlId(file);
-        string result = $"/f/{fileUrlId}";
+        var result = $"/f/{fileUrlId}";
         var endpoint = FeatureFlags.Endpoint;
-        if (string.IsNullOrEmpty(endpoint))
-        {
-            return result;
-        }
-
-        return CombineUrl(endpoint, result);
+        return string.IsNullOrEmpty(endpoint)
+            ? result
+            : CombineUrl(endpoint, result);
     }
     public static string? GetPreviewUrl(this FileModel file)
     {
         if (file.Preview != null && file.Preview.RelativeLocation != file.RelativeLocation)
         {
-            var result = file.GetDownloadUrl();
-            return result + "?preview=true";
+            return file.GetDownloadUrl() + "?preview=true";
         }
         return null;
     }
     public static string GetDetailsUrl(this FileModel file)
     {
         var fileUrlId = GetFileUrlId(file);
-        string result = $"/d/{fileUrlId}";
+        var result = $"/d/{fileUrlId}";
         var endpoint = FeatureFlags.Endpoint;
         if (string.IsNullOrEmpty(endpoint))
         {
@@ -67,7 +59,7 @@ public static class DataExtensions
     public static string GetUrl(this ShortLinkModel link)
     {
         var urlId = GetLinkUrlId(link);
-        string result = $"/l/{urlId}";
+        var result = $"/l/{urlId}";
         var endpoint = FeatureFlags.Endpoint;
         if (string.IsNullOrEmpty(endpoint))
         {

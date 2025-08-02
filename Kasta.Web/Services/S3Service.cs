@@ -26,7 +26,7 @@ public class S3Service
             ServiceURL = cfg.S3.ServiceUrl,
             ForcePathStyle = cfg.S3.ForcePathStyle
         };
-        config.UseHttp = config.ServiceURL.StartsWith("http://");
+        config.UseHttp = config.ServiceURL.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase);
 
         _client = new AmazonS3Client(
             cfg.S3.AccessKey,
@@ -89,7 +89,7 @@ public class S3Service
         return response;
     }
 
-    public async Task<string> GeneratePresignedURL(string location, TimeSpan duration)
+    public async Task<string> GeneratePresignedUrl(string location, TimeSpan duration)
     {
         var cfg = KastaConfig.Instance;
         var request = new GetPreSignedUrlRequest()

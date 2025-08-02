@@ -5,11 +5,12 @@ namespace Kasta.Data.Models.Audit;
 
 public class AuditModel
 {
+    public const string TableName = "Audit";
     public AuditModel()
     {
         Id = Guid.NewGuid().ToString();
     }
-    public const string TableName = "Audit";
+
     [Required]
     [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
@@ -19,13 +20,19 @@ public class AuditModel
     /// </summary>
     [Required]
     [ForeignKey(nameof(CreatedByUser))]
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string CreatedBy { get; set; }
+
+    [AuditIgnore]
     public UserModel CreatedByUser { get; set; }
+
     [Required]
     public DateTimeOffset CreatedAt { get; set; }
+    
     [Required]
     [MaxLength(200)]
     public string EntityName { get; set; }
+    
     [Required]
     [MaxLength(200)]
     public string PrimaryKey { get; set; }

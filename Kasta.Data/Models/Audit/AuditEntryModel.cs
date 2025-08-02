@@ -10,6 +10,7 @@ public class AuditEntryModel
         Id = Guid.NewGuid().ToString();
     }
     public const string TableName = "AuditEntry";
+
     [Required]
     [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
@@ -18,11 +19,13 @@ public class AuditEntryModel
     [MaxLength(DatabaseHelper.GuidLength)]
     [ForeignKey(nameof(Audit))]
     public string AuditId { get; set; }
+    
     [AuditIgnore]
     public AuditModel Audit { get; set; }
 
     [Required]
     [MaxLength(200)]
     public string PropertyName { get; set; }
+    
     public string? Value { get; set; }
 }

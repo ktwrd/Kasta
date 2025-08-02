@@ -15,11 +15,15 @@ public class ChunkUploadSessionModel
     [MaxLength(DatabaseHelper.GuidLength)]
     public string Id { get; set; }
 
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string? UserId { get; set; }
+
     [AuditIgnore]
     public UserModel? User { get; set; }
 
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string FileId { get; set; }
+
     [AuditIgnore]
     public FileModel File { get; set; }
 

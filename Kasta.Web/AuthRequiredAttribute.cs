@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Reflection;
 using Kasta.Web.Models;
+using Kasta.Web.Models.Api.Response;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -26,7 +27,7 @@ public class AuthRequiredAttribute : ActionFilterAttribute
             context.HttpContext.Response.StatusCode = 401;
             if (UseJsonResult)
             {
-                context.Result = new JsonResult(new JsonErrorResponseModel()
+                context.Result = new JsonResult(new JsonErrorResponseModel
                 {
                     Message = "Not Authorized"
                 });

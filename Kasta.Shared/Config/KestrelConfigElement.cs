@@ -10,7 +10,7 @@ public class KestrelConfigElement
 }
 
 /// <summary>
-/// XML Element for <see cref="Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits"/>
+/// XML Element for <c>Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits</c>
 /// </summary>
 public class KestrelLimitsElement
 {
@@ -57,7 +57,7 @@ public class KestrelLimitsElement
 
     /// <summary>
     /// Gets or sets the maximum allowed number of headers per HTTP request.
-    //  Defaults to 100.
+    ///  Defaults to 100.
     /// </summary>
     [XmlElement("MaxRequestHeaderCount")]
     public int? MaxRequestHeaderCount { get; set; }
@@ -97,33 +97,37 @@ public class KestrelLimitsElement
     /// </summary>
     /// <remarks>
     /// When a connection is upgraded to another protocol, such as WebSockets, its connection
-    /// is counted against the <see cref="Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits.MaxConcurrentUpgradedConnections"/>
-    /// limit instead of <see cref="Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits.MaxConcurrentConnections"/>.
+    /// is counted against the <c>Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits.MaxConcurrentUpgradedConnections</c>
+    /// limit instead of <c>Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits.MaxConcurrentConnections</c>
     /// </remarks>
     [XmlElement("MaxConcurrentConnections")]
     public long? MaxConcurrentConnections { get; set; }
 
     /// <summary>
+    /// <para>
     /// Gets or sets the maximum number of open, upgraded connections. When set to <c>-1</c>,
     /// the number of upgraded connections is unlimited. An upgraded connection is one
     /// that has been switched from HTTP to another protocol, such as WebSockets.
+    /// </para>
     /// 
     /// Defaults to <c>-1</c>
     /// </summary>
     /// <remarks>
     /// When a connection is upgraded to another protocol, such as WebSockets, its connection 
-    /// is counted against the <see cref="Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits.MaxConcurrentUpgradedConnections"/>
-    /// limit instead of <see cref="Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits.MaxConcurrentConnections"/>.
+    /// is counted against the <c>Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits.MaxConcurrentUpgradedConnections</c>
+    /// limit instead of <c>Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerLimits.MaxConcurrentConnections</c>
     /// </remarks>
     [XmlElement("MaxConcurrentUpgradedConnections")]
     public long? MaxConcurrentUpgradedConnections { get; set; }
 
     /// <summary>
+    /// <para>
     /// Gets or sets the request body minimum data rate in bytes/second. This limit
     /// has no effect on upgraded connections which are always unlimited. This can be
-    /// overridden per-request via <see cref="Microsoft.AspNetCore.Server.Kestrel.Core.Features.IHttpMinRequestBodyDataRateFeature"/>.
+    /// overridden per-request via <c>Microsoft.AspNetCore.Server.Kestrel.Core.Features.IHttpMinRequestBodyDataRateFeature</c>.
+    /// </para>
     /// 
-    /// Defaults to 240 bytes/second with a 5 second grace period.
+    /// Defaults to 240 bytes/second with a 5-second grace period.
     /// </summary>
     [XmlElement("MinRequestBodyDataRate")]
     public KestrelMinDataRateElement? MinRequestBodyDataRate { get; set; }
@@ -137,15 +141,19 @@ public class KestrelLimitsElement
     public bool? EnforceMinRequestBodyDataRate { get; set; }
 
     /// <summary>
+    /// <para>
     /// Gets or sets the response minimum data rate in bytes/second. This limit has no
     /// effect on upgraded connections which are always unlimited. This can be overridden
-    /// per-request via <see cref="Microsoft.AspNetCore.Server.Kestrel.Core.Features.IHttpMinResponseDataRateFeature"/>.
+    /// per-request via <c>Microsoft.AspNetCore.Server.Kestrel.Core.Features.IHttpMinResponseDataRateFeature</c>
+    /// </para>
     /// 
-    /// Defaults to 240 bytes/second with a 5 second grace period.
+    /// Defaults to 240 bytes/second with a 5-second grace period.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Contrary to the request body minimum data rate, this rate applies to the response
     /// status line and headers as well.
+    /// </para>
     /// 
     /// This rate is enforced per write operation instead of being averaged over the
     /// life of the response. Whenever the server writes a chunk of data, a timer is

@@ -18,7 +18,7 @@ public class SystemSettingsProxy
             var trans = ctx.Database.BeginTransaction();
             try
             {
-                if (ctx.Preferences.Where(e => e.Key == key).Any())
+                if (ctx.Preferences.Any(e => e.Key == key))
                 {
                     ctx.Preferences.Where(e => e.Key == key)
                         .ExecuteUpdate(e => e.SetProperty(v => v.Value, value ? "1" : "0"));
@@ -50,7 +50,7 @@ public class SystemSettingsProxy
             var trans = ctx.Database.BeginTransaction();
             try
             {
-                if (ctx.Preferences.Where(e => e.Key == key).Any())
+                if (ctx.Preferences.Any(e => e.Key == key))
                 {
                     ctx.Preferences.Where(e => e.Key == key && e.ValueKind == "string")
                         .ExecuteUpdate(e => e.SetProperty(v => v.Value, value));
@@ -82,7 +82,7 @@ public class SystemSettingsProxy
             var trans = ctx.Database.BeginTransaction();
             try
             {
-                if (ctx.Preferences.Where(e => e.Key == key).Any())
+                if (ctx.Preferences.Any(e => e.Key == key))
                 {
                     ctx.Preferences.Where(e => e.Key == key && e.ValueKind == "long")
                         .ExecuteUpdate(e => e.SetProperty(v => v.Value, dbValue));
@@ -155,54 +155,30 @@ public class SystemSettingsProxy
     public const bool EnableUserRegisterDefault = true;
     public bool EnableUserRegister
     {
-        get
-        {
-            return GetBool(EnableUserRegisterKey, EnableUserRegisterDefault);
-        }
-        set
-        {
-            SetValue(EnableUserRegisterKey, value);
-        }
+        get => GetBool(EnableUserRegisterKey, EnableUserRegisterDefault);
+        set => SetValue(EnableUserRegisterKey, value);
     }
     public const string EnableEmbedsKey = "embedEnable";
     public const bool EnableEmbedsDefault = true;
     public bool EnableEmbeds
     {
-        get
-        {
-            return GetBool(EnableEmbedsKey, EnableEmbedsDefault);
-        }
-        set
-        {
-            SetValue(EnableEmbedsKey, value);
-        }
+        get => GetBool(EnableEmbedsKey, EnableEmbedsDefault);
+        set => SetValue(EnableEmbedsKey, value);
     }
     public const string EnableLinkShortenerKey = "enableLinkShortener";
     public const bool EnableLinkShortenerDefault = false;
     public bool EnableLinkShortener
     {
-        get
-        {
-            return GetBool(EnableLinkShortenerKey, EnableLinkShortenerDefault);
-        }
-        set
-        {
-            SetValue(EnableLinkShortenerKey, value);
-        }
+        get => GetBool(EnableLinkShortenerKey, EnableLinkShortenerDefault);
+        set => SetValue(EnableLinkShortenerKey, value);
     }
 
     public const string EnableCustomBrandingKey = "customBrandEnable";
     public const bool EnableCustomBrandingDefault = false;
     public bool EnableCustomBranding
     {
-        get
-        {
-            return GetBool(EnableCustomBrandingKey, EnableCustomBrandingDefault);
-        }
-        set
-        {
-            SetValue(EnableCustomBrandingKey, value);
-        }
+        get => GetBool(EnableCustomBrandingKey, EnableCustomBrandingDefault);
+        set => SetValue(EnableCustomBrandingKey, value);
     }
 
     public const string CustomBrandingTitleKey = "customBrandTitle";
@@ -214,61 +190,34 @@ public class SystemSettingsProxy
             var result = GetString(CustomBrandingTitleKey, CustomBrandingTitleDefault);
             return string.IsNullOrEmpty(result) ? CustomBrandingTitleDefault : result;
         }
-        set
-        {
-            SetValue(CustomBrandingTitleKey, value);
-        }
+        set => SetValue(CustomBrandingTitleKey, value);
     }
 
     public const string EnableQuotaKey = "quotaEnable";
     public const bool EnableQuotaDefault = false;
     public bool EnableQuota
     {
-        get
-        {
-            return GetBool(EnableQuotaKey, EnableQuotaDefault);
-        }
-        set
-        {
-            SetValue(EnableQuotaKey, value);
-        }
+        get => GetBool(EnableQuotaKey, EnableQuotaDefault);
+        set => SetValue(EnableQuotaKey, value);
     }
     public const string DefaultUploadQuotaKey = "defaultUploadQuota";
     public long? DefaultUploadQuota
     {
-        get
-        {
-            return GetLong(DefaultUploadQuotaKey, null);
-        }
-        set
-        {
-            SetValue(DefaultUploadQuotaKey, value);
-        }
+        get => GetLong(DefaultUploadQuotaKey, null);
+        set => SetValue(DefaultUploadQuotaKey, value);
     }
     public const string DefaultStorageQuotaKey = "defaultStorageQuota";
     public long? DefaultStorageQuota
     {
-        get
-        {
-            return GetLong(DefaultStorageQuotaKey, null);
-        }
-        set
-        {
-            SetValue(DefaultStorageQuotaKey, value);
-        }
+        get => GetLong(DefaultStorageQuotaKey, null);
+        set => SetValue(DefaultStorageQuotaKey, value);
     }
     public const string EnableGeoIpKey = "enableGeoIP";
     public const bool EnableGeoIpDefault = false;
     public bool EnableGeoIp
     {
-        get
-        {
-            return GetBool(EnableGeoIpKey, EnableGeoIpDefault);
-        }
-        set
-        {
-            SetValue(EnableGeoIpKey, value);
-        }
+        get => GetBool(EnableGeoIpKey, EnableGeoIpDefault);
+        set => SetValue(EnableGeoIpKey, value);
     }
     public const string GeoIpDatabaseLocationKey = "geoIPDbLocation";
     public const string GeoIpDatabaseLocationDefault = "";
@@ -281,23 +230,14 @@ public class SystemSettingsProxy
                 ? GeoIpDatabaseLocationDefault
                 : result;
         }
-        set
-        {
-            SetValue(GeoIpDatabaseLocationKey, value);
-        }
+        set => SetValue(GeoIpDatabaseLocationKey, value);
     }
 
     public const string S3UsePresignedUrlKey = "s3_usePresignedUrl";
     public const bool S3UsePresignedUrlDefault = false;
     public bool S3UsePresignedUrl
     {
-        get
-        {
-            return GetBool(S3UsePresignedUrlKey, S3UsePresignedUrlDefault);
-        }
-        set
-        {
-            SetValue(S3UsePresignedUrlKey, value);
-        }
+        get => GetBool(S3UsePresignedUrlKey, S3UsePresignedUrlDefault);
+        set => SetValue(S3UsePresignedUrlKey, value);
     }
 }

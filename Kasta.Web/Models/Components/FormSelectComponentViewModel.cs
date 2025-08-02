@@ -44,7 +44,10 @@ public class FormSelectComponentViewModel
     {
         get
         {
-            return _selectedValues.FirstOrDefault();
+            lock (_selectedValues)
+            {
+                return _selectedValues.FirstOrDefault();
+            }
         }
         set
         {
@@ -68,15 +71,13 @@ public class FormSelectComponentViewModel
                 {
                     return _selectedValues.ToList();
                 }
-                else
+                
+                var r = new List<object>();
+                if (_selectedValues.Count > 0)
                 {
-                    var r = new List<object>();
-                    if (_selectedValues.Count > 0)
-                    {
-                        r.Add(_selectedValues.First());
-                    }
-                    return r;
+                    r.Add(_selectedValues.First());
                 }
+                return r;
             }
         }
         set
@@ -84,14 +85,10 @@ public class FormSelectComponentViewModel
             lock (Items)
             {
                 var r = new List<object>();
-                foreach (var x in Items)
+                foreach (var x in Items.Where(e => value.Contains(e.Value)))
                 {
-                    if (value.Contains(x.Value))
-                    {
-                        r.Add(x.Value);
-                        if (!Multiple)
-                            break;
-                    }
+                    r.Add(x.Value);
+                    if (!Multiple) break;
                 }
                 _selectedValues = r;
             }

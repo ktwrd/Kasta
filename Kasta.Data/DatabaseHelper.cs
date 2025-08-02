@@ -10,13 +10,15 @@ public static class DatabaseHelper
 
     public static string ToConnectionString(this PostgreSQLConfigElement element)
     {
-        var b = new NpgsqlConnectionStringBuilder();
-        b.Host = element.Host;
-        b.Port = element.Port;
-        b.Username = element.Username;
-        b.Password = element.Password;
-        b.Database = element.Name;
-        b.ApplicationName = "Kasta";
+        var b = new NpgsqlConnectionStringBuilder
+        {
+            Host = element.Host,
+            Port = element.Port,
+            Username = element.Username,
+            Password = element.Password,
+            Database = element.Name,
+            ApplicationName = "Kasta"
+        };
         return b.ToString();
     }
 }

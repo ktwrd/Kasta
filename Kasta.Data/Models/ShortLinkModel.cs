@@ -20,7 +20,9 @@ public class ShortLinkModel
     public string Id { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
+    [MaxLength(DatabaseHelper.GuidLength)]
     public string? CreatedByUserId { get; set; }
+
     [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }
 

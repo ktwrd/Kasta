@@ -25,8 +25,8 @@ public class FileService
     }
     public async Task DeleteFile(UserModel user, FileModel file)
     {
-        using var ctx = _db.CreateSession();
-        using var transaction = await ctx.Database.BeginTransactionAsync();
+        await using var ctx = _db.CreateSession();
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
         string? previewLocation = null;
         try
         {
@@ -414,13 +414,10 @@ public class FileService
     public string? GetPlaintextPreview(FileModel file)
     {
         var str = "";
-        using (var stream = GetStream(file, out var r))
-        {
-            using (var reader = new StreamReader(stream))
-            {
-                str = reader.ReadToEnd();
-            }
-        }
+        using var stream = GetStream(file, out var r);
+        using var reader = new StreamReader(stream);
+        str = reader.ReadToEnd();
+
         return str;
     }
 }

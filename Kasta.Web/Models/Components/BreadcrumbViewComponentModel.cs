@@ -13,16 +13,8 @@ public class BreadcrumbViewComponentItemModel
     public bool Current { get; set; }
 
     public string ComputedClass
-    {
-        get
-        {
-            if (Current)
-            {
-                return "breadcrumb-item active";
-            }
-
-            return "breadcrumb-item";
-        }
-    }
+        => Current
+        ? "breadcrumb-item active"
+        : "breadcrumb-item";
 }
 
