@@ -41,6 +41,11 @@
     }
 })
 
+@if (Model.Alert != null)
+{
+    @await Component.InvokeAsync("Alert", Model.Alert)
+}
+
 <div class="card shadow-sm">
     <div class="card-body">
         <div class="row">

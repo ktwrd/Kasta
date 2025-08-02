@@ -31,6 +31,11 @@
     {
         <sup class="mr-3">Deleted</sup>
     }
+    else
+    {
+        <a class="btn btn-sm btn-danger m-2" asp-area="Admin" asp-controller="Mailbox" asp-action="DeleteMessage" asp-route-id="@Model.Id">Delete</a>
+    }
+    <br/>
     <sup>@SizeHelper.BytesToString(SizeHelper.GetByteCount(Model.Message))</sup>
 </p>
 <hr/>

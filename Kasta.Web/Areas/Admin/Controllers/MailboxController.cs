@@ -22,10 +22,9 @@ public class MailboxController : Controller
         _logger = logger;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Index(
-        [FromQuery] int page = 1,
-        [FromQuery] bool showDeleted = false)
+    private async Task<MailboxListViewModel> GetIndexViewModel(
+        int page = 1,
+        bool showDeleted = false)
     {
         if (page <= 0)
         {
@@ -45,6 +44,8 @@ public class MailboxController : Controller
                 .Select(e => new {e.Id, e.Subject, e.Seen, e.CreatedAt});
         }
 
+        query = query.OrderByDescending(e => e.CreatedAt);
+
         var (results, lastPage) = await _db.PaginateAsync(query, page, 25);
         
         var viewModel = new MailboxListViewModel()
@@ -63,7 +64,24 @@ public class MailboxController : Controller
             });
         }
 
-        return View("Index", viewModel);
+        return viewModel;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index(
+        [FromQuery] int page = 1,
+        [FromQuery] bool showDeleted = false)
+    {
+        try
+        {
+            var viewModel = await GetIndexViewModel(page, showDeleted);
+            return View("Index", viewModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get mailbox list (page: {Page}, showDeleted: {ShowDeleted})", page, showDeleted);
+            throw;
+        }
     }
 
     [HttpGet("ViewMessage")]
@@ -115,5 +133,68 @@ public class MailboxController : Controller
         }
 
         return View("ViewMessage", model);
+    }
+
+    [HttpGet("DeleteMessage")]
+    public async Task<IActionResult> DeleteMessage([FromQuery] string id)
+    {
+        var model = await _db.SystemMailboxMessages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id);
+        if (model == null)
+        {
+            Response.StatusCode = 404;
+            return View("NotFound", new NotFoundViewModel
+            {
+                Message = $"Could not find message with Id `{id}`",
+            });
+        }
+
+        if (model.IsDeleted)
+        {
+            Response.StatusCode = 400;
+            return View("BadRequest", new BadRequestViewModel
+            {
+                Message = "Message is already been deleted.",
+            });
+        }
+        
+        try
+        {
+            await using var ctx = _db.CreateSession();
+            await using var trans = await ctx.Database.BeginTransactionAsync();
+            try
+            {
+                await ctx.SystemMailboxMessages.Where(e => e.Id == model.Id)
+                    .ExecuteUpdateAsync(e =>
+                        e.SetProperty(x => x.IsDeleted, true));
+                await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to mark message with Id {ModelId} as deleted", model.Id);
+                await trans.RollbackAsync();
+                throw new ApplicationException($"Failed to mark message with Id {model.Id} as deleted.", ex);
+            }
+            _logger.LogDebug("Marked message {ModelId} as deleted", model.Id);
+        }
+        catch (Exception ex)
+        {
+            SentrySdk.CaptureException(ex, scope =>
+            {
+                scope.SetExtra("FileModel", JsonSerializer.Serialize(model, new JsonSerializerOptions { WriteIndented = true }));
+                scope.SetTag("FileId", model.Id);
+            });
+        }
+        
+        var viewModel = await GetIndexViewModel();
+        viewModel.Alert = new()
+        {
+            AlertType = "success",
+            AlertContent = "Message deleted successfully.",
+            ShowAlertCloseButton = true
+        };
+        return View("Index", viewModel);
     }
 }
