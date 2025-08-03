@@ -1,0 +1,8 @@
+{
+  "name": "Vivet.AspNetCore.RequestTimeZone",
+  "description": "Time Zone Provider for ASP.NET Core",
+  "url": "https://github.com/vivet/Vivet.AspNetCore",
+  "license_type": "MIT",
+  "kind": "Dotnet",
+  "dotnet_asm": "Vivet.AspNetCore.RequestTimeZone"
+}

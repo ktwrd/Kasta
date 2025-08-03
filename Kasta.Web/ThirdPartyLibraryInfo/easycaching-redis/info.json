@@ -1,0 +1,8 @@
+{
+  "name": "EasyCaching.Redis",
+  "description": "EasyCaching is an open source caching library that contains basic usages and some advanced usages of caching which can help us to handle caching more easier!",
+  "url": "https://github.com/dotnetcore/EasyCaching",
+  "license_type": "MIT",
+  "kind": "Dotnet",
+  "dotnet_asm": "EasyCaching.Redis"
+}

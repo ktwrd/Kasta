@@ -1,0 +1,8 @@
+{
+  "name": "AWSSDK.S3",
+  "description": "Amazon Web Services SDK for S3",
+  "url": "https://github.com/aws/aws-sdk-net",
+  "license_type": "Apache 2.0",
+  "kind": "Dotnet",
+  "dotnet_asm": "AWSSDK.S3"
+}

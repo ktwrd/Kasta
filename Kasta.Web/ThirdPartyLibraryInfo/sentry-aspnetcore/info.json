@@ -1,0 +1,8 @@
+{
+  "name": "Sentry.AspNetCore",
+  "description": "ASP.NET Core Integrations for Sentry",
+  "url": "https://github.com/getsentry/sentry-dotnet",
+  "license_type": "MIT",
+  "kind": "Dotnet",
+  "dotnet_asm": "Sentry.AspNetCore"
+}

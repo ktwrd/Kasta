@@ -1,0 +1,9 @@
+{
+  "name": "MimeTypes",
+  "description": "",
+  "url": "https://github.com/khellang/MimeTypes",
+  "license_type": "BSD-2-Clause",
+  "kind": "Dotnet",
+  "version": "v2.5.2",
+  "dotnet_asm": "MimeTypes"
+}

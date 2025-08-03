@@ -1,0 +1,8 @@
+{
+  "name": "Microsoft.AspNetCore.Identity.EntityFrameworkCore",
+  "description": "",
+  "url": "https://github.com/dotnet/aspnetcore",
+  "license_type": "MIT",
+  "kind": "Dotnet",
+  "dotnet_asm": "Microsoft.AspNetCore.Identity.EntityFrameworkCore"
+}

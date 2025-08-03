@@ -1,0 +1,7 @@
+{
+  "name": "highlight.js",
+  "version": "v11.11.11",
+  "description": "JavaScript syntax highlighter with language auto-detection and zero dependencies.",
+  "url": "https://highlightjs.org/",
+  "license_type": "BSD-3-Clause"
+}

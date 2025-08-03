@@ -88,6 +88,7 @@ public class HomeController : Controller
             return new RedirectResult("/Identity/Account/Login", false);
         }
     }
+    
     [HttpGet("Links")]
     [Authorize]
     public async Task<IActionResult> LinkList([FromQuery] int? page = 1)
@@ -325,6 +326,18 @@ public class HomeController : Controller
             return new RedirectResult(returnUrl);
         }
         return new RedirectToActionResult(nameof(Index), "Home", null);
+    }
+
+    [Route("~/Licenses")]
+    public IActionResult Licenses()
+    {
+        var data = LicenseHelper.GetLicenses();
+        var vm = new LicensesViewModel
+        {
+            Licenses = data,
+            OtherLibraries = LicenseHelper.GetOtherLibraries()
+        };
+        return View("Licenses", vm);
     }
 
     [Route("~/Error")]

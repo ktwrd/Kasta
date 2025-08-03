@@ -1,0 +1,8 @@
+{
+  "name": "Markdig",
+  "description": " A fast, powerful, CommonMark compliant, extensible Markdown processor for .NET",
+  "url": "https://github.com/xoofx/markdig",
+  "license_type": "BSD-2-Clause",
+  "kind": "Dotnet",
+  "dotnet_asm": "Markdig"
+}

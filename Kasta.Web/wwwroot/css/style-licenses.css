@@ -1,0 +1,36 @@
+
+.card .card-header,
+.card .card-body {
+    text-align:left;
+    padding:2px 4px
+}
+
+.col-auto {
+    margin-bottom: 2rem !important;
+}
+
+@media (max-width:572px) {
+    .col-auto {
+        width: calc(100% - 4px) !important;
+        margin: 4px 2px;
+        padding: 0;
+    }
+    .row {
+        margin: 0 !important;
+    }
+}
+@media (min-width:992px) {
+    .card-body {
+        width: calc((calc(960px + 30px) / 2) - 50px);
+    }
+}
+@media (min-width:1200px) {
+    .card-body {
+        width: calc((calc(1140px + 30px) / 2) - 50px);
+    }
+}
+@media print {
+    .col-auto {
+        width: calc(100% - 100px) !important;
+    }
+}

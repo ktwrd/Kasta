@@ -1,0 +1,8 @@
+{
+  "name": "Npgsql.EntityFrameworkCore.PostgreSQL",
+  "description": "Entity Framework Core provider for PostgreSQL ",
+  "url": "https://github.com/npgsql/efcore.pg",
+  "license_type": "PostgreSQL",
+  "kind": "Dotnet",
+  "dotnet_asm": "Npgsql.EntityFrameworkCore.PostgreSQL"
+}

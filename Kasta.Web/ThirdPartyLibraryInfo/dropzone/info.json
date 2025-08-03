@@ -1,0 +1,7 @@
+{
+  "name": "Dropzone.js",
+  "version": "v5.9.3",
+  "description": "Dropzone is an easy to use drag'n'drop library. It supports image previews and shows nice progress bars.",
+  "url": "https://www.dropzone.dev/",
+  "license_type": "MIT"
+}

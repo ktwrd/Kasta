@@ -1,0 +1,8 @@
+{
+  "name": "Sentry",
+  "description": "Sentry SDK for .NET (Error Reporting)",
+  "url": "https://github.com/getsentry/sentry-dotnet",
+  "license_type": "MIT",
+  "kind": "Dotnet",
+  "dotnet_asm": "Sentry"
+}

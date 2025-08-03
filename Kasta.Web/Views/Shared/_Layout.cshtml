@@ -110,7 +110,7 @@
     var title = ViewData["Title"]?.ToString();
     if (title != null && !string.IsNullOrEmpty(appTitle))
     {
-        title += "- " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
+        title += " - " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
     }
 }
 <!DOCTYPE html>

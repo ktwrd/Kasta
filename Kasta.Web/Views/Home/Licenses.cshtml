@@ -1,0 +1,75 @@
+@model LicensesViewModel
+
+@{
+    ViewData["Title"] = "Software Licenses";
+    Layout = "_Layout";
+}
+
+@section Head {
+    <link href="~/css/style-licenses.css" rel="stylesheet" />
+}
+
+<h3>Software Licenses</h3>
+
+<div class="row d-flex flex-row">
+    @foreach (var item in Model.Licenses.OrderBy(e => e.Info.Name))
+    {
+        <div class="m-1 col-auto">
+            <div class="card">
+                <div class="card-header">
+                    @if (string.IsNullOrEmpty(item.Info.Url))
+                    {
+                        <span>@item.Info.Name</span>
+                    }
+                    else
+                    {
+                        <a href="@item.Info.Url" target="_blank">@item.Info.Name</a>
+                    }
+                    <div class="card-header-sm">
+                        @(item.Info.Version) - @(item.Info.LicenseType)
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(item.Info.Copyright))
+                    {
+                        <small>@(item.Info.Copyright)</small>
+                    }
+                    @if (!string.IsNullOrEmpty(item.Info.Description))
+                    {
+                        <p class="mb-1" style="white-space: pre-line">@item.Info.Description</p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.OtherLibraries.Count != 0)
+{
+    <h3>Libraries</h3>
+    <div class="row d-flex flex-row">
+        @foreach (var item in Model.OtherLibraries.OrderBy(e => e.Name))
+        {
+            <div class="m-1 col-auto">
+                <div class="card">
+                    <div class="card-header">
+                        @(item.Name)
+                        <div class="card-header-sm">
+                            @(item.Version)
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(item.Copyright))
+                        {
+                            <small>@(item.Copyright)</small>
+                        }
+                        @if (!string.IsNullOrEmpty(item.Description))
+                        {
+                            <p class="mb-1" style="white-space: pre-line">@item.Description</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

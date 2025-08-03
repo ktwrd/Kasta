@@ -1,0 +1,8 @@
+{
+  "name": "NLog",
+  "description": "Flexible and Structured Logging for various .NET Platforms",
+  "url": "https://nlog-project.org/",
+  "license_type": "BSD-3-Clause",
+  "kind": "Dotnet",
+  "dotnet_asm": "NLog"
+}
