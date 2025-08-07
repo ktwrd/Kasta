@@ -18,6 +18,12 @@ public static class RoleKind
     [RoleKindElement]
     public const string FileAdmin = nameof(FileAdmin);
 
+    [RoleKindElement]
+    public const string GalleryAdmin = nameof(GalleryAdmin);
+    
+    [RoleKindElement]
+    public const string GalleryViewOverride = nameof(GalleryViewOverride);
+
     /// <summary>
     /// User can create custom links, like a "vanity" URL
     /// </summary>
