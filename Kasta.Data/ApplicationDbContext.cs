@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Kasta.Data.Models;
 using Kasta.Data.Models.Audit;
+using Kasta.Data.Models.Gallery;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -70,6 +71,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
     public DbSet<S3FileChunkModel> S3FileChunks { get; set; }
     public DbSet<ChunkUploadSessionModel> ChunkUploadSessions { get; set; } 
     public DbSet<ShortLinkModel> ShortLinks { get; set; }
+    
+    public DbSet<GalleryModel> Galleries { get; set; }
+    public DbSet<GalleryTextHistoryModel> GalleryTextHistory { get; set; }
+    public DbSet<GalleryFileAssociationModel> GalleryFileAssociations { get; set; }
 
     public DbSet<AuditModel> Audit { get; set; }
     public DbSet<AuditEntryModel> AuditEntries { get; set; }
@@ -326,6 +331,43 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                     .HasForeignKey<S3FileInformationModel>(e => e.Id)
                     .IsRequired(false);
             });
+        builder.Entity<GalleryModel>(b =>
+        {
+            b.ToTable(GalleryModel.TableName);
+            b.HasKey(e => e.Id);
+            
+            b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
+            b.HasIndex(e => e.Public).IsUnique(false);
+            
+            b.HasOne(e => e.CreatedByUser)
+                .WithOne()
+                .HasForeignKey<GalleryModel>(e => e.CreatedByUserId)
+                .IsRequired(false);
+            
+            b.HasMany(e => e.FileAssociations)
+                .WithOne(e => e.Gallery)
+                .HasForeignKey(e => e.GalleryId);
+        });
+        builder.Entity<GalleryTextHistoryModel>(b =>
+        {
+            b.ToTable(GalleryTextHistoryModel.TableName);
+            b.HasKey(e => new { e.GalleryId, e.Timestamp });
+
+            b.HasIndex(e => e.Timestamp).IsDescending(true).IsUnique(false);
+
+            b.HasOne(e => e.Gallery)
+                .WithOne()
+                .HasForeignKey<GalleryTextHistoryModel>(e => e.GalleryId);
+        });
+        builder.Entity<GalleryFileAssociationModel>(b =>
+        {
+            b.ToTable(GalleryFileAssociationModel.TableName);
+            b.HasKey(e => new { e.GalleryId, e.FileId });
+            
+            b.HasOne(e => e.File)
+                .WithOne()
+                .HasForeignKey<GalleryFileAssociationModel>(e => e.FileId);
+        });
         builder.Entity<ShortLinkModel>(b =>
         {
             b.ToTable(ShortLinkModel.TableName);
