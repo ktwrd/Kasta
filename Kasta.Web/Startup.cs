@@ -2,6 +2,7 @@ using System.Net;
 using EFCoreSecondLevelCacheInterceptor;
 using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Data.Repositories;
 using Kasta.Shared;
 using Kasta.Web.Helpers;
 using Kasta.Web.Services;
@@ -40,6 +41,7 @@ public class Startup
         // Configure the HTTP request pipeline.
         if (env.IsDevelopment())
         {
+            app.UseDeveloperExceptionPage();
             app.UseMigrationsEndPoint();
         }
         else
@@ -113,7 +115,9 @@ public class Startup
             .AddScoped<LinkShortenerWebService>()
             .AddScoped<TimeZoneService>()
             .AddScoped<MailboxService>()
-            .AddScoped<SystemSettingsProxy>();
+            .AddScoped<SystemSettingsProxy>()
+            .AddScoped<GalleryRepository>()
+            .AddScoped<GalleryService>();
         services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new BlockUserRegisterAttribute());

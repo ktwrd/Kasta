@@ -1,11 +1,10 @@
-@using Kasta.Shared.Helpers
-@using Kasta.Web.Helpers
 @using Kasta.Web.Areas.Admin.Models.User
 @using Kasta.Web.Models.Components
 @model UserListViewModel
 
 @{
     ViewData["Title"] = "User List - Admin";
+    ViewData["CurrentNavItem"] = "admin-user";
     Layout = "_Layout";
 }
 
@@ -52,73 +51,16 @@
                     </tr>
             </thead>
             <tbody>
-                @foreach (var user in Model.Users)
+            @foreach (var user in Model.Users)
+            {
+                @await Component.InvokeAsync("AdminUserListItem", new AdminUserListItemViewComponentModel()
                 {
-                    <tr>
-                        <td><code>@user.Id</code></td>
-                        <td>
-                            @(string.IsNullOrEmpty(user.UserName) ? "" : user.UserName)
-                        </td>
-                        <td>
-                            @(string.IsNullOrEmpty(user.Email) ? "" : user.Email)
-                        </td>
-                        <td>
-                            @(FormatHelper.ToEmoji(user.TwoFactorEnabled))
-                        </td>
-                        <td>
-                            @(FormatHelper.ToEmoji(user.LockoutEnabled))
-                            @if (user.LockoutEnd != null)
-                            {
-                                <br/>
-                                @($"Lockout ends at {user.LockoutEnd}")
-                            }
-                        </td>
-                        <td>
-                            <code>@user.AccessFailedCount</code>
-                        </td>
-                        @if (Model.SystemSettings.EnableQuota)
-                        {
-                            <td>@(user.Limit?.MaxStorage == null || user.Limit.MaxStorage < 0 ? "Default" : SizeHelper.BytesToString((long)user.Limit.MaxStorage!))</td>
-                            <td>@(user.Limit?.MaxFileSize == null || user.Limit.MaxFileSize < 0 ? "Default" : SizeHelper.BytesToString((long)user.Limit.MaxFileSize!))</td>
-                        }
-                        <td>
-                            @if (user.Limit?.SpaceUsed <= 0)
-                            {
-                                @("None")
-                            }
-                            else
-                            {
-                                @SizeHelper.BytesToString((long)(user.Limit?.SpaceUsed ?? 0))
-                            }
-                        </td>
-                        <td>
-                            @if (Model.UserFileCount.TryGetValue(user.Id, out var currentUserFileCount))
-                            {
-                                @($"{currentUserFileCount:n0}")
-                                @if (Model.UserPreviewFileCount.TryGetValue(user.Id, out var currentUserPreviewFileCount))
-                                {
-                                    <br/>
-                                    <sup>Preview @($"{currentUserPreviewFileCount:n0}")</sup>
-                                }
-                            }
-                        </td>
-                        <td>
-                            @if (string.IsNullOrEmpty(user.ThemeName))
-                            {
-                                @("Default")
-                            }
-                            else
-                            {
-                                <code>@user.ThemeName</code>
-                            }
-                        </td>
-                        <td>
-                            <a class="btn btn-primary" href='@Url.Action("GetUser", "User", new { area = "Admin", userId = user.Id })'>
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                        </td>
-                    </tr>
-                }
+                    User = user,
+                    SystemSettings = Model.SystemSettings,
+                    UserFileCount = Model.UserFileCount,
+                    UserPreviewFileCount = Model.UserPreviewFileCount,
+                })
+            }
             </tbody>
         </table>
     </div>

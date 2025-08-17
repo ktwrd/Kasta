@@ -23,6 +23,55 @@ public class FileService
         _auditService = services.GetRequiredService<AuditService>();
         _mailbox = services.GetRequiredService<MailboxService>();
     }
+    internal async Task<string?> DeleteFileInternal(ApplicationDbContext ctx, UserModel user, FileModel file)
+    {
+        await _auditService.InsertAuditData(ctx, _auditService.GenerateDeleteAudit(user, file, (e) => e.Id, FileModel.TableName));
+
+        await _auditService.InsertAuditData(ctx, 
+            _auditService.GenerateDeleteAudit(
+                user,
+                _db.ChunkUploadSessions.Where(e => e.FileId == file.Id),
+                e => e.Id,
+                ChunkUploadSessionModel.TableName));
+        await _auditService.InsertAuditData(ctx, 
+            _auditService.GenerateDeleteAudit(
+                user,
+                _db.S3FileChunks.Where(e => e.FileId == file.Id),
+                e => e.Id,
+                S3FileChunkModel.TableName));
+        await _auditService.InsertAuditData(ctx, 
+            _auditService.GenerateDeleteAudit(
+                user,
+                _db.S3FileInformations.Where(e => e.Id == file.Id),
+                e => e.Id,
+                S3FileInformationModel.TableName));
+        await _auditService.InsertAuditData(
+            ctx,
+            _auditService.GenerateDeleteAudit(
+                user,
+                _db.FilePreviews.Where(e => e.Id == file.Id),
+                e => e.Id,
+                FilePreviewModel.TableName));
+        await _auditService.InsertAuditData(
+            ctx,
+            _auditService.GenerateDeleteAudit(
+                user,
+                _db.FileImageInfos.Where(e => e.Id == file.Id),
+                e => e.Id,
+                FileImageInfoModel.TableName));
+
+        var previewLocation = await ctx.FilePreviews.Where(e => e.Id == file.Id)
+            .Select(e => e.RelativeLocation)
+            .FirstOrDefaultAsync();
+
+        await ctx.ChunkUploadSessions.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
+        await ctx.S3FileChunks.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
+        await ctx.S3FileInformations.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+        await ctx.FilePreviews.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+        await ctx.FileImageInfos.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+        await ctx.Files.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+        return previewLocation;
+    }
     public async Task DeleteFile(UserModel user, FileModel file)
     {
         await using var ctx = _db.CreateSession();
@@ -30,51 +79,7 @@ public class FileService
         string? previewLocation = null;
         try
         {
-            await _auditService.InsertAuditData(ctx, _auditService.GenerateDeleteAudit(user, file, (e) => e.Id, FileModel.TableName));
-
-            await _auditService.InsertAuditData(ctx, 
-                _auditService.GenerateDeleteAudit(
-                    user,
-                    _db.ChunkUploadSessions.Where(e => e.FileId == file.Id),
-                    e => e.Id,
-                    ChunkUploadSessionModel.TableName));
-            await _auditService.InsertAuditData(ctx, 
-                _auditService.GenerateDeleteAudit(
-                    user,
-                    _db.S3FileChunks.Where(e => e.FileId == file.Id),
-                    e => e.Id,
-                    S3FileChunkModel.TableName));
-            await _auditService.InsertAuditData(ctx, 
-                _auditService.GenerateDeleteAudit(
-                    user,
-                    _db.S3FileInformations.Where(e => e.Id == file.Id),
-                    e => e.Id,
-                    S3FileInformationModel.TableName));
-            await _auditService.InsertAuditData(
-                ctx,
-                _auditService.GenerateDeleteAudit(
-                    user,
-                    _db.FilePreviews.Where(e => e.Id == file.Id),
-                    e => e.Id,
-                    FilePreviewModel.TableName));
-            await _auditService.InsertAuditData(
-                ctx,
-                _auditService.GenerateDeleteAudit(
-                    user,
-                    _db.FileImageInfos.Where(e => e.Id == file.Id),
-                    e => e.Id,
-                    FileImageInfoModel.TableName));
-
-            previewLocation = await ctx.FilePreviews.Where(e => e.Id == file.Id)
-                .Select(e => e.RelativeLocation)
-                .FirstOrDefaultAsync();
-
-            await ctx.ChunkUploadSessions.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
-            await ctx.S3FileChunks.Where(e => e.FileId == file.Id).ExecuteDeleteAsync();
-            await ctx.S3FileInformations.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
-            await ctx.FilePreviews.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
-            await ctx.FileImageInfos.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
-            await ctx.Files.Where(e => e.Id == file.Id).ExecuteDeleteAsync();
+            previewLocation = await DeleteFileInternal(ctx, user, file);
 
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();

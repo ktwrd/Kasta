@@ -87,8 +87,13 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
 
     public List<T> Paginate<T>(IQueryable<T> query, int page, int pageSize, out bool lastPage)
     {
+        return Paginate(query, page, pageSize, out lastPage, out var _);
+    }
+    public List<T> Paginate<T>(IQueryable<T> query, int page, int pageSize, out bool lastPage, out int lastPageNumber)
+    {
         var count = query.Count();
         var lastPageIndex = Convert.ToInt32(Math.Ceiling(count / (double)pageSize));
+        lastPageNumber = lastPageIndex;
         int skip = 0;
         if (page > 1)
         {

@@ -243,6 +243,95 @@ namespace Kasta.Data.Migrations
                     b.ToTable("FilePreview", (string)null);
                 });
 
+            modelBuilder.Entity("Kasta.Data.Models.Gallery.GalleryFileAssociationModel", b =>
+                {
+                    b.Property<string>("GalleryId")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<string>("FileId")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("GalleryId", "FileId");
+
+                    b.HasIndex("FileId")
+                        .IsUnique();
+
+                    b.ToTable("GalleryFileAssociation", (string)null);
+                });
+
+            modelBuilder.Entity("Kasta.Data.Models.Gallery.GalleryModel", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<bool>("IsDraft")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Public")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("Public");
+
+                    b.ToTable("Gallery", (string)null);
+                });
+
+            modelBuilder.Entity("Kasta.Data.Models.Gallery.GalleryTextHistoryModel", b =>
+                {
+                    b.Property<string>("GalleryId")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("GalleryId", "Timestamp");
+
+                    b.HasIndex("GalleryId")
+                        .IsUnique();
+
+                    b.HasIndex("Timestamp")
+                        .IsDescending();
+
+                    b.ToTable("GalleryTextHistory", (string)null);
+                });
+
             modelBuilder.Entity("Kasta.Data.Models.PreferencesModel", b =>
                 {
                     b.Property<string>("Key")
@@ -812,6 +901,45 @@ namespace Kasta.Data.Migrations
                     b.Navigation("File");
                 });
 
+            modelBuilder.Entity("Kasta.Data.Models.Gallery.GalleryFileAssociationModel", b =>
+                {
+                    b.HasOne("Kasta.Data.Models.FileModel", "File")
+                        .WithOne()
+                        .HasForeignKey("Kasta.Data.Models.Gallery.GalleryFileAssociationModel", "FileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Kasta.Data.Models.Gallery.GalleryModel", "Gallery")
+                        .WithMany("FileAssociations")
+                        .HasForeignKey("GalleryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("File");
+
+                    b.Navigation("Gallery");
+                });
+
+            modelBuilder.Entity("Kasta.Data.Models.Gallery.GalleryModel", b =>
+                {
+                    b.HasOne("Kasta.Data.Models.UserModel", "CreatedByUser")
+                        .WithOne()
+                        .HasForeignKey("Kasta.Data.Models.Gallery.GalleryModel", "CreatedByUserId");
+
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("Kasta.Data.Models.Gallery.GalleryTextHistoryModel", b =>
+                {
+                    b.HasOne("Kasta.Data.Models.Gallery.GalleryModel", "Gallery")
+                        .WithOne()
+                        .HasForeignKey("Kasta.Data.Models.Gallery.GalleryTextHistoryModel", "GalleryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Gallery");
+                });
+
             modelBuilder.Entity("Kasta.Data.Models.S3FileChunkModel", b =>
                 {
                     b.HasOne("Kasta.Data.Models.S3FileInformationModel", "S3FileInformation")
@@ -954,6 +1082,11 @@ namespace Kasta.Data.Migrations
                     b.Navigation("ImageInfo");
 
                     b.Navigation("Preview");
+                });
+
+            modelBuilder.Entity("Kasta.Data.Models.Gallery.GalleryModel", b =>
+                {
+                    b.Navigation("FileAssociations");
                 });
 
             modelBuilder.Entity("Kasta.Data.Models.S3FileInformationModel", b =>

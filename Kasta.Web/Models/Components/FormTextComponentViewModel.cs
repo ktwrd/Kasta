@@ -28,6 +28,10 @@ public class FormTextComponentViewModel
     /// </summary>
     public string? Placeholder { get; set; }
     /// <summary>
+    /// Value for the <c>maxlength</c> attribute on the input element.
+    /// </summary>
+    public int? MaxLength { get; set; }
+    /// <summary>
     /// When <see langword="true"/>, the <c>readonly</c> attribute will be put on the element.
     /// </summary>
     public bool ReadOnly { get; set; }

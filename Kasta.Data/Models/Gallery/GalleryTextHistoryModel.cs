@@ -11,6 +11,8 @@ public class GalleryTextHistoryModel
         Timestamp = DateTime.UtcNow;
     }
     
+    public string FakeId => $"{GalleryId}_{Timestamp.Ticks}";
+    
     /// <summary>
     /// Foreign Key to <see cref="GalleryModel.Id"/>
     /// </summary>

@@ -1,6 +1,7 @@
 ﻿@using Kasta.Data
 @using Kasta.Data.Models
 @using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @using Vivet.AspNetCore.RequestTimeZone.Extensions
@@ -112,6 +113,12 @@
     {
         title += " - " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
     }
+
+    string? currentNavItem = null;
+    if (ViewData["CurrentNavItem"] is string currentNavItemStr)
+    {
+        currentNavItem = currentNavItemStr;
+    }
 }
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@bootstrapThemeAttributeValue">
@@ -149,7 +156,41 @@
 @if (enableNavbar)
 {
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3">
+        <nav class="navbar bg-body-tertiary fixed-top">
+            <div class="container-fluid">
+                @if (!string.IsNullOrEmpty(appTitle))
+                {
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">@appTitle</a>
+                }
+                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                    <div class="offcanvas-header">
+                        @if (!string.IsNullOrEmpty(appTitle))
+                        {
+                            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">@appTitle</h5>
+                        }
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                            @await Component.InvokeAsync("NavLinks", new NavLinksComponentViewModel()
+                            {
+                                AppTitle = appTitle,
+                                CurrentItem = currentNavItem,
+                                SystemSettings = systemSettings,
+                                ShowUserAdmin = showUserAdmin,
+                                ShowMailbox = showMailbox,
+                                ShowSystemAdmin = isAdmin
+                            })
+                        </ul>
+                        <partial name="_LoginPartial"/>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        @*<nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 @if (!string.IsNullOrEmpty(appTitle))
                 {
@@ -161,7 +202,16 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
+                        @await Component.InvokeAsync("NavLinks", new NavLinksComponentViewModel()
+                        {
+                            AppTitle = appTitle,
+                            CurrentItem = currentNavItem,
+                            SystemSettings = systemSettings,
+                            ShowUserAdmin = showUserAdmin,
+                            ShowMailbox = showMailbox,
+                            ShowSystemAdmin = isAdmin
+                        })
+                        $1$<li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
                                 <i class="bi bi-house-door"></i>
                                 Home
@@ -202,25 +252,58 @@
                                     Mailbox
                                 </a>
                             </li>
-                        }
+                        }#1#
                     </ul>
                     <partial name="_LoginPartial"/>
                 </div>
             </div>
-        </nav>
+        </nav>*@
     </header>   
+    
+    <div class="row mt-5 mx-2 root-row pb-3">
+        <div class="col-auto navbar-vertical">
+            <div class="container-fluid">
+                <ul class="nav nav-pills flex-column">
+                    @if (!string.IsNullOrEmpty(appTitle))
+                    {
+                        <a class="navbar-brand" href="#">@appTitle</a>
+                    }
+                    @await Component.InvokeAsync("NavLinks", new NavLinksComponentViewModel()
+                    {
+                        AppTitle = appTitle,
+                        CurrentItem = currentNavItem,
+                        SystemSettings = systemSettings,
+                        ShowUserAdmin = showUserAdmin,
+                        ShowMailbox = showMailbox,
+                        ShowSystemAdmin = isAdmin
+                    })
+                    <partial name="_LoginVerticalPartial"/>
+                </ul>
+            </div>
+        </div>
+        <div class="col">
+            <div class="container-fluid">
+                <main role="main">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
+    </div>
 }
-<div class="container">
-    <main role="main" class="pb-3">
-        @RenderBody()
-    </main>
-</div>
+else
+{
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+}
 
 <div class="container-fluid footer">
     <div class="text-muted">
         Powered by <a href="https://github.com/ktwrd/Kasta">Kasta @(versionString)</a>
         &bull;
-        <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html">GPL v2</a>
+        <i class="bi bi-journal-text"></i> <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html">GPL v2</a>
     </div>
 </div>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>

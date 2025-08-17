@@ -14,6 +14,7 @@
         form="@Model.ParentFormId"
         placeholder="@(Model.Placeholder ?? string.Empty)"
         readonly="@Model.ReadOnly"
+        maxlength="@(Model.MaxLength.HasValue ? Model.MaxLength.Value : string.Empty)"
         @(Model.Required ? "required" : "") 
         @(Model.Disabled ? "disabled" : "") />
 @if (!string.IsNullOrEmpty(Model.HelpText))

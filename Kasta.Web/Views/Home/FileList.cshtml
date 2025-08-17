@@ -7,6 +7,7 @@
 @model FileListViewModel
 
 @{
+    ViewData["CurrentNavItem"] = "home";
     ViewData["Title"] = "Files";
     Layout = "_Layout";
     var userModel = await UserManager.GetUserAsync(User);
@@ -18,20 +19,20 @@
     <div class="card-body">
         <table class="table-inline">
             <tr>
-            <th>Space Used</th>
-            <td>@Model.SpaceUsed</td>
-            @if (!string.IsNullOrEmpty(Model.SpaceAvailable))
-            {
-                <th>Space Available</th>
-                <td>@Model.SpaceAvailable</td>
-            }
+                <th>Space Used</th>
+                <td>@Model.SpaceUsed</td>
+                @if (!string.IsNullOrEmpty(Model.SpaceAvailable))
+                {
+                    <th>Space Available</th>
+                    <td>@Model.SpaceAvailable</td>
+                }
             </tr>
         </table>
-        
+
         <div class="row">
             <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
                 <form class="mr-1" asp-controller="Home" asp-action="Index" method="GET">
-                    <input type="hidden" name="page" value="@Model.Page" />
+                    <input type="hidden" name="page" value="@Model.Page"/>
                     <div class="input-group">
                         <input class="form-control" type="text" name="search" placeholder="Search" value="@Model.SearchQuery"/>
                         <button class="btn btn-secondary" type="submit"><i class="bi bi-search"></i></button>
@@ -40,24 +41,23 @@
             </div>
             <div class="col-md-4 d-flex justify-content-center">
                 <nav>
-                    <ul class="pagination">
-                        @if (Model.Page > 1)
+                    @await Component.InvokeAsync("Pagination", new PaginationComponentViewModel()
+                    {
+                        Page = Model.Page,
+                        TotalPageCount = Model.TotalPageCount,
+                        IsLastPage = Model.IsLastPage,
+                        CreateUrlDelegate = (page) =>
                         {
-                            <li class="page-item">
-                                <a class="page-link" asp-controller="Home" asp-action="Index" asp-route-page="@(Model.Page - 1)" asp-route-search="@Model.SearchQuery" aria-label="Previous">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
-                            </li>
+                            return Url.Action("Index",
+                                "Home",
+                                new
+                                {
+                                    page = page,
+                                    search = Model.SearchQuery,
+                                    Area = ""
+                                }) ?? "#";
                         }
-                        @if (!Model.IsLastPage)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" asp-controller="Home" asp-action="Index" asp-route-page="@(Model.Page + 1)" asp-route-search="@Model.SearchQuery" aria-label="Next">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </li>
-                        }
-                    </ul>
+                    })
                 </nav>
             </div>
             <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
@@ -68,24 +68,26 @@
             </div>
         </div>
 
-        <table class="table">
-            <thead>
-            <tr>
-                <th colspan="2">Filename</th>
-                <th>Created At</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var file in Model.Files)
-            {
-                @await Component.InvokeAsync("FileListItem", new FileListItemComponentViewModel()
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th colspan="2">Filename</th>
+                    <th>Created At</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var file in Model.Files)
                 {
-                    File = file,
-                    UserSettings = userSetting
-                })
-            }
-            </tbody>
-        </table>
+                    @await Component.InvokeAsync("FileListItem", new FileListItemComponentViewModel()
+                    {
+                        File = file,
+                        UserSettings = userSetting
+                    })
+                }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

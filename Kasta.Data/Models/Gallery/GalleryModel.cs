@@ -12,6 +12,8 @@ public class GalleryModel
         Id = Guid.NewGuid().ToString();
         CreatedAt = DateTime.UtcNow;
         Public = true;
+        IsDraft = false;
+        Title = "";
     }
     
     /// <summary>
@@ -23,8 +25,11 @@ public class GalleryModel
     [DefaultValue(true)]
     public bool Public { get; set; }
     
+    [DefaultValue(false)]
+    public bool IsDraft { get; set; }
+    
     [MaxLength(200)]
-    public string? Title { get; set; }
+    public string Title { get; set; }
     
     [MaxLength(4000)]
     public string? Description { get; set; }

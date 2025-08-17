@@ -14,4 +14,7 @@ public class IndexViewModel
     /// </summary>
     public GalleryModel Gallery { get; set; }
     public UserModel? Author { get; set; }
+    public required UserSettingModel UserSettings { get; set; }
+    
+    public bool CanEdit { get; set; } = false;
 }

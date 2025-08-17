@@ -21,7 +21,7 @@
                 <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">Manage Account</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { Area = "" })">
                         <button type="submit" class="dropdown-item">Logout</button>
                     </form>
                 </li>

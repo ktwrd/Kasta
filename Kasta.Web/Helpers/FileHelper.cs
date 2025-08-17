@@ -1,10 +1,110 @@
 using System.Collections.Frozen;
+using System.Security.Claims;
+using CSharpFunctionalExtensions;
+using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Web.Models;
+using Kasta.Web.Services;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web.Helpers;
 
 public static class FileHelper
 {
+    public static async Task<Result<FileModel, NotAuthorizedViewModel>> HandleUpload(
+        ApplicationDbContext db,
+        UploadService uploadService,
+        UserModel user,
+        IFormFile file)
+    {
+        var userLimit = await db.UserLimits
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.UserId == user.Id);
+        var systemSettings = db.GetSystemSettings();
+        if (systemSettings.EnableQuota)
+        {
+            long spaceUsed = userLimit?.SpaceUsed ?? 0;
+            var spaceAllocated = userLimit?.MaxStorage ?? systemSettings.DefaultStorageQuotaReal ?? 0;
+            if ((spaceUsed + file.Length) > spaceAllocated)
+            {
+                return new NotAuthorizedViewModel()
+                {
+                    Message = $"You don't have enough space to upload file (file size: {SizeHelper.BytesToString(file.Length)}, storage: {SizeHelper.BytesToString(spaceAllocated)})",
+                };
+            }
+
+            var maxFileSize = userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal ?? long.MaxValue;
+            if (file.Length > maxFileSize)
+            {
+                return new NotAuthorizedViewModel()
+                {
+                    Message = $"Provided file exceeds maximum file size ({SizeHelper.BytesToString(maxFileSize)})"
+                };
+            }
+        }
+
+        await using var stream = file.OpenReadStream();
+        return await uploadService.UploadBasicAsync(user, stream, file.FileName, file.Length);
+    }
+    
+    
+    public static async Task<IActionResult> HandleDetailsResult(
+        Controller controller,
+        FileModel file,
+        ApplicationDbContext db,
+        FileService fileService)
+    {
+        var bot = KastaWebHelper.GetBotFeatures(controller.Request.Headers.UserAgent.ToString());
+        if (bot == BotFeature.EmbedMedia)
+        {
+            return new RedirectResult(controller.Url.Action("GetFile", "ApiFile", new
+            {
+                value = file.Id,
+                preview = false
+            })!);
+        }
+
+        var systemSettings = db.GetSystemSettings();
+        var vm = new FileDetailViewModel()
+        {
+            File = file,
+            Embed = systemSettings.EnableEmbeds
+        };
+
+        if (fileService.AllowPlaintextPreview(file))
+        {
+            vm.PreviewContent = fileService.GetPlaintextPreview(file);
+        }
+        return controller.View("~/Views/File/Details.cshtml", vm);
+    }
+    
+    public static async Task<bool> CanAccessAsync(
+        ClaimsPrincipal user,
+        FileModel file,
+        UserManager<UserModel> userManager,
+        SignInManager<UserModel> signInManager)
+    {
+        if (!file.Public)
+        {
+            if (!signInManager.IsSignedIn(user))
+            {
+                return false;
+            }
+            var userModel = await userManager.GetUserAsync(user);
+
+            if ((userModel?.Id ?? "invalid") != file.CreatedByUserId)
+            {
+                if (!(userModel?.IsAdmin ?? false))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
     private static string GetFilenameExtension(string filename)
     {
         var split = filename.Split('.');

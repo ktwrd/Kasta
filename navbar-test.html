@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <link rel="stylesheet" href="Kasta.Web/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="Kasta.Web/wwwroot/lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
+        <link rel="stylesheet" href="Kasta.Web/wwwroot/css/theme-2010.css" />
+        <link rel="stylesheet" href="Kasta.Web/wwwroot/css/site.css" />
+    </head>
+    <body>
+        <header>
+            <nav class="navbar bg-body-tertiary fixed-top">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Kasta</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Offcanvas</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                                <li class="nav-item">
+                                    <a class="nav-link active" aria-current="page" href="#">Home</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Link</a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Dropdown
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Action</a></li>
+                                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                                    <li>
+                                    <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <form class="d-flex mt-3" role="search">
+                                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
+                                <button class="btn btn-outline-success" type="submit">Search</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+
+        <!-- <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kasta</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door"></i>
+                                Home
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="LinkList">
+                                    <i class="bi bi-link-45deg"></i>
+                                    Link Shortener
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-controller="System" asp-action="Index">
+                                    <i class="bi bi-gear"></i>
+                                    System
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="List">
+                                    <i class="bi bi-people"></i>
+                                    Users
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-controller="Mailbox" asp-action="Index">
+                                    <i class="bi bi-mailbox"></i>
+                                    Mailbox
+                                </a>
+                            </li>
+                    </ul>
+                    <partial name="_LoginPartial"/>
+                </div>
+            </div>
+        </nav> -->
+        </header>
+
+        <div class="row mt-5 mx-2 root-row">
+            <div class="col-auto navbar-vertical">
+                <div class="container-fluid">
+                    <ul class="nav nav-pills flex-column">
+                        <a class="navbar-brand" href="#">Kasta</a>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#"><i class="bi bi-house-door"></i> Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="bi bi-link-45deg"></i> Link Shortener</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col">
+                <div b-ou8k6y3os1="" class="container">
+    <main b-ou8k6y3os1="" role="main" class="pb-3">
+        
+
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table-inline">
+            <tbody><tr>
+            <th>Space Used</th>
+            <td>244.8MB</td>
+                <th>Space Available</th>
+                <td>4.8GB</td>
+            </tr>
+        </tbody></table>
+        
+        <div class="row">
+            <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
+                <form class="mr-1" method="GET" action="/">
+                    <input type="hidden" name="page" value="1">
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="search" placeholder="Search">
+                        <button class="btn btn-secondary" type="submit"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4 d-flex justify-content-center">
+                <nav>
+                    <ul class="pagination">
+                            <li class="page-item">
+                                <a class="page-link" aria-label="Next" href="/?page=2">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
+                <a class="btn btn-secondary" href="/Upload">
+                    <i class="bi bi-upload"></i>
+                    Upload
+                </a>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th colspan="2">Filename</th>
+                <th>Created At</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+
+
+<tr data-file-id="a1973cfe-7e25-45e7-91ba-7e20ae8c339a">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/JgmPc0Ym?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/JgmPc0Ym">
+Screenshot_20250814-120400.png        </a>
+        <br>
+        97.4KB
+    </td>
+    <td>
+        08/14/2025 12:04:30
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/JgmPc0Ym">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/a1973cfe-7e25-45e7-91ba-7e20ae8c339a?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/JgmPc0Ym?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/a1973cfe-7e25-45e7-91ba-7e20ae8c339a?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="b4923580-53e0-4b10-812c-b41f3bfbd85c">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/kMAIOdpM?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/kMAIOdpM">
+Screenshot_20250810-134302.png        </a>
+        <br>
+        356.3KB
+    </td>
+    <td>
+        08/10/2025 13:43:25
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/kMAIOdpM">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/b4923580-53e0-4b10-812c-b41f3bfbd85c?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/kMAIOdpM?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/b4923580-53e0-4b10-812c-b41f3bfbd85c?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="9d30b187-25bf-498c-ad82-6d561602180d">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/2l6pBo0D?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/2l6pBo0D">
+1458224497549.png        </a>
+        <br>
+        1MB
+    </td>
+    <td>
+        08/09/2025 19:08:54
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/2l6pBo0D">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/9d30b187-25bf-498c-ad82-6d561602180d?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/2l6pBo0D?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/9d30b187-25bf-498c-ad82-6d561602180d?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="55e016c2-de2c-490f-b4c3-188a05cc043f">
+        <td>
+                <center>
+                    <i class="bi bi-file-earmark-text"></i>
+                </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/SCo5OaqW">
+log.txt        </a>
+        <br>
+        27.8KB
+    </td>
+    <td>
+        08/09/2025 13:59:27
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/SCo5OaqW">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/55e016c2-de2c-490f-b4c3-188a05cc043f?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/SCo5OaqW?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/55e016c2-de2c-490f-b4c3-188a05cc043f?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="ba2e41f4-6415-4bda-8fbb-1ac257743d3e">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/eMzvFJcJ?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/eMzvFJcJ">
+image.png        </a>
+        <br>
+        63.3KB
+    </td>
+    <td>
+        08/05/2025 18:23:33
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/eMzvFJcJ">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/ba2e41f4-6415-4bda-8fbb-1ac257743d3e?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/eMzvFJcJ?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/ba2e41f4-6415-4bda-8fbb-1ac257743d3e?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="eaea4eb7-8437-4c61-add6-ffc30368a798">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/RMMbiXyZ?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/RMMbiXyZ">
+image.png        </a>
+        <br>
+        13.6KB
+    </td>
+    <td>
+        08/05/2025 18:23:31
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/RMMbiXyZ">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/eaea4eb7-8437-4c61-add6-ffc30368a798?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/RMMbiXyZ?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/eaea4eb7-8437-4c61-add6-ffc30368a798?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="8489c67a-06b9-44f2-a3f3-e7c4e312e1d9">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/v7g5gibZ?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/v7g5gibZ">
+image.png        </a>
+        <br>
+        59.2KB
+    </td>
+    <td>
+        08/05/2025 18:23:15
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/v7g5gibZ">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/8489c67a-06b9-44f2-a3f3-e7c4e312e1d9?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/v7g5gibZ?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/8489c67a-06b9-44f2-a3f3-e7c4e312e1d9?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="79c054d2-d91a-4dd1-b1c7-8d1a0c1e1d1f">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/Hczb2W6X?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/Hczb2W6X">
+image.png        </a>
+        <br>
+        20.4KB
+    </td>
+    <td>
+        08/05/2025 18:23:12
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/Hczb2W6X">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/79c054d2-d91a-4dd1-b1c7-8d1a0c1e1d1f?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/Hczb2W6X?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/79c054d2-d91a-4dd1-b1c7-8d1a0c1e1d1f?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="1c7822bc-ba55-4f60-bd60-7aa852ac793b">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/vDsakP3u?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/vDsakP3u">
+image.png        </a>
+        <br>
+        102.2KB
+    </td>
+    <td>
+        08/05/2025 17:33:07
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/vDsakP3u">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/1c7822bc-ba55-4f60-bd60-7aa852ac793b?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/vDsakP3u?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/1c7822bc-ba55-4f60-bd60-7aa852ac793b?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="8ac6cb23-9144-45ca-ac28-c1f37a261a8f">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/XczlsavE?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/XczlsavE">
+image.png        </a>
+        <br>
+        19.8KB
+    </td>
+    <td>
+        08/05/2025 17:32:58
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/XczlsavE">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/8ac6cb23-9144-45ca-ac28-c1f37a261a8f?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/XczlsavE?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/8ac6cb23-9144-45ca-ac28-c1f37a261a8f?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="325bb9e7-e86f-48cd-9b73-7c2cc1c3594c">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/AqL24o0C?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/AqL24o0C">
+image.png        </a>
+        <br>
+        19.8KB
+    </td>
+    <td>
+        08/05/2025 17:32:53
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/AqL24o0C">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/325bb9e7-e86f-48cd-9b73-7c2cc1c3594c?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/AqL24o0C?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/325bb9e7-e86f-48cd-9b73-7c2cc1c3594c?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="0a625e99-dcec-4e1c-85b9-4919a9ff3a2b">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/pRCP9MGC?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/pRCP9MGC">
+image.png        </a>
+        <br>
+        61.3KB
+    </td>
+    <td>
+        08/05/2025 17:09:42
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/pRCP9MGC">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/0a625e99-dcec-4e1c-85b9-4919a9ff3a2b?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/pRCP9MGC?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/0a625e99-dcec-4e1c-85b9-4919a9ff3a2b?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="fd9ef525-c6c9-4044-ad36-760a6f9ca0b1">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/xmPQDrKn?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/xmPQDrKn">
+image.png        </a>
+        <br>
+        76.8KB
+    </td>
+    <td>
+        08/05/2025 17:09:22
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/xmPQDrKn">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/fd9ef525-c6c9-4044-ad36-760a6f9ca0b1?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/xmPQDrKn?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/fd9ef525-c6c9-4044-ad36-760a6f9ca0b1?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="d4937da8-2b54-486c-ba7f-5c4f5d929353">
+        <td>
+                <center>
+                    <i class="bi bi-bi bi-file-earmark-music"></i>
+                </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/S3FtqbiJ">
+mtt_sniper_music_09_novox.wav        </a>
+        <br>
+        16.3MB
+    </td>
+    <td>
+        08/05/2025 15:37:10
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/S3FtqbiJ">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/d4937da8-2b54-486c-ba7f-5c4f5d929353?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/S3FtqbiJ?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/d4937da8-2b54-486c-ba7f-5c4f5d929353?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="f6ad543d-2cde-4e7d-a513-843562a14959">
+        <td>
+                <center>
+                    <i class="bi bi-bi bi-file-earmark-music"></i>
+                </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/MBqadrGM">
+mtt_sniper_music_09.wav        </a>
+        <br>
+        16.3MB
+    </td>
+    <td>
+        08/05/2025 15:36:57
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/MBqadrGM">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/f6ad543d-2cde-4e7d-a513-843562a14959?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/MBqadrGM?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/f6ad543d-2cde-4e7d-a513-843562a14959?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="1060861e-cc91-4b09-a38c-c63a6a2c9ed0">
+        <td>
+                <center>
+                    <i class="bi bi-bi bi-file-earmark-music"></i>
+                </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/nXEh7e4Z">
+mtt_sniper_music_07.wav        </a>
+        <br>
+        14.8MB
+    </td>
+    <td>
+        08/05/2025 15:36:45
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/nXEh7e4Z">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/1060861e-cc91-4b09-a38c-c63a6a2c9ed0?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/nXEh7e4Z?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/1060861e-cc91-4b09-a38c-c63a6a2c9ed0?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="aa5a38b5-faeb-4f6d-b6d7-a161a87991f4">
+        <td>
+                <center>
+                    <i class="bi bi-bi bi-file-earmark-music"></i>
+                </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/Hvo90fxS">
+mtt_sniper_music_01.wav        </a>
+        <br>
+        14.3MB
+    </td>
+    <td>
+        08/05/2025 15:36:39
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/Hvo90fxS">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/aa5a38b5-faeb-4f6d-b6d7-a161a87991f4?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/Hvo90fxS?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/aa5a38b5-faeb-4f6d-b6d7-a161a87991f4?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="1c9d4774-9e1a-42cd-90de-91b8415249f1">
+        <td>
+                <center>
+                    <i class="bi bi-file-earmark-text"></i>
+                </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/mDQokw3x">
+ulauncher-v6b20-20250805_1050.log        </a>
+        <br>
+        5.1KB
+    </td>
+    <td>
+        08/05/2025 10:54:45
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/mDQokw3x">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/1c9d4774-9e1a-42cd-90de-91b8415249f1?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/mDQokw3x?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/1c9d4774-9e1a-42cd-90de-91b8415249f1?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="7cf4e61f-895b-4ddd-bea4-d8a81050db01">
+        <td>
+                <center>
+                    <i class="bi bi-file-earmark-text"></i>
+                </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/MbMdS0V6">
+ulauncher-20250805_1047.log        </a>
+        <br>
+        4.6KB
+    </td>
+    <td>
+        08/05/2025 10:49:05
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/MbMdS0V6">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/7cf4e61f-895b-4ddd-bea4-d8a81050db01?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/MbMdS0V6?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/7cf4e61f-895b-4ddd-bea4-d8a81050db01?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="5a74a4b0-fd7c-4e7d-914e-42e38823848b">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/XbOqa9pK?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/XbOqa9pK">
+Chroma-Blue-Dark.jpg        </a>
+        <br>
+        5.2MB
+    </td>
+    <td>
+        08/01/2025 11:52:12
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/XbOqa9pK">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/5a74a4b0-fd7c-4e7d-914e-42e38823848b?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/XbOqa9pK?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/5a74a4b0-fd7c-4e7d-914e-42e38823848b?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="bc46bad7-7d92-4af0-a69b-bade423ceee3">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/eTSGJdxx?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/eTSGJdxx">
+Screenshot_20250723-185959.png        </a>
+        <br>
+        229.5KB
+    </td>
+    <td>
+        07/23/2025 19:01:13
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/eTSGJdxx">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/bc46bad7-7d92-4af0-a69b-bade423ceee3?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/eTSGJdxx?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/bc46bad7-7d92-4af0-a69b-bade423ceee3?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="7bf7613d-3089-4818-b8ef-b1a447f4fea3">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/A9cHV3IW?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/A9cHV3IW">
+Screenshot_20250723-121952.png        </a>
+        <br>
+        530.3KB
+    </td>
+    <td>
+        07/23/2025 12:23:35
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/A9cHV3IW">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/7bf7613d-3089-4818-b8ef-b1a447f4fea3?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/A9cHV3IW?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/7bf7613d-3089-4818-b8ef-b1a447f4fea3?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="feed90b5-e89c-4a6d-9a2a-d1305b609e2e">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/jAA4qG3l?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/jAA4qG3l">
+Screenshot_20250723-121957.png        </a>
+        <br>
+        594.7KB
+    </td>
+    <td>
+        07/23/2025 12:23:29
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/jAA4qG3l">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/feed90b5-e89c-4a6d-9a2a-d1305b609e2e?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/jAA4qG3l?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/feed90b5-e89c-4a6d-9a2a-d1305b609e2e?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="47cca7ee-05e0-4359-83ce-593dc8faf502">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/QSO2RGKL?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/QSO2RGKL">
+Screenshot_20250723-122003.png        </a>
+        <br>
+        558.1KB
+    </td>
+    <td>
+        07/23/2025 12:23:16
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/QSO2RGKL">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/47cca7ee-05e0-4359-83ce-593dc8faf502?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/QSO2RGKL?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/47cca7ee-05e0-4359-83ce-593dc8faf502?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+
+<tr data-file-id="8f5c2ffe-a86e-4ecf-8b27-9ac20b610213">
+        <td>
+            <center>
+                <img src="https://share.kate.pet/f/oQJ1YWG7?preview=true" style="max-height: 50px;" alt="Preview of image." height="50">
+            </center>
+        </td>
+    <td>
+            <i class="bi bi-unlock"></i>
+        <a href="https://share.kate.pet/d/oQJ1YWG7">
+Screenshot_20250723-122003.png        </a>
+        <br>
+        558.1KB
+    </td>
+    <td>
+        07/23/2025 12:22:29
+    </td>
+    <td>
+        <div class="btn-group">
+            <a class="btn btn-sm btn-secondary" href="javascript:void(0)" title="Copy Link" data-clipboard-text="https://share.kate.pet/d/oQJ1YWG7">
+                <i class="bi bi-link-45deg"></i>
+            </a>
+                <a class="btn btn-sm btn-secondary" href="/FilePublic/8f5c2ffe-a86e-4ecf-8b27-9ac20b610213?state=False" title="Make file private">
+                    <i class="bi bi-lock"></i>
+                </a>
+            <a class="btn btn-sm btn-primary" href="https://share.kate.pet/f/oQJ1YWG7?download=true" target="_blank" title="Download">
+                <i class="bi bi-cloud-download"></i>
+            </a>
+            <a class="btn btn-sm btn-danger" href="/Delete/8f5c2ffe-a86e-4ecf-8b27-9ac20b610213?returnUrl=%2F" title="Delete">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>            </tbody>
+        </table>
+    </div>
+</div>
+
+    </main>
+</div>
+            </div>
+        </div>
+
+        <!-- <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kasta</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                    <i class="bi bi-house-door"></i>
+                                    Home
+                                </a>
+                            </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="LinkList">
+                                        <i class="bi bi-link-45deg"></i>
+                                        Link Shortener
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="Admin" asp-controller="System" asp-action="Index">
+                                        <i class="bi bi-gear"></i>
+                                        System
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="List">
+                                        <i class="bi bi-people"></i>
+                                        Users
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="Admin" asp-controller="Mailbox" asp-action="Index">
+                                        <i class="bi bi-mailbox"></i>
+                                        Mailbox
+                                    </a>
+                                </li>
+                            <!--
+                            @if (systemSettings.EnableLinkShortener)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="LinkList">
+                                        <i class="bi bi-link-45deg"></i>
+                                        Link Shortener
+                                    </a>
+                                </li>
+                            }
+                            @if (isAdmin)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="Admin" asp-controller="System" asp-action="Index">
+                                        <i class="bi bi-gear"></i>
+                                        System
+                                    </a>
+                                </li>
+                            }
+                            @if (showUserAdmin)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="Admin" asp-controller="User" asp-action="List">
+                                        <i class="bi bi-people"></i>
+                                        Users
+                                    </a>
+                                </li>
+                            }
+                            @if (showMailbox)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="Admin" asp-controller="Mailbox" asp-action="Index">
+                                        <i class="bi bi-mailbox"></i>
+                                        Mailbox
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                        <partial name="_LoginPartial"/>
+                    </div>
+                </div>
+            </nav>
+        </header> -->
+<script src="Kasta.Web/wwwroot/lib/jquery/dist/jquery.min.js"></script>
+<script src="Kasta.Web/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>

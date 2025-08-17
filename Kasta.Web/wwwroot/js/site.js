@@ -8,10 +8,10 @@
             },
             totaluploadprogress: function (uploadProgress) {
                 var text = Math.round(uploadProgress) + '%';
-                $('#uploadProgess').css({'width': text}).text(text);
+                $('#uploadProgress').css({'width': text}).text(text);
             },
             queuecomplete: function () {
-                $('#uploadProgess').css({'width': '0%'}).text('');
+                $('#uploadProgress').css({'width': '0%'}).text('');
             },
             success: function (file, response) {
                 $(file.previewElement)

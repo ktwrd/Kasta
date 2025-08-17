@@ -1,0 +1,54 @@
+@using Kasta.Web.Models.Components
+@model PaginationComponentViewModel
+
+
+<ul class="pagination">
+    @if (Model.Page > 1)
+    {
+        <li class="page-item">
+            <a class="page-link"
+               aria-label="Previous"
+               href="@Model.CreateUrlDelegate(Model.Page - 1)">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+    }
+    @foreach (var index in Enumerable.Range(1, 2).OrderByDescending(e => e))
+    {
+        if (Model.Page - index >= 1)
+        {
+            <li class="page-item">
+                <a class="page-link"
+                   href="@Model.CreateUrlDelegate(Model.Page - index)">
+                    @(Model.Page - index)
+                </a>
+            </li>
+        }
+    }
+    <li class="page-item active">
+        <a class="page-link" href="@Model.CreateUrlDelegate(Model.Page)">@Model.Page</a>
+    </li>
+    @foreach (var index in Enumerable.Range(1, 2).OrderBy(e => e))
+    {
+        if (Model.Page + index <= Model.TotalPageCount)
+        {
+            <li class="page-item">
+                <a class="page-link"
+                   href="@Model.CreateUrlDelegate(Model.Page + index)">
+                    @(Model.Page + index)
+                </a>
+            </li>
+        }
+    }
+    @if (!Model.IsLastPage)
+    {
+        <li class="page-item">
+            <a class="page-link"
+               href="@Model.CreateUrlDelegate(Model.Page + 1)"
+               aria-label="Next">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    }
+</ul>
+

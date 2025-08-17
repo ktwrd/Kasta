@@ -5,6 +5,7 @@
 @{
     var subject = Model.Subject.FancyMaxLength(30);
     ViewData["Title"] = subject;
+    ViewData["CurrentNavItem"] = "admin-mailbox";
     Layout = "_Layout";
 
     var breadcrumbData = new BreadcrumbViewComponentModel()

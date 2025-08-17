@@ -147,3 +147,38 @@ tr.bg-warning th {
     float: right;
     font-weight: 400;
 }
+
+.navbar-vertical {
+    --bs-navbar-brand-padding-y: 0.3125rem;
+    --bs-navbar-brand-margin-end: 0;
+    --bs-navbar-brand-font-size: 1.25rem;
+    --bs-navbar-brand-color: rgba(var(--bs-emphasis-color-rgb), 1);
+    --bs-navbar-brand-hover-color: rgba(var(--bs-emphasis-color-rgb), 1);
+}
+
+.nav.nav-pills.flex-column .nav-item .nav-link {
+    padding: .5rem .75rem;
+}
+
+@media (max-width: 1200px) {
+    .navbar-vertical {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+    .root-row {
+        margin-top: 0;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    main[role=main] {
+        padding-top: 2rem;
+    }
+}
+@media (min-width: 1200px) {
+    .navbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+}

@@ -1,0 +1,15 @@
+@model Kasta.Web.Areas.Gallery.Models.Details.DeleteConfirmViewModel
+
+@{
+    ViewBag.Title = "Confirm Action";
+    ViewData["CurrentNavItem"] = "gallery";
+    Layout = "_Layout";
+}
+
+
+<h4>Are you sure you want to delete this gallery?</h4>
+<p>When deleting your gallery "@Model.Record.Title", it will delete it permanently along with @Model.AffectedFiles files.</p>
+
+<a href="@Url.Action("Delete", "GalleryDetails", new { Area = "Gallery", confirm = true })" class="btn btn-lg btn-danger">
+    Delete this gallery, along with @Model.AffectedFiles files.
+</a>

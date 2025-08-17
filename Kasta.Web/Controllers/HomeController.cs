@@ -46,7 +46,7 @@ public class HomeController : Controller
             {
                 SearchQuery = string.IsNullOrEmpty(search) ? null : search
             };
-            if (page.HasValue && page.Value >= 1)
+            if (page is >= 1)
             {
                 viewModel.Page = page.Value;
             }
@@ -54,7 +54,8 @@ public class HomeController : Controller
                 .SearchFiles(viewModel.SearchQuery, userModel.Id)
                 .OrderByDescending(v => v.CreatedAt)
                 .Include(fileModel => fileModel.Preview);
-            viewModel.Files = _db.Paginate(query, viewModel.Page, 25, out bool lastPage);
+            viewModel.Files = _db.Paginate(query, viewModel.Page, 25, out bool lastPage, out var lastPageNumber);
+            viewModel.TotalPageCount = lastPageNumber;
             viewModel.IsLastPage = lastPage;
 
             var systemSettings = _db.GetSystemSettings();
@@ -195,55 +196,27 @@ public class HomeController : Controller
             throw new InvalidOperationException($"Unable to fetch User model even though user is logged in?");
         }
         
-        var userLimit = await _db.UserLimits
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.UserId == user.Id);
-        var systemSettings = _db.GetSystemSettings();
-        if (systemSettings.EnableQuota)
+        var result = await FileHelper.HandleUpload(
+            _db,
+            _uploadService,
+            user,
+            file);
+        if (result.IsFailure)
         {
-            long spaceUsed = userLimit?.SpaceUsed ?? 0;
-            var spaceAllocated = userLimit?.MaxStorage ?? systemSettings.DefaultStorageQuotaReal ?? 0;
-            if ((spaceUsed + file.Length) > spaceAllocated)
+            HttpContext.Response.StatusCode = 401;
+            if (returnJson)
             {
-                HttpContext.Response.StatusCode = 401;
-                var vm = new NotAuthorizedViewModel()
-                {
-                    Message = $"You don't have enough space to upload file (file size: {SizeHelper.BytesToString(file.Length)}, storage: {SizeHelper.BytesToString(spaceAllocated)})",
-                };
-                if (returnJson)
-                {
-                    return Json(vm);
-                }
-                return View("NotAuthorized", vm);
+                return Json(result.Error);
             }
-
-            var maxFileSize = userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal ?? long.MaxValue;
-            if (file.Length > maxFileSize)
-            {
-                HttpContext.Response.StatusCode = 413;
-                var vm = new NotAuthorizedViewModel()
-                {
-                    Message = $"Provided file exceeds maximum file size ({SizeHelper.BytesToString(maxFileSize)})"
-                };
-                if (returnJson)
-                {
-                    return Json(vm);
-                }
-                return View("NotAuthorized", vm);
-            }
+            return View("NotAuthorized", result.Error);
         }
-
-        FileModel resultFile;
-        using (var stream = file.OpenReadStream())
-        {
-            resultFile = await _uploadService.UploadBasicAsync(user, stream, file.FileName, file.Length);
-        }
+        
         if (returnJson)
         {
             return Json(new Dictionary<string, object>()
             {
                 { "message", "OK" },
-                { "url", $"/f/{resultFile.ShortUrl}" }
+                { "url", $"/f/{result.Value.ShortUrl}" }
             });
         }
         return new RedirectToActionResult(nameof(Index), "Home", null);

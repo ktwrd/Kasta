@@ -1,0 +1,104 @@
+@using Kasta.Web.Areas.Gallery.Models.GalleryHome
+@using Kasta.Web.Models.Components
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
+@model ListViewModel
+@inject IHttpContextAccessor ContextAccessor
+
+@{
+    ViewBag.Title = "Galleries";
+    ViewData["CurrentNavItem"] = "gallery";
+    Layout = "_Layout";
+    
+    
+    TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
+    if (ViewData.ContainsKey("TargetTimezone"))
+    {
+        targetTimezone = (TimeZoneInfo)ViewData["TargetTimezone"]!;
+    }
+    else if (ContextAccessor.HttpContext != null)
+    {
+        var tz = ContextAccessor.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table-inline">
+           <tr>
+               <th>Space Used</th>
+               <td>@Model.SpaceUsed</td>
+               @if (!string.IsNullOrEmpty(Model.SpaceAvailable))
+               {
+                   <th>Space Available</th>
+                   <td>@Model.SpaceAvailable</td>
+               }
+           </tr>
+        </table>
+        
+        <div class="row">
+            <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
+            </div>
+            <div class="col-md-4 d-flex justify-content-center">
+                <nav>
+                    @await Component.InvokeAsync("Pagination", new PaginationComponentViewModel()
+                    {
+                        Page = Model.Page,
+                        TotalPageCount = Model.TotalPageCount,
+                        IsLastPage = Model.IsLastPage,
+                        CreateUrlDelegate = (page)
+                            => Url.Action(
+                                "Index",
+                                "GalleryHome",
+                                new
+                                {
+                                    page = page,
+                                    Area = "Gallery"
+                                }) ?? "#"
+                    })
+                </nav>
+            </div>
+            <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
+                <a class="btn btn-secondary" href="@Url.Action("Create", "Create", new { Area = "Gallery" })">
+                    <i class="bi bi-upload"></i>
+                    Create
+                </a>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Created At</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.Galleries)
+                {
+                    <tr>
+                        <th>
+                            <a href="@Url.Action("Index", "GalleryDetails", new { Area = "Gallery", id = item.Id})">
+                                @(item.Title ?? item.Id)
+                            </a>
+                        </th>
+                        <td>
+                            @TimeZoneInfo.ConvertTimeFromUtc(new DateTimeOffset(item.CreatedAt).UtcDateTime, targetTimezone)
+                        </td>
+                        <td>
+                            <a href="@Url.Action("DeleteGallery", "GalleryHome", new { Area = "Gallery", id = item.Id})" class="btn btn-sm btn-danger">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

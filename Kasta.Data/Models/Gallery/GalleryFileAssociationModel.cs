@@ -12,6 +12,8 @@ public class GalleryFileAssociationModel
         FileId = Guid.Empty.ToString();
     }
     
+    public string FakeId => $"{GalleryId}_{FileId}";
+    
     /// <summary>
     /// Foreign Key to <see cref="GalleryModel.Id"/>
     /// </summary>

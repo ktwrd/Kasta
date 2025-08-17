@@ -6,6 +6,7 @@
 
 @{
     ViewData["Title"] = $"{Model.User.UserName} - User - Admin";
+    ViewData["CurrentNavItem"] = "admin-user";
     Layout = "_Layout";
     var user = Model.User;
 }

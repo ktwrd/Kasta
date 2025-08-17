@@ -34,38 +34,24 @@ public class FileController : Controller
     [HttpGet("~/File/Details/{id}")]
     public async Task<IActionResult> Details(string id)
     {
+        id = id.Trim().ToLower();
         if (string.IsNullOrEmpty(id))
         {
             Response.StatusCode = 404;
             return View("NotFound");
         }
-        _log.LogDebug($"Fetching file with requested ID \"{id}\"");
+        _log.LogDebug("Fetching file with requested ID \"{FileId}\"", id);
         var file = await _db.GetFileAsync(id, includeAuthor: true, includePreview: true, includeImageInfo: true);
-        if (file == null)
+        if (file == null ||
+            await FileHelper.CanAccessAsync(User, file, _userManager, _signInManager) == false)
         {
             Response.StatusCode = 404;
             return View("NotFound");
         }
-        if (!file.Public)
-        {
-            if (!_signInManager.IsSignedIn(User))
-            {
-                Response.StatusCode = 404;
-                return View("NotFound");
-            }
-            var userModel = await _userManager.GetUserAsync(User);
 
-            if ((userModel?.Id ?? "invalid") != file.CreatedByUserId)
-            {
-                if (!(userModel?.IsAdmin ?? false))
-                {
-                    Response.StatusCode = 404;
-                    return View("NotFound");
-                }
-            }
-        }
-
-        var bot = KastaWebHelper.GetBotFeatures(Request.Headers.UserAgent.ToString());
+        return await FileHelper.HandleDetailsResult(this, file, _db, _fileService);
+        
+        /*var bot = KastaWebHelper.GetBotFeatures(Request.Headers.UserAgent.ToString());
         if (bot == BotFeature.EmbedMedia)
         {
             return new RedirectResult(Url.Action("GetFile", "ApiFile", new
@@ -82,13 +68,12 @@ public class FileController : Controller
             Embed = systemSettings.EnableEmbeds
         };
 
-
         if (_fileService.AllowPlaintextPreview(file))
         {
             vm.PreviewContent = _fileService.GetPlaintextPreview(file);
         }
 
-        return View("Details", vm);
+        return View("Details", vm);*/
     }
 
     /// <summary>

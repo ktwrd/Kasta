@@ -401,7 +401,7 @@ input[type="button"].btn-block {
 
     border-bottom: 1px solid #424242 !important;
 }
-@media (min-width: 992px)
+@media (min-width: 1200px)
 {
     .navbar {
         padding-top: 0;
@@ -426,7 +426,7 @@ input[type="button"].btn-block {
         filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#313131",endColorstr="#212121",GradientType=1);
     }
 }
-@media (prefers-color-scheme: light) or (color-scheme: light) {
+@media (prefers-color-scheme: light) {
     .navbar {
         color: #212121 !important;
         background: #dedede;

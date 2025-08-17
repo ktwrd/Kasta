@@ -2,7 +2,8 @@
 @model ProfileViewModel
 
 @{
-    ViewBag.Title = "Profile";
+    ViewData["Title"] = "Profile";
+    ViewData["CurrentNavItem"] = "user-profile";
     Layout = "_Layout";
 
     var themeValues = new List<FormSelectItem>()
@@ -30,8 +31,6 @@
     };
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-10">
         <div class="card shadow-sm">
             <div class="card-body">
                 <form asp-controller="Profile" asp-action="Save" enctype="multipart/form-data">
@@ -71,5 +70,3 @@
                 </p>
             </div>
         </div>
-    </div>
-</div>

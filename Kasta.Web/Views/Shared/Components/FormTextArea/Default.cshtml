@@ -1,0 +1,32 @@
+@using Kasta.Web.Helpers
+@model Kasta.Web.Models.Components.FormTextAreaComponentViewModel
+
+@{
+    var yes = "yes";
+    var no = "no";
+}
+
+@if (!string.IsNullOrEmpty(Model.DisplayName))
+{
+    <label class="form-label" for="@Model.Id">@Model.DisplayName</label>
+}
+<textarea class="form-control @(Model.ExtraClass ?? string.Empty)"
+          id="@Model.Id" name="@Model.Name"
+          form="@Model.ParentFormId"
+          placeholder="@(Model.Placeholder ?? string.Empty)"
+          readonly="@Model.ReadOnly"
+          autocorrect="@(Model.Autocorrect.HasValue ? (Model.Autocorrect.Value ? yes : no) : string.Empty)"
+          autocapitalize="@Model.AutoCapitalizeText"
+          maxlength="@(Model.MaxLength.HasValue ? Model.MaxLength.Value : string.Empty)"
+          minlength="@(Model.MinLength.HasValue ? Model.MinLength.Value : string.Empty)"
+          rows="@(Model.RowCount is >= 1 ? Model.RowCount.Value : string.Empty)"
+          cols="@(Model.ColumnCount is >= 1 ? Model.ColumnCount.Value : string.Empty)"
+          spellcheck="@(Model.SpellcheckText)"
+          @(Model.Required ? "required" : "") 
+          @(Model.Disabled ? "disabled" : "")>@(Model.Value ?? string.Empty)</textarea>
+@if (!string.IsNullOrEmpty(Model.HelpText))
+{
+    <div id="@(Model.Id)Help" class="form-text">
+        @Html.Raw(KastaWebHelper.MarkdownToHtmlBasic(Model.HelpText))
+    </div>
+}

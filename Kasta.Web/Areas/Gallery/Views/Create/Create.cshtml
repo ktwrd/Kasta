@@ -1,0 +1,47 @@
+@using Kasta.Web.Areas.Gallery.Models.Create
+@model CreateGalleryViewModel
+
+@{
+    ViewData["Title"] = "Create Gallery";
+    ViewData["CurrentNavItem"] = "gallery";
+    Layout = "_Layout";
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h3>Info</h3>
+        <div id="component-update-container"
+             hx-get="@Url.Action("ComponentUpdate", "Create", new { Area = "Gallery", id = Model.Gallery.Id })"
+             hx-trigger="revealed"
+             hx-swap="innerHTML"
+             hx-indicator="#component-update-container .htmx-indicator"
+             hx-target="this">
+            <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        </div>
+        
+        <h5>Select Files</h5>
+        <div class="row mb-3">
+            <div class="col-10">
+                <div class="progress h-100">
+                    <div class="progress-bar progress-bar-animated progress-bar-striped" style="width: 0;" id="uploadProgress"></div>
+                </div>
+            </div>
+            <div class="col-2 text-center">
+                <button button type="button" class="btn btn-sm btn-outline-danger btn-block" onclick="Dropzone.instances[0].removeAllFiles(true)" data-toggle="tooltip" title="{{ lang('cancel') }}">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <form action="@Url.Action("UploadFile", "Create", new { Area = "Gallery", returnJson = true })"
+                      method="post" enctype="multipart/form-data" id="upload-dropzone" class="dropzone">
+                    <input type="hidden" name="id" value="@Model.Gallery.Id" />
+                    <div class="fallback">
+                        <input name="file" type="file" multiple>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

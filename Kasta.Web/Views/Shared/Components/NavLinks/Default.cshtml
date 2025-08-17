@@ -1,0 +1,86 @@
+@using Kasta.Web.Models.Components
+@using NavLinkItem = Kasta.Web.Models.Components.NavLinksComponentViewModel.NavLinkItem
+@model NavLinksComponentViewModel
+
+@{
+    var items = new List<NavLinkItem>()
+    {
+        new()
+        {
+            Identifier = "home",
+            Link = Url.Action("Index", "Home") ?? "#",
+            Text = "Home",
+            Icon = "house-door"
+        },
+        new()
+        {
+            Identifier = "link-shortener",
+            Link = Url.Action("LinkList", "Home") ?? "#",
+            Text = "Link Shortener",
+            Icon = "link-45deg",
+            Visible = Model.SystemSettings.EnableLinkShortener
+        },
+        new()
+        {
+            Identifier = "gallery",
+            Link = Url.Action("Index", "GalleryHome", new { Area = "Gallery" }) ?? "#",
+            Text = "Gallery",
+            Icon = "images"
+        },
+        new()
+        {
+            Identifier = "admin-system",
+            Link = Url.Action("Index", "System", new { Area = "Admin" }) ?? "#",
+            Text = "System",
+            Icon = "gear",
+            Visible = Model.ShowSystemAdmin
+        },
+        new()
+        {
+            Identifier = "admin-user",
+            Link = Url.Action("List", "User", new { Area = "Admin" }) ?? "#",
+            Text = "Users",
+            Icon = "people",
+            Visible = Model.ShowUserAdmin
+        },
+        new()
+        {
+            Identifier = "admin-mailbox",
+            Link = Url.Action("Index", "Mailbox", new { Area = "Admin" }) ?? "#",
+            Text = "Mailbox",
+            Icon = "mailbox",
+            Visible = Model.ShowMailbox
+        }
+    };
+
+    foreach (var item in items)
+    {
+        item.Current = Model.CurrentItem?.Equals(item.Identifier, StringComparison.InvariantCultureIgnoreCase) ?? false;
+    }
+}
+
+@foreach (NavLinkItem item in items.Where(e => e.Visible))
+{
+    <li class="nav-item">
+        @if (item.Current)
+        {
+            <a class="nav-link active" href="@item.Link">
+                @if (!string.IsNullOrEmpty(item.Icon))
+                {
+                    <i class="bi bi-@item.Icon"></i>
+                }
+                @item.Text
+            </a>
+        }
+        else
+        {
+            <a class="nav-link" href="@item.Link">
+                @if (!string.IsNullOrEmpty(item.Icon))
+                {
+                    <i class="bi bi-@item.Icon"></i>
+                }
+                @item.Text
+            </a>
+        }
+    </li>
+}

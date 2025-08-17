@@ -1,0 +1,42 @@
+@using Kasta.Web.Areas.Gallery.Models.Create
+@using Kasta.Web.Models.Components
+@model CreateGalleryViewModel
+
+
+<form hx-post="@Url.Action("ComponentUpdate", "Create", new { Area = "Gallery" })"
+      hx-target="this"
+      hx-swap="outerHTML"
+      id="component-update"
+      hx-indicator="#component-update .htmx-indicator"
+      method="post"
+      enctype="multipart/form-data">
+    <input type="hidden" name="id" value="@Model.Gallery.Id"/>
+    
+    <div class="mb-3">
+        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+         {
+             DisplayName = "Title",
+             Name = "title",
+             Id = "component-update-title",
+             MaxLength = 200,
+             Value = Model.Gallery.Title
+         })
+    </div>
+    
+    <div class="mb-3">
+        @await Component.InvokeAsync("FormTextArea", new FormTextAreaComponentViewModel()
+        {
+            DisplayName = "Description",
+            Name = "description",
+            Id = "component-update-description",
+            MaxLength = 4000,
+            RowCount = 6,
+            Value = Model.Gallery.Description ?? ""
+        })
+    </div>
+    
+    <button type="submit" class="btn btn-success mt-3">
+        <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Save
+    </button>
+</form>

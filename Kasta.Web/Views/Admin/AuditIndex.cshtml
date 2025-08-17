@@ -4,11 +4,13 @@
 
 @{
     ViewData["Title"] = "Audit - Admin";
+    ViewData["CurrentNavItem"] = "admin-audit";
     Layout = "_Layout";
 }
 
-<table class="table">
-    <thead>
+<div class="table-responsive">
+    <table class="table">
+        <thead>
         <tr>
             <th>Table</th>
             <th>Kind</th>
@@ -17,8 +19,8 @@
             <th>At</th>
             <th></th>
         </tr>
-    </thead>
-    <tbody>
+        </thead>
+        <tbody>
         @foreach (var master in Database.Audit.Include(e => e.CreatedByUser).ToList())
         {
             <tr>
@@ -30,5 +32,6 @@
                 <td></td>
             </tr>
         }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>

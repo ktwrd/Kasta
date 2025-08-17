@@ -1,0 +1,123 @@
+@using Kasta.Web.Areas.Gallery.Models.Details
+@using Kasta.Web.Helpers
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
+@model IndexViewModel
+@inject IHttpContextAccessor ContextAccessor
+
+
+@{
+    ViewData["Title"] = $"Gallery - {Model.Gallery.Title}";
+    ViewData["CurrentNavItem"] = "gallery";
+    Layout = "_Layout";
+    
+    var targetTimezone = TimeZoneInfo.Utc;
+    if (ViewData.ContainsKey("TargetTimezone"))
+    {
+        targetTimezone = (TimeZoneInfo)ViewData["TargetTimezone"]!;
+    }
+    else if (ContextAccessor.HttpContext != null)
+    {
+        var tz = ContextAccessor.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
+}
+
+<h1>Gallery</h1>
+<h4>Title: @Model.Gallery.Title</h4>
+<h5>Created: </h5>
+@if (!string.IsNullOrEmpty(Model.Gallery.Description))
+{
+    <p><pre>@Model.Gallery.Description</pre></p>
+}
+<hr/>
+<table class="table table-sm">
+    <tr>
+        <th>Files</th>
+        <th>Total Size</th>
+        <th>Created At</th>
+    </tr>
+    <tr>
+        <td>@Model.Files.Count</td>
+        <td>@SizeHelper.BytesToString(Model.Files.Sum(e => e.Size))</td>
+        <td>@TimeZoneInfo.ConvertTimeFromUtc(Model.Gallery.CreatedAt, targetTimezone)</td>
+    </tr>
+</table>
+
+<div class="row d-flex flex-row">
+@foreach (var file in Model.Files)
+{
+    var previewUrl = file.GetPreviewUrl();
+    var downloadUrl = file.GetDownloadUrl();
+    var didShowPreview = false;
+    var hasImagePreview = false;
+
+    <div class="m-1 col-auto">
+        <div class="card" style="width: 18rem;">
+            @if (file.MimeType?.StartsWith("image/") ?? false)
+            {
+                @if (!string.IsNullOrEmpty(previewUrl))
+                {
+                    hasImagePreview = true;
+                    <img src=""
+                         class="d-none"
+                         alt="@file.Filename"
+                         onload="document.getElementById('preview-image-@file.Id').remove();
+                                 document.getElementById('preview-label-@file.Id').remove();
+                                 document.getElementById('real-image-@file.Id').setAttribute('class', 'card-img-top')"
+                         id="real-image-@file.Id"/>
+                    <img src="@previewUrl"
+                         class="card-img-top"
+                         alt="@file.Filename (Preview)"
+                         id="preview-image-@file.Id"
+                         onload="document.getElementById('real-image-@file.Id').setAttribute('src', '@downloadUrl');" />
+                }
+                else
+                {
+                    <img src="@downloadUrl" class="card-img-top rounded mx-auto d-block" alt="@file.Filename"/>
+                }
+                didShowPreview = true;
+            }
+            else if (file.MimeType?.StartsWith("video/") ?? false)
+            {
+                <video width="320" height="240" controls class="rounded mx-auto d-block card-img-top">
+                    <source src="@downloadUrl" type="@file.MimeType" />
+                </video>
+                didShowPreview = true;
+            }
+            else if (file.MimeType?.StartsWith("audio/") ?? false)
+            {
+                <audio controls class="rounded mx-auto d-block card-img-top">
+                    <source src="@downloadUrl" type="@file.MimeType" />
+                </audio>
+                didShowPreview = true;
+            }
+            else
+            {
+                <a class="btn btn-lg btn-primary card-img-top" href="@downloadUrl">
+                    <i class="bi bi-cloud-download"></i>
+                    Download
+                </a>
+            }
+            <div class="card-body">
+                <h5 class="card-title"><code>@file.Filename.Trim()</code></h5>
+                @if (hasImagePreview)
+                {
+                    <span id="preview-label-@file.Id">Displaying Preview. Full Image is loading.</span>
+                }
+                
+                @if (!didShowPreview)
+                {
+                    <br/>
+                    <a class="btn btn-sm btn-primary" href="@downloadUrl">
+                        <i class="bi bi-cloud-download"></i>
+                        Download
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+}
+</div>

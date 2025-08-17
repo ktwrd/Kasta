@@ -1,0 +1,69 @@
+@using Kasta.Shared.Helpers
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
+@model AdminUserListItemViewComponentModel
+
+<tr>
+    <td><code>@Model.User.Id</code></td>
+    <td>
+        @(string.IsNullOrEmpty(Model.User.UserName) ? "" : Model.User.UserName)
+    </td>
+    <td>
+        @(string.IsNullOrEmpty(Model.User.Email) ? "" : Model.User.Email)
+    </td>
+    <td>
+        @(FormatHelper.ToEmoji(Model.User.TwoFactorEnabled))
+    </td>
+    <td>
+        @(FormatHelper.ToEmoji(Model.User.LockoutEnabled))
+        @if (Model.User.LockoutEnd != null)
+        {
+            <br/>
+            @($"Lockout ends at {Model.User.LockoutEnd}")
+        }
+    </td>
+    <td>
+        <code>@Model.User.AccessFailedCount</code>
+    </td>
+    @if (Model.SystemSettings.EnableQuota)
+    {
+        <td>@(Model.User.Limit?.MaxStorage == null || Model.User.Limit.MaxStorage < 0 ? "Default" : SizeHelper.BytesToString((long)Model.User.Limit.MaxStorage!))</td>
+        <td>@(Model.User.Limit?.MaxFileSize == null || Model.User.Limit.MaxFileSize < 0 ? "Default" : SizeHelper.BytesToString((long)Model.User.Limit.MaxFileSize!))</td>
+    }
+    <td>
+        @if (Model.User.Limit?.SpaceUsed <= 0)
+        {
+            @("None")
+        }
+        else
+        {
+            @SizeHelper.BytesToString((long)(Model.User.Limit?.SpaceUsed ?? 0))
+        }
+    </td>
+    <td>
+        @if (Model.UserFileCount.TryGetValue(Model.User.Id, out var currentUserFileCount))
+        {
+            @($"{currentUserFileCount:n0}")
+            @if (Model.UserPreviewFileCount.TryGetValue(Model.User.Id, out var currentUserPreviewFileCount))
+            {
+                <br/>
+                <sup>Preview @($"{currentUserPreviewFileCount:n0}")</sup>
+            }
+        }
+    </td>
+    <td>
+        @if (string.IsNullOrEmpty(Model.User.ThemeName))
+        {
+            @("Default")
+        }
+        else
+        {
+            <code>@Model.User.ThemeName</code>
+        }
+    </td>
+    <td>
+        <a class="btn btn-primary" href='@Url.Action("GetUser", "User", new { area = "Admin", userId = Model.User.Id })'>
+            <i class="bi bi-pencil"></i>
+        </a>
+    </td>
+</tr>
