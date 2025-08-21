@@ -54,6 +54,14 @@ public class S3Service
         }
         return response;
     }
+    public async Task<Stream> GetObjectStream(string location)
+    {
+        var cfg = KastaConfig.Instance;
+
+        // Issue request and remember to dispose of the response
+        var c = _client;
+        return await c.GetObjectStreamAsync(cfg.S3.BucketName, location, new Dictionary<string, object>());
+    }
     public async Task<GetObjectResponse> UploadObject(Stream stream, string location)
     {
         var cfg = KastaConfig.Instance;
