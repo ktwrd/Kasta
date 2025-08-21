@@ -42,37 +42,31 @@ public class UploadService
         await using var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {
-            var tmpFilename = Path.GetTempFileName();
-            await using (var fs = File.Open(tmpFilename, FileMode.OpenOrCreate, FileAccess.Write))
-            {
-                await stream.CopyToAsync(fs);
-            }
-            var s3UploadSource = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, System.IO.FileShare.Read);
-
-            var obj = await _s3.UploadObject(s3UploadSource, fileModel.RelativeLocation);
+            var obj = await _s3.UploadObject(stream, fileModel.RelativeLocation);
             fileModel.Size = obj.ContentLength;
             await ctx.Files.AddAsync(fileModel);
 
-            await ctx.SaveChangesAsync();
-            await s3UploadSource.DisposeAsync();
-            if (_previewService.PreviewSupported(fileModel))
+            if (_previewService.PreviewSupported(fileModel) || _fileService.IsImageInfoSupported(fileModel))
             {
-                await s3UploadSource.DisposeAsync();
-                s3UploadSource = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, System.IO.FileShare.Read);
-                await _previewService.Create(ctx, fileModel, s3UploadSource);
-            }
-
-            await using (var fileStream = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                var imageInfo = _fileService.GenerateFileImageInfo(fileModel, fileStream);
-                if (imageInfo != null)
+                var ms = new MemoryStream();
+                await using var s3Obj = await _s3.GetObjectStream(fileModel.RelativeLocation);
+                await s3Obj.CopyToAsync(ms);
+                if (_previewService.PreviewSupported(fileModel))
                 {
-                    await ctx.FileImageInfos.AddAsync(imageInfo);
-                    await ctx.SaveChangesAsync();
+                    ms.Seek(0, SeekOrigin.Begin);
+                    await _previewService.Create(ctx, fileModel, ms);
+                }
+                if (_fileService.IsImageInfoSupported(fileModel))
+                {
+                    ms.Seek(0, SeekOrigin.Begin);
+                    var imageInfo = _fileService.GenerateFileImageInfo(fileModel, ms);
+                    if (imageInfo != null)
+                    {
+                        await ctx.FileImageInfos.AddAsync(imageInfo);
+                        await ctx.SaveChangesAsync();
+                    }
                 }
             }
-
-            File.Delete(tmpFilename);
 
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();

@@ -141,6 +141,7 @@ public class PreviewService
             var resultStream = new MemoryStream();
 
             await GeneratePreview(img, resultStream);
+            resultStream.Seek(0,  SeekOrigin.Begin);
             var model = await UploadFile(file, resultStream);
 
             await resultStream.DisposeAsync();
@@ -191,11 +192,7 @@ public class PreviewService
         if (!string.IsNullOrEmpty(originalFilename))
         {
             var fn = Path.GetFileNameWithoutExtension(originalFilename);
-            if (string.IsNullOrEmpty(fn))
-            {
-                model.Filename = "preview.png";
-            }
-            else
+            if (!string.IsNullOrEmpty(fn))
             {
                 model.Filename = $"{fn}-preview.png";
             }

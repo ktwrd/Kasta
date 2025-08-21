@@ -34,7 +34,7 @@ public class FileController : Controller
     [HttpGet("~/File/Details/{id}")]
     public async Task<IActionResult> Details(string id)
     {
-        id = id.Trim().ToLower();
+        id = id.Trim();
         if (string.IsNullOrEmpty(id))
         {
             Response.StatusCode = 404;

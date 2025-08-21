@@ -358,6 +358,12 @@ public class FileService
             throw new ApplicationException($"Could not generate metadata for file {file.Id}", ex);
         }
     }
+    public bool IsImageInfoSupported(FileModel file)
+    {
+        if (!(file.MimeType?.StartsWith("image/") ?? false)) return false;
+        if (file.MimeType.Contains("svg")) return false;
+        return true;
+    }
     public FileImageInfoModel? GenerateFileImageInfo(FileModel file, Stream stream)
     {
         if (!(file.MimeType?.StartsWith("image/") ?? false)) return null;
