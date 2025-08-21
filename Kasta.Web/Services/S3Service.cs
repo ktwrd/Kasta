@@ -4,6 +4,7 @@ using Amazon.S3.Transfer;
 using Kasta.Shared;
 using NLog;
 using System.Net;
+using System.Security.Cryptography;
 
 namespace Kasta.Web.Services;
 
@@ -69,8 +70,27 @@ public class S3Service
         };
         _log.Debug($"[location={location}] Uploading to AWS with {nameof(TransferUtility)}");
         await fileTransferUtility.UploadAsync(fileTransferUtilityRequest);
-
         return await GetObject(location);
+    }
+    public async Task<(GetObjectResponse Response, string Sha256Hash)> UploadObjectWithHash(Stream stream, string location)
+    {
+        var cfg = KastaConfig.Instance;
+        var c = _client;
+        var fileTransferUtility = new TransferUtility(c);
+        var hash = SHA256.Create();
+        var cs = new CryptoStream(stream, hash, CryptoStreamMode.Read);
+        var fileTransferUtilityRequest = new TransferUtilityUploadRequest
+        {
+            BucketName = cfg.S3.BucketName,
+            InputStream = cs,
+            PartSize = 6291456, // 6 MB.
+            Key = location,
+            ContentType = MimeTypes.GetMimeType(Path.GetFileName(location)),
+            ChecksumAlgorithm = ChecksumAlgorithm.SHA256
+        };
+        _log.Debug($"[location={location}] Uploading to AWS with {nameof(TransferUtility)}");
+        await fileTransferUtility.UploadAsync(fileTransferUtilityRequest);
+        return (await GetObject(location), BitConverter.ToString(hash.Hash ?? []).Replace("-", "").ToLower());
     }
 
     public async Task<DeleteObjectResponse> DeleteObject(string location)
