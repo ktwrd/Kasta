@@ -27,6 +27,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Install and run "nuget-license" dotnet tool
+        run: |
+          dotnet tool install --global nuget-license
+          dotnet tool run nuget-license -i Kasta.Web/Kasta.Web.csproj -o Json -fo Kasta.Web/app-licenses.json
       - name: Build
         run: dotnet build Kasta.Web --no-incremental --nologo --configuration Release
 
@@ -60,8 +64,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      
-      - name: Get Licenses
+
+      - name: Install and run "nuget-license" dotnet tool
         run: |
           dotnet tool install --global nuget-license
           dotnet tool run nuget-license -i Kasta.Web/Kasta.Web.csproj -o Json -fo Kasta.Web/app-licenses.json
