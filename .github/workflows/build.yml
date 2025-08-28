@@ -27,6 +27,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Pre-build
+        run: dotnet build Kasta.Web --configuration Debug
       - name: Install and run "nuget-license" dotnet tool
         run: |
           dotnet tool install --global nuget-license
@@ -64,6 +66,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Pre-build ${{ matrix.runtime }}
+        run: dotnet build Kasta.Web --configuration Debug
 
       - name: Install and run "nuget-license" dotnet tool
         run: |
