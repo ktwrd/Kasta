@@ -16,7 +16,7 @@
 
     <ItemGroup>
         <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="9.4.0" />
-        <PackageReference Include="AWSSDK.S3" Version="3.7.500" />
+        <PackageReference Include="AWSSDK.S3" Version="4.0.6.10" />
         <PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
         <PackageReference Include="EasyCaching.Redis" Version="1.9.2" />
         <PackageReference Include="EasyCaching.Serialization.MessagePack" Version="1.9.2" />

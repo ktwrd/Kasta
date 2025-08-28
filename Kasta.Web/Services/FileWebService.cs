@@ -137,7 +137,7 @@ public class FileWebService
         context.Response.StatusCode = 200;
         context.Response.ContentLength = obj.ContentLength;
         context.Response.ContentType = mimeType ?? "application/octet-stream";
-        context.Response.Headers.LastModified = obj.LastModified.ToString("R");
+        context.Response.Headers.LastModified = obj.LastModified?.ToString("R");
         var disposition = new List<string>()
         {
             "attachment",
