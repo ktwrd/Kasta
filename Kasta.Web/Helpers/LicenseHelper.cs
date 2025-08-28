@@ -1,9 +1,10 @@
+using Kasta.Shared;
+using NLog;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Kasta.Shared;
-using NLog;
 
 namespace Kasta.Web.Helpers;
 
@@ -62,6 +63,8 @@ public static class LicenseHelper
     {
         var result = new List<LicenseItem>();
         var asm = typeof(LicenseHelper).Assembly;
+        var pkgLicenses = GetPackageLicenses();
+        var found = new List<string>();
         foreach (var res in GetEmbeddedResources())
         {
             #region Parse Info
@@ -158,7 +161,33 @@ public static class LicenseHelper
                 };
             }
             #endregion
-            
+
+            infoData.Version = infoData.Version.TrimStart('v');
+            if (!string.IsNullOrEmpty(infoData.AssemblyName))
+            {
+                var tgt = pkgLicenses.FirstOrDefault(e => e.PackageId == infoData.AssemblyName);
+                if (tgt != null)
+                {
+                    if (!string.IsNullOrEmpty(tgt.PackageProjectUrl))
+                    {
+                        infoData.Url = tgt.PackageProjectUrl;
+                    }
+                    if (!string.IsNullOrEmpty(tgt.PackageVersion))
+                    {
+                        infoData.Version = tgt.PackageVersion;
+                    }
+                    infoData.Version = infoData.Version.TrimStart('v');
+                    found.Add(tgt.PackageId);
+                    result.Add(new LicenseItem
+                    {
+                        Identifier = res.Identifier,
+                        License = tgt.License ?? "Unknown",
+                        Info = infoData
+                    });
+                    continue;
+                }
+            }
+            found.Add(infoData.AssemblyName ?? res.Identifier);
             result.Add(new LicenseItem
             {
                 Identifier = res.Identifier,
@@ -167,7 +196,48 @@ public static class LicenseHelper
             });
         }
 
+        foreach (var item in pkgLicenses.Where(e => !found.Contains(e.PackageId)))
+        {
+            if (string.IsNullOrEmpty(item.License) ||
+                string.IsNullOrEmpty(item.PackageVersion))
+                continue;
+            var info = new LibraryInfo
+            {
+                Name = item.PackageId,
+                Url = item.PackageProjectUrl,
+                Version = item.PackageVersion,
+                Description = "",
+                LicenseType = item.License,
+                Copyright = item.Copyright
+            };
+            if (info.LicenseType.StartsWith("http"))
+            {
+                info.LicenseType = "(unknown license)";
+            }
+            info.Version = info.Version.TrimStart('v');
+            result.Add(new LicenseItem
+            {
+                Identifier = item.PackageId,
+                License = info.LicenseType,
+                Info = info
+            });
+        }
+
         return result;
+    }
+
+
+
+    private static IReadOnlyCollection<AppLicenseFileItem> GetPackageLicenses()
+    {
+        var resourceName = "Kasta.Web.app-licenses.json";
+        var stream = typeof(Program).Assembly.GetManifestResourceStream(resourceName);
+        if (stream == null)
+            return [];
+        var data = JsonSerializer.Deserialize<ICollection<AppLicenseFileItem>>(stream, SerializerOptions);
+        if (data == null)
+            return [];
+        return [..data];
     }
     
     /// <summary>
@@ -186,7 +256,7 @@ public static class LicenseHelper
             {
                 // checking again if ParseLock was locked because it was being used.
                 // we don't want to parse it again if the user doesn't want to force it to.
-                if (_licenses.Count == 0)
+                if (doParse || _licenses.Count == 0)
                 {
                     _licenses = Parse();
                 }
@@ -201,7 +271,7 @@ public static class LicenseHelper
     public static List<OtherLibraryInfo> GetOtherLibraries()
     {
         GetLicenses();
-
+        
         var result = new List<OtherLibraryInfo>();
         lock (ParseLock)
         {
@@ -271,7 +341,7 @@ public class LibraryInfo
     
     [JsonRequired]
     [JsonPropertyName("url")]
-    public string Url { get; set; } = "";
+    public string? Url { get; set; } = "";
     
     [JsonRequired]
     [JsonPropertyName("license_type")]
@@ -287,6 +357,53 @@ public class LibraryInfo
     
     [JsonPropertyName("copyright")]
     public string? Copyright { get; set; }
+}
+
+public class AppLicenseFileItem
+{
+    [JsonRequired]
+    [JsonPropertyName("PackageId")]
+    public string PackageId { get; set; } = "";
+
+    [JsonRequired]
+    [JsonPropertyName("PackageVersion")]
+    public string PackageVersion { get; set; } = "";
+
+    [JsonPropertyName("PackageProjectUrl")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? PackageProjectUrl { get; set; }
+    
+    [JsonPropertyName("Copyright")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Copyright { get; set; }
+    
+    [JsonPropertyName("Authors")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Authors { get; set; }
+    
+    [JsonPropertyName("License")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? License { get; set; }
+    
+    [JsonPropertyName("LicenseUrl")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? LicenseUrl { get; set; }
+
+    [JsonPropertyName("LicenseInformationOrigin")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? LicenseInformationOrigin { get; set; }
+
+    [JsonPropertyName("ValidationErrors")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<AppLicenseFileValidationErrorItem>? ValidationErrors { get; set; }
+}
+public class AppLicenseFileValidationErrorItem
+{
+    [JsonPropertyName("Error")]
+    public string Error { get; set; } = "";
+
+    [JsonPropertyName("Context")]
+    public string Context { get; set; } = "";
 }
 
 public enum LicenseResourceKind
