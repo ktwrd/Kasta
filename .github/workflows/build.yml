@@ -61,6 +61,11 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       
+      - name: Get Licenses
+        run: |
+          dotnet tool install --global nuget-license
+          dotnet tool run nuget-license -i Kasta.Web/Kasta.Web.csproj -o Json -fo Kasta.Web/app-licenses.json
+
       - name: Build ${{ matrix.runtime }}
         run: dotnet publish Kasta.Web --configuration Release -p:PublishSingleFile=true -p:ReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CopyOutputSymbolsToPublishDirectory=false --self-contained --runtime ${{ matrix.runtime }} --output dist
       
