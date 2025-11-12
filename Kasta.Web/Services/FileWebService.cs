@@ -121,7 +121,7 @@ public class FileWebService
         {
             var url = await _s3.GeneratePresignedUrl(relativeLocation, TimeSpan.FromMinutes(15));
             context.Response.Headers.Location = new(url);
-            context.Response.StatusCode = 301;
+            context.Response.StatusCode = 302;
             return new EmptyResult();
         }
         var obj = await _s3.GetObject(relativeLocation);

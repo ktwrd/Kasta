@@ -2,7 +2,7 @@ html {
     font-size: 14px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
     html {
         font-size: 16px;
     }
@@ -146,4 +146,16 @@ tr.bg-warning th {
     font-size: 16px;
     float: right;
     font-weight: 400;
+}
+
+.file-list-img {
+    height: 50px;
+    max-width: 150px;
+    object-fit: scale-down;
+}
+
+@media (min-width: 1200px) {
+    .file-list-img {
+        max-width: 2rem;
+    }
 }
