@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-Kasta-be2e7886-b576-461b-9096-e78871b03d07</UserSecretsId>
@@ -15,32 +15,32 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="9.4.0" />
-        <PackageReference Include="AWSSDK.S3" Version="4.0.6.10" />
+        <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
+        <PackageReference Include="AWSSDK.S3" Version="4.0.11.1" />
         <PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
         <PackageReference Include="EasyCaching.Redis" Version="1.9.2" />
         <PackageReference Include="EasyCaching.Serialization.MessagePack" Version="1.9.2" />
-        <PackageReference Include="EFCoreSecondLevelCacheInterceptor" Version="5.3.1" />
-        <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.1" />
-        <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.9.0" />
-        <PackageReference Include="Markdig" Version="0.41.3" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
+        <PackageReference Include="EFCoreSecondLevelCacheInterceptor" Version="5.3.3" />
+        <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.3" />
+        <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.9.1" />
+        <PackageReference Include="Markdig" Version="0.43.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
         <PackageReference Include="MimeTypes" Version="2.5.2" />
-        <PackageReference Include="NLog" Version="6.0.3" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-        <PackageReference Include="NLog.Web.AspNetCore" Version="6.0.3" />
-        <PackageReference Include="Sentry.AspNetCore" Version="5.14.1" />
-        <PackageReference Include="Sentry.NLog" Version="5.14.1" />
-        <PackageReference Include="Vivet.AspNetCore.RequestTimeZone" Version="9.0.0" />
+        <PackageReference Include="NLog" Version="6.0.6" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
+        <PackageReference Include="NLog.Web.AspNetCore" Version="6.0.6" />
+        <PackageReference Include="Sentry.AspNetCore" Version="5.16.2" />
+        <PackageReference Include="Sentry.NLog" Version="5.16.2" />
+        <PackageReference Include="Vivet.AspNetCore.RequestTimeZone" Version="9.0.11" />
     </ItemGroup>
 
     <ItemGroup>

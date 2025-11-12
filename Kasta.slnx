@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/Configuration/">
+    <File Path="Dockerfile" />
+  </Folder>
+  <Folder Name="/Configuration/Example/">
+    <File Path=".env.example" />
+    <File Path="config.example.xml" />
+    <File Path="docker-compose.example.yml" />
+  </Folder>
+  <Folder Name="/Configuration/User/">
+    <File Path=".env" />
+    <File Path="config.xml" />
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Folder Name="/Github Actions/" />
+  <Folder Name="/Github Actions/Workflows/">
+    <File Path=".github/workflows/build.yml" />
+    <File Path=".github/workflows/manual-docker.yml" />
+  </Folder>
+  <Project Path="Kasta.Data/Kasta.Data.csproj" />
+  <Project Path="Kasta.Shared/Kasta.Shared.csproj" />
+  <Project Path="Kasta.Web/Kasta.Web.csproj" />
+</Solution>

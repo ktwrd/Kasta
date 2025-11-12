@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '9'
+  DOTNET_VERSION: '10'
 
 jobs:
   build:
