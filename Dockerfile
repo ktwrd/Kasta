@@ -17,11 +17,15 @@ COPY ["Kasta.Web/Kasta.Web.csproj", "Kasta.Web/"]
 RUN dotnet restore "Kasta.Web/Kasta.Web.csproj"
 COPY . .
 WORKDIR "/src/Kasta.Web"
+RUN dotnet tool install --global nuget-license
+RUN nuget-license -i Kasta.Web.csproj -o Json -fo app-licenses.json
 RUN dotnet build "Kasta.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 #==== PUBLISH
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+RUN dotnet tool install --global nuget-license
+RUN nuget-license -i Kasta.Web.csproj -o Json -fo app-licenses.json
 RUN dotnet publish "Kasta.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 #==== FINAL

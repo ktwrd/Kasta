@@ -11,6 +11,14 @@
 
 <h3>Software Licenses</h3>
 
+@if (!Model.HasPackageLicenses)
+{
+    <div class="alert alert-warning" role="alert">
+        Kasta was not compiled with the <code>Release</code> configuration, so the NuGet package licenses weren't included.<br/>
+        Because of this, the reported library versions may be incorrect, and might not reflect what package version is actually being used.
+    </div>
+}
+
 <div class="row d-flex flex-row">
     @foreach (var item in Model.Licenses.OrderBy(e => e.Info.Name))
     {
