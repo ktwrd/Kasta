@@ -1,3 +1,4 @@
+using EasyCaching.Core;
 using Kasta.Data;
 using Kasta.Web.Areas.Admin.Models.System;
 using Kasta.Web.Helpers;
@@ -16,12 +17,14 @@ namespace Kasta.Web.Areas.Admin.Controllers;
 public class SystemController : Controller
 {
     private readonly ApplicationDbContext _db;
+    private readonly IEasyCachingProvider _cache;
     private readonly FileService _fileService;
     private readonly ILogger<SystemController> _logger;
 
     public SystemController(IServiceProvider services, ILogger<SystemController> logger)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
+        _cache = services.GetRequiredService<IEasyCachingProvider>();
         _fileService = services.GetRequiredService<FileService>();
 
         _logger = logger;
@@ -95,7 +98,7 @@ public class SystemController : Controller
             {
                 refresh = true;
             }
-            data.InsertOrUpdate(ctx);
+            data.InsertOrUpdate(ctx, _cache);
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();
         }

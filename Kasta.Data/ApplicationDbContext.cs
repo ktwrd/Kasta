@@ -62,7 +62,7 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
     public DbSet<UserApiKeyModel> UserApiKeys { get; set; }
     public DbSet<UserSettingModel> UserSettings { get; set; }
     public DbSet<UserLimitModel> UserLimits { get; set; }
-    public DbSet<PreferencesModel> Preferences { get; set; }
+    public DbSet<PreferencesModel> Preferences { get; set; } // TODO rename to SystemSettings
     public DbSet<FileModel> Files { get; set; }
     public DbSet<FileImageInfoModel> FileImageInfos { get; set; }
     public DbSet<FilePreviewModel> FilePreviews { get; set; }

@@ -1,151 +1,156 @@
+using EasyCaching.Core;
 using Kasta.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web;
 
+/// <summary>
+/// Proxy class for easily accessing global settings defined in <see cref="ApplicationDbContext.Preferences"/>
+/// </summary>
 public class SystemSettingsProxy
 {
+    private static string GetCacheKey(string key)
+    {
+        return $"{nameof(SystemSettingsProxy)} {key}";
+    }
+    internal record SystemSettingsProxyCacheValue(string Key, string? Value, string ValueKind)
+    {
+        public string GetKey() => GetCacheKey(Key);
+    };
+    private readonly IEasyCachingProvider _caching;
     private readonly ApplicationDbContext _db;
-    public SystemSettingsProxy(ApplicationDbContext db)
+    public SystemSettingsProxy(ApplicationDbContext db, IEasyCachingProvider cachingProvider)
     {
         _db = db;
+        _caching = cachingProvider;
     }
 
-    private void SetValue(string key, bool value)
-    {
-        using (var ctx = _db.CreateSession())
-        {
-            var trans = ctx.Database.BeginTransaction();
-            try
-            {
-                if (ctx.Preferences.Any(e => e.Key == key))
-                {
-                    ctx.Preferences.Where(e => e.Key == key)
-                        .ExecuteUpdate(e => e.SetProperty(v => v.Value, value ? "1" : "0"));
-                }
-                else
-                {
-                    ctx.Preferences.Add(new Data.Models.PreferencesModel()
-                    {
-                        Value = value ? "1" : "0",
-                        Key = key,
-                        ValueKind = "int"
-                    });
-                }
-                ctx.SaveChanges();
-                trans.Commit();
-            }
-            catch
-            {
-                trans.Rollback();
-                throw;
-            }
-        }
-    }
+    private const string ValueKindString = "string";
+    private const string ValueKindBool = "int";
+    private const string ValueKindInt = "int";
+    private const string ValueKindLong = "long";
 
-    private void SetValue(string key, string value)
+    private void UpdateOrInsert(string key, string value, string valueKind, bool enforceValueKind = false)
     {
-        using (var ctx = _db.CreateSession())
+        using var ctx = _db.CreateSession();
+        var trans = ctx.Database.BeginTransaction();
+        try
         {
-            var trans = ctx.Database.BeginTransaction();
-            try
+            if (ctx.Preferences.Any(e => e.Key == key))
             {
-                if (ctx.Preferences.Any(e => e.Key == key))
+                if (enforceValueKind)
                 {
-                    ctx.Preferences.Where(e => e.Key == key && e.ValueKind == "string")
+                    ctx.Preferences.Where(e => e.Key == key && e.ValueKind == valueKind)
                         .ExecuteUpdate(e => e.SetProperty(v => v.Value, value));
                 }
                 else
                 {
-                    ctx.Preferences.Add(new Data.Models.PreferencesModel()
-                    {
-                        Value = value,
-                        Key = key,
-                        ValueKind = "string"
-                    });
+                    ctx.Preferences.Where(e => e.Key == key)
+                        .ExecuteUpdate(e => e.SetProperty(v => v.Value, value));
                 }
-                ctx.SaveChanges();
-                trans.Commit();
             }
-            catch
+            else
             {
-                trans.Rollback();
-                throw;
+                ctx.Preferences.Add(new Data.Models.PreferencesModel()
+                {
+                    Value = value,
+                    Key = key,
+                    ValueKind = valueKind
+                });
             }
+            ctx.SaveChanges();
+            trans.Commit();
+            var cacheValue = new SystemSettingsProxyCacheValue(key, value, valueKind);
+            _caching.Set(cacheValue.GetKey(), cacheValue, TimeSpan.FromSeconds(30));
         }
+        catch
+        {
+            trans.Rollback();
+            throw;
+        }
+    }
+
+    private string? ReadValue(string key, string valueKind, bool enforceValueKind = false)
+    {
+        var cacheValue = _caching.Get<SystemSettingsProxyCacheValue>(GetCacheKey(key));
+        if (cacheValue.HasValue) return cacheValue.Value.Value;
+        return ReadDatabaseValue(key, valueKind, enforceValueKind);
+    }
+    private string? ReadDatabaseValue(string key, string valueKind, bool enforceValueKind = false)
+    {
+        if (enforceValueKind)
+        {
+            return _db.Preferences.Where(e => e.Key == key && e.ValueKind == valueKind)
+                .Select(e => e.Value)
+                .FirstOrDefault();
+        }
+        
+        return _db.Preferences.Where(e => e.Key == key)
+            .Select(e => e.Value)
+            .FirstOrDefault();
+    }
+
+    private void SetValue(string key, bool value)
+    {
+        UpdateOrInsert(key, value ? "1" : "0", ValueKindBool);
+    }
+
+    private void SetValue(string key, string value)
+    {
+        UpdateOrInsert(key, value, ValueKindString);
     }
     private void SetValue(string key, long? value)
     {
-        using (var ctx = _db.CreateSession())
-        {
-            var dbValue = value?.ToString() ?? "";
-            var trans = ctx.Database.BeginTransaction();
-            try
-            {
-                if (ctx.Preferences.Any(e => e.Key == key))
-                {
-                    ctx.Preferences.Where(e => e.Key == key && e.ValueKind == "long")
-                        .ExecuteUpdate(e => e.SetProperty(v => v.Value, dbValue));
-                }
-                else
-                {
-                    ctx.Preferences.Add(new Data.Models.PreferencesModel()
-                    {
-                        Value = dbValue,
-                        Key = key,
-                        ValueKind = "long"
-                    });
-                }
-                ctx.SaveChanges();
-                trans.Commit();
-            }
-            catch
-            {
-                trans.Rollback();
-                throw;
-            }
-        }
+        UpdateOrInsert(key, value?.ToString() ?? "", ValueKindLong);
     }
     private bool GetBool(string key, bool defaultValue)
     {
-        var result = _db.Preferences
-            .Select(e => new { e.Value, e.Key })
-            .FirstOrDefault(e => e.Key == key);
-        if (string.IsNullOrEmpty(result?.Value))
+        var value = ReadValue(key, ValueKindBool, enforceValueKind: true);
+        if (string.IsNullOrEmpty(value?.Trim()))
         {
             return defaultValue;
         }
         else
         {
-            return result.Value == "1";
+            return value == "1";
         }
     }
     private string GetString(string key, string defaultValue)
     {
-        var result = _db.Preferences
-            .Select(e => new { e.Value, e.Key })
-            .FirstOrDefault(e => e.Key == key);
-        if (string.IsNullOrEmpty(result?.Value))
+        var value = ReadValue(key, ValueKindString, enforceValueKind: false);
+        if (string.IsNullOrEmpty(value?.Trim()))
         {
             return defaultValue;
         }
         else
         {
-            return result.Value;
+            return value;
         }
     }
     private long? GetLong(string key, long? defaultValue)
     {
-        var result = _db.Preferences
-            .Select(e => new { e.Value, e.Key, e.ValueKind })
-            .FirstOrDefault(e => e.Key == key && e.ValueKind == "long");
-        if (result == null)
+        var value = ReadValue(key, ValueKindLong, enforceValueKind: true);
+        if (value == null)
         {
             return defaultValue;
         }
         else
         {
-            if (long.TryParse(result.Value, out var v))
+            if (long.TryParse(value, out var v))
+                return v;
+            return defaultValue;
+        }
+    }
+    private int? GetInt(string key, int? defaultValue)
+    {
+        var value = ReadValue(key, ValueKindInt, enforceValueKind: true);
+        if (value == null)
+        {
+            return defaultValue;
+        }
+        else
+        {
+            if (int.TryParse(value, out var v))
                 return v;
             return defaultValue;
         }

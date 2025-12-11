@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using EasyCaching.Core;
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Web.Helpers;
@@ -24,27 +24,9 @@ public class SystemSettingsParams
 
     public long? DefaultStorageQuotaReal => SizeHelper.ParseToByteCount(DefaultStorageQuota);
 
-    private PreferencesModel GetPreferenceModel(ApplicationDbContext db, string key, bool insert = true)
+    public void InsertOrUpdate(ApplicationDbContext db, IEasyCachingProvider cache)
     {
-        var d = db.Preferences
-            .AsNoTracking()
-            .FirstOrDefault(e => e.Key == key);
-        if (d == null)
-        {
-            d = new()
-            {
-                Key = key
-            };
-            if (insert)
-            {
-                db.Preferences.Add(d);
-            }
-        }
-        return d;
-    }
-    public void InsertOrUpdate(ApplicationDbContext db)
-    {
-        var proxy = new SystemSettingsProxy(db);
+        var proxy = new SystemSettingsProxy(db, cache);
 
         proxy.EnableUserRegister = EnableUserRegister;
         proxy.EnableEmbeds = EnableEmbeds;
@@ -59,9 +41,9 @@ public class SystemSettingsParams
         proxy.S3UsePresignedUrl = S3UsePresignedUrl;
     }
 
-    public void Get(ApplicationDbContext db)
+    public void Read(ApplicationDbContext db, IEasyCachingProvider cache)
     {
-        var proxy = new SystemSettingsProxy(db);
+        var proxy = new SystemSettingsProxy(db, cache);
 
         EnableUserRegister = proxy.EnableUserRegister;
         EnableEmbeds = proxy.EnableEmbeds;
