@@ -16,6 +16,8 @@ public class SystemSettingsParams
     public bool EnableQuota { get; set; }
     public string DefaultUploadQuota {get; set; } = "";
     public string DefaultStorageQuota { get; set; } = "";
+    public string FileServiceGenerateFileMetadataThreadCount { get; set; } = "0";
+    public string FileServicePlainTextPreviewSizeLimit { get; set; } = "";
     public bool EnableGeoIP { get; set; }
     public string GeoIPDatabaseLocation { get;set; } = "";
     public bool S3UsePresignedUrl { get; set; }
@@ -23,6 +25,7 @@ public class SystemSettingsParams
     public long? DefaultUploadQuotaReal => SizeHelper.ParseToByteCount(DefaultUploadQuota);
 
     public long? DefaultStorageQuotaReal => SizeHelper.ParseToByteCount(DefaultStorageQuota);
+    public long? FileServicePlainTextPreviewSizeLimitReal => SizeHelper.ParseToByteCount(FileServicePlainTextPreviewSizeLimit);
 
     public void InsertOrUpdate(ApplicationDbContext db, IEasyCachingProvider cache)
     {
@@ -39,6 +42,10 @@ public class SystemSettingsParams
         proxy.EnableGeoIp = EnableGeoIP;
         proxy.GeoIpDatabaseLocation = GeoIPDatabaseLocation;
         proxy.S3UsePresignedUrl = S3UsePresignedUrl;
+        proxy.FileServiceGenerateFileMetadataThreadCount = Math.Min(
+            int.Parse(FileServiceGenerateFileMetadataThreadCount),
+            SystemSettingsProxy.FileServiceGenerateFileMetadataThreadCountDefault);
+        proxy.FileServicePlainTextPreviewSizeLimit = SizeHelper.ParseToByteCount(FileServicePlainTextPreviewSizeLimit);
     }
 
     public void Read(ApplicationDbContext db, IEasyCachingProvider cache)
@@ -56,5 +63,7 @@ public class SystemSettingsParams
         EnableGeoIP = proxy.EnableGeoIp;
         GeoIPDatabaseLocation = proxy.GeoIpDatabaseLocation;
         S3UsePresignedUrl = proxy.S3UsePresignedUrl;
+        FileServiceGenerateFileMetadataThreadCount = proxy.FileServiceGenerateFileMetadataThreadCount.ToString();
+        FileServicePlainTextPreviewSizeLimit = proxy.FileServicePlainTextPreviewSizeLimit?.ToString() ?? "";
     }
 }

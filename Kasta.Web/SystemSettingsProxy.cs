@@ -245,4 +245,31 @@ public class SystemSettingsProxy
         get => GetBool(S3UsePresignedUrlKey, S3UsePresignedUrlDefault);
         set => SetValue(S3UsePresignedUrlKey, value);
     }
+
+    public const string FileServiceGenerateFileMetadataThreadCountKey = "fileService_generateFileMetadata_threadCount";
+    public const int FileServiceGenerateFileMetadataThreadCountDefault = 0;
+    public int FileServiceGenerateFileMetadataThreadCount
+    {
+        get => Math.Min(
+            GetInt(FileServiceGenerateFileMetadataThreadCountKey, FileServiceGenerateFileMetadataThreadCountDefault)
+                ?? FileServiceGenerateFileMetadataThreadCountDefault, 
+            FileServiceGenerateFileMetadataThreadCountDefault);
+        set => SetValue(FileServiceGenerateFileMetadataThreadCountKey, value);
+    }
+
+    public const string FileServicePlainTextPreviewSizeLimitKey = "fileService_plainTextPreview_maxSize";
+    public const long FileServicePlainTextPreviewSizeLimitDefault = 524_288;
+    public long? FileServicePlainTextPreviewSizeLimit
+    {
+        get
+        {
+            var value = GetLong(FileServicePlainTextPreviewSizeLimitKey, FileServicePlainTextPreviewSizeLimitDefault);
+            if (value.HasValue) return Math.Max(0, value.Value);
+            return value;
+        }
+        set
+        {
+            SetValue(FileServicePlainTextPreviewSizeLimitKey, value.HasValue ? Math.Max(0, value.Value) : null);
+        }
+    }
 }
