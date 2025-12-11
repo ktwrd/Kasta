@@ -177,7 +177,7 @@ public static class Program
 
         if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
         {
-            LogManager.Configuration.AddSentry(
+            LogManager.Configuration?.AddSentry(
                 opts =>
                 {
                     SetSentryOptions(opts);
