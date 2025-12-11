@@ -22,6 +22,7 @@
         <PackageReference Include="EasyCaching.Serialization.MessagePack" Version="1.9.2" />
         <PackageReference Include="EFCoreSecondLevelCacheInterceptor" Version="5.3.5" />
         <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.5" />
+        <PackageReference Include="MessagePack" Version="2.5.198" />
         <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.10.0" />
         <PackageReference Include="Markdig" Version="0.44.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
