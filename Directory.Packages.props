@@ -52,5 +52,6 @@
     <PackageVersion Include="Sentry.NLog" Version="6.0.0" />
 
     <!-- Misc -->
+    <PackageVersion Include="NeoSmart.PrettySize" Version="3.1.1" />
   </ItemGroup>
 </Project>
