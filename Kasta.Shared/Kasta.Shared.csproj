@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.3.7" />
-    <PackageReference Include="NLog" Version="6.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" />
+    <PackageReference Include="NLog" />
   </ItemGroup>
 
 </Project>

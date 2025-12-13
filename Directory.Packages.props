@@ -1,0 +1,56 @@
+<Project>
+  <PropertyGroup>
+    <!-- Enable central package management, https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+
+    <!-- ASP.NET -->
+    <PackageVersion Include="Microsoft.AspNetCore.HttpOverrides" Version="2.3.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.0" />
+    <PackageVersion Include="Vivet.AspNetCore.RequestTimeZone" Version="9.0.11" />
+
+    <!-- ASP.NET - Auth -->
+    <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.1" />
+
+    <!-- ASP.NET - EF Core-->
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.1" />
+
+    <!-- Database -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+
+    <!-- Caching -->
+    <PackageVersion Include="EasyCaching.InMemory" Version="1.9.2" />
+    <PackageVersion Include="EasyCaching.Redis" Version="1.9.2" />
+    <PackageVersion Include="EasyCaching.Serialization.MessagePack" Version="1.9.2" />
+    <PackageVersion Include="EFCoreSecondLevelCacheInterceptor" Version="5.3.5" />
+    <PackageVersion Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.5" />
+    <PackageVersion Include="MessagePack" Version="2.5.198" />
+
+    <!-- Storage -->
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.14.2" />
+
+    <!-- Geolocation Network Data -->
+    <PackageVersion Include="MaxMind.GeoIP2" Version="5.4.1" />
+    <PackageVersion Include="GeoTimeZone" Version="6.1.0" />
+
+    <!-- Content parsing/manupliation -->
+    <PackageVersion Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.10.0" />
+    <PackageVersion Include="Markdig" Version="0.44.0" />
+    <PackageVersion Include="MimeTypes" Version="2.5.2" />
+
+    <!-- Logging/Error Tracing -->
+    <PackageVersion Include="NLog" Version="6.0.7" />
+    <PackageVersion Include="NLog.Web.AspNetCore" Version="6.1.0" />
+    <PackageVersion Include="Sentry.AspNetCore" Version="6.0.0" />
+    <PackageVersion Include="Sentry.NLog" Version="6.0.0" />
+
+    <!-- Misc -->
+  </ItemGroup>
+</Project>
