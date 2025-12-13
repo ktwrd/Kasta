@@ -25,6 +25,7 @@
 **/config.xml
 dist
 private
-LICENSE
-LICENSE.txt
 README.md
+!.env.example
+!config.example.xml
+!LICENSE.txt
