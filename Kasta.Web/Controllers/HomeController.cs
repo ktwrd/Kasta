@@ -328,6 +328,7 @@ public class HomeController : Controller
         return new RedirectToActionResult(nameof(Index), "Home", null);
     }
 
+    [Authorize]
     [Route("~/Licenses")]
     public IActionResult Licenses()
     {
