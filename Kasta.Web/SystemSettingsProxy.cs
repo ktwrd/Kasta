@@ -1,3 +1,4 @@
+using System.Reflection;
 using EasyCaching.Core;
 using Kasta.Data;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,30 @@ public class SystemSettingsProxy
     {
         _db = db;
         _caching = cachingProvider;
+    }
+
+    public void EnsureInitialized()
+    {
+        var existingNames = _db.Preferences.Select(e => e.Key).ToList();
+        using var ctx = _db.CreateSession();
+        using var trans = ctx.Database.BeginTransaction();
+        foreach (var prop in GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            var defaultValueProp = typeof(DefaultValues).GetField(prop.Name);
+            var keyProp = typeof(Keys).GetField(prop.Name) ??
+                          throw new InvalidOperationException($"Could not find Key for property {prop.Name}");
+            if (existingNames.Contains((string)keyProp.GetValue(null)!))
+            {
+                continue;
+            }
+
+            if (defaultValueProp == null)
+            {
+                continue;
+            }
+
+            prop.SetValue(this, defaultValueProp.GetValue(null));
+        }
     }
 
     private const string ValueKindString = "string";
