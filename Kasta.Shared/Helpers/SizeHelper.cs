@@ -14,16 +14,17 @@ public static class SizeHelper
             return directParse;
         }
 
-        var actualRegex = new Regex(@"^([0-9]+(?:,[0-9]+){0,}(|(\.[0-9]+)))([kmgt](?:[i]?b)|b|)$", RegexOptions.IgnoreCase);
+        var actualRegex = new Regex(@"^([0-9]+(?:[,_][0-9]+){0,}((?:\.[0-9]+)?))([kmgt]i?b?|b|)$", RegexOptions.IgnoreCase);
         var match = actualRegex.Match(value.Trim());
         var t = match.Groups[^1].Value.Trim().ToLower();
+        var numberValue = match.Groups[1].Value.Replace(",", "").Replace("_", "");
         long result = 0;
-        if (match.Groups[1].Value.Contains('.'))
+        if (numberValue.Contains('.'))
         {
-            if (decimal.TryParse(match.Groups[1].Value, out var a))
+            if (decimal.TryParse(numberValue, out var a))
             {
                 var x = a;
-                var c = t.Length > 1 && t[1] == 'i' ? 1000 : 1024;
+                var c = t is [_, 'i', ..] ? 1000 : 1024;
                 var r = t[0] switch
                 {
                     'k' => 1,
@@ -42,10 +43,10 @@ public static class SizeHelper
         }
         else
         {
-            if (long.TryParse(match.Groups[1].Value, out var b))
+            if (long.TryParse(numberValue, out var b))
             {
                 var x = b;
-                var c = t.Length > 1 && t[1] == 'i' ? 1000 : 1024;
+                var c = t is [_, 'i', ..] ? 1000 : 1024;
                 var r = t[0] switch
                 {
                     'k' => 1,
