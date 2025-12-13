@@ -3,11 +3,7 @@
 @using Kasta.Web.Helpers
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<UserModel> SignInManager
-@inject UserManager<UserModel> UserManager
-@inject ApplicationDbContext Database
-@{
-    var settings = Database.GetSystemSettings();
-}
+@inject SystemSettingsProxy SystemSettings
 
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
@@ -30,7 +26,7 @@
     }
     else
     {
-        if (settings.EnableUserRegister)
+        if (SystemSettings.EnableUserRegister)
         {
             <li class="nav-item">
                 <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>

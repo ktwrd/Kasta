@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Amazon.S3.Model;
 using ImageMagick;
 using Kasta.Data;
@@ -16,12 +17,14 @@ public class FileService
     private readonly S3Service _s3;
     private readonly AuditService _auditService;
     private readonly MailboxService _mailbox;
+    private readonly SystemSettingsProxy _systemSettings;
     public FileService(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
         _s3 = services.GetRequiredService<S3Service>();
         _auditService = services.GetRequiredService<AuditService>();
         _mailbox = services.GetRequiredService<MailboxService>();
+        _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
     }
     public async Task DeleteFile(UserModel user, FileModel file)
     {
@@ -191,18 +194,20 @@ public class FileService
         
         if (processOnDifferentThread)
         {
-            var thread = new Thread(
-                data =>
+            var thread = new Thread(data =>
+            {
+                if (!(data is List<FileModel> workingFiles))
                 {
-                    if (!(data is List<FileModel> workingFiles))
-                    {
-                        _log.Error(
-                            $"Failed to run thread since data has invalid type (expected List<FileModel>, got {data?.GetType()})");
-                        return;
-                    }
+                    _log.Error(
+                        $"Failed to run thread since data has invalid type (expected List<FileModel>, got {data?.GetType()})");
+                    return;
+                }
 
-                    GenerateFileMetadataTask(workingFiles);
-                });
+                GenerateFileMetadataTask(workingFiles);
+            })
+            {
+                Name = $"{GetType().Namespace}.{GetType().Name}.{nameof(GenerateFileMetadata)}({force}, {JsonSerializer.Serialize(userIdFilter)}, {processOnDifferentThread})"
+            };
             thread.Start(files);
         }
         else
@@ -226,7 +231,12 @@ public class FileService
         {
             int i = 0;
             int c = files.Count;
-            Parallel.ForEach(files, file =>
+            var threadCount = _systemSettings.FileServiceGenerateFileMetadataThreadCount;
+            var opts = new ParallelOptions()
+            {
+                MaxDegreeOfParallelism = threadCount <= 0 ? -1 : threadCount
+            };
+            Parallel.ForEach(files, opts, file =>
             {
                 try
                 {
@@ -299,7 +309,6 @@ public class FileService
             return;
         try
         {
-
             var res = await _s3.GetObject(file.RelativeLocation);
             var info = GenerateFileImageInfo(file, res.ResponseStream);
             if (info == null)
@@ -421,11 +430,8 @@ public class FileService
 
     public string? GetPlaintextPreview(FileModel file)
     {
-        var str = "";
         using var stream = GetStream(file, out var r);
         using var reader = new StreamReader(stream);
-        str = reader.ReadToEnd();
-
-        return str;
+        return reader.ReadToEnd();
     }
 }

@@ -21,6 +21,7 @@ public class ApiFileController : Controller
     private readonly SignInManager<UserModel> _signInManager;
     private readonly FileService _fileService;
     private readonly FileWebService _fileWebService;
+    private readonly SystemSettingsProxy _systemSettings;
 
     private readonly ILogger<ApiFileController> _logger;
     
@@ -35,6 +36,7 @@ public class ApiFileController : Controller
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _fileService = services.GetRequiredService<FileService>();
         _fileWebService = services.GetRequiredService<FileWebService>();
+        _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
         
         _logger = logger;
     }
@@ -85,11 +87,10 @@ public class ApiFileController : Controller
         var userLimit = await _db.UserLimits
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.UserId == user.Id);
-        var systemSettings = _db.GetSystemSettings();
-        if (systemSettings.EnableQuota)
+        if (_systemSettings.EnableQuota)
         {
             var spaceUsed = userLimit?.SpaceUsed ?? 0;
-            if ((spaceUsed + file.Length) > (userLimit?.MaxStorage ?? systemSettings.DefaultStorageQuotaReal ?? 0))
+            if ((spaceUsed + file.Length) > (userLimit?.MaxStorage ?? _systemSettings.DefaultStorageQuota ?? 0))
             {
                 HttpContext.Response.StatusCode = 401;
                 return Json(
@@ -99,7 +100,7 @@ public class ApiFileController : Controller
                     });
             }
 
-            if (file.Length > (userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal ?? long.MaxValue))
+            if (file.Length > (userLimit?.MaxFileSize ?? _systemSettings.DefaultUploadQuota ?? long.MaxValue))
             {
                 HttpContext.Response.StatusCode = 400;
                 return Json(

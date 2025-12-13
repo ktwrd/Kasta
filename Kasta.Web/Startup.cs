@@ -68,17 +68,14 @@ public class Startup
             using (var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().CreateSession())
             {
                 ctx.EnsureInitialRoles();
-                var trans = ctx.Database.BeginTransaction();
                 try
                 {
-                    var s = ctx.GetSystemSettings();
-                    ctx.SaveChanges();
-                    trans.Commit();
+                    scope.ServiceProvider.GetRequiredService<SystemSettingsProxy>()
+                        .EnsureInitialized();
                 }
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine($"Failed to insert global preferences.\n{ex}");
-                    trans.Rollback();
                 }
             }
         }

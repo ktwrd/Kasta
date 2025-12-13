@@ -1,12 +1,8 @@
-using System.ComponentModel;
-using Kasta.Data;
-using Kasta.Data.Models;
-using Kasta.Web.Helpers;
-using Microsoft.EntityFrameworkCore;
+using Kasta.Shared.Helpers;
 
 namespace Kasta.Web.Models;
 
-public class SystemSettingsParams
+public class SystemSettingsViewModel
 {
     public bool EnableUserRegister { get; set; }
     public bool EnableEmbeds { get; set; }
@@ -16,6 +12,8 @@ public class SystemSettingsParams
     public bool EnableQuota { get; set; }
     public string DefaultUploadQuota {get; set; } = "";
     public string DefaultStorageQuota { get; set; } = "";
+    public string FileServiceGenerateFileMetadataThreadCount { get; set; } = "0";
+    public string FileServicePlainTextPreviewSizeLimit { get; set; } = "";
     public bool EnableGeoIP { get; set; }
     public string GeoIPDatabaseLocation { get;set; } = "";
     public bool S3UsePresignedUrl { get; set; }
@@ -23,29 +21,10 @@ public class SystemSettingsParams
     public long? DefaultUploadQuotaReal => SizeHelper.ParseToByteCount(DefaultUploadQuota);
 
     public long? DefaultStorageQuotaReal => SizeHelper.ParseToByteCount(DefaultStorageQuota);
+    public long? FileServicePlainTextPreviewSizeLimitReal => SizeHelper.ParseToByteCount(FileServicePlainTextPreviewSizeLimit);
 
-    private PreferencesModel GetPreferenceModel(ApplicationDbContext db, string key, bool insert = true)
+    public void InsertOrUpdate(SystemSettingsProxy proxy)
     {
-        var d = db.Preferences
-            .AsNoTracking()
-            .FirstOrDefault(e => e.Key == key);
-        if (d == null)
-        {
-            d = new()
-            {
-                Key = key
-            };
-            if (insert)
-            {
-                db.Preferences.Add(d);
-            }
-        }
-        return d;
-    }
-    public void InsertOrUpdate(ApplicationDbContext db)
-    {
-        var proxy = new SystemSettingsProxy(db);
-
         proxy.EnableUserRegister = EnableUserRegister;
         proxy.EnableEmbeds = EnableEmbeds;
         proxy.EnableLinkShortener = EnableLinkShortener;
@@ -57,12 +36,14 @@ public class SystemSettingsParams
         proxy.EnableGeoIp = EnableGeoIP;
         proxy.GeoIpDatabaseLocation = GeoIPDatabaseLocation;
         proxy.S3UsePresignedUrl = S3UsePresignedUrl;
+        proxy.FileServiceGenerateFileMetadataThreadCount = Math.Min(
+            int.Parse(FileServiceGenerateFileMetadataThreadCount),
+            SystemSettingsProxy.DefaultValues.FileServiceGenerateFileMetadataThreadCount);
+        proxy.FileServicePlainTextPreviewSizeLimit = SizeHelper.ParseToByteCount(FileServicePlainTextPreviewSizeLimit);
     }
 
-    public void Get(ApplicationDbContext db)
+    public void Read(SystemSettingsProxy proxy)
     {
-        var proxy = new SystemSettingsProxy(db);
-
         EnableUserRegister = proxy.EnableUserRegister;
         EnableEmbeds = proxy.EnableEmbeds;
         EnableLinkShortener = proxy.EnableLinkShortener;
@@ -74,5 +55,7 @@ public class SystemSettingsParams
         EnableGeoIP = proxy.EnableGeoIp;
         GeoIPDatabaseLocation = proxy.GeoIpDatabaseLocation;
         S3UsePresignedUrl = proxy.S3UsePresignedUrl;
+        FileServiceGenerateFileMetadataThreadCount = proxy.FileServiceGenerateFileMetadataThreadCount.ToString();
+        FileServicePlainTextPreviewSizeLimit = proxy.FileServicePlainTextPreviewSizeLimit?.ToString() ?? "";
     }
 }

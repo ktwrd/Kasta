@@ -1,6 +1,7 @@
+using EasyCaching.Core;
 using Kasta.Data;
+using Kasta.Shared.Helpers;
 using Kasta.Web.Areas.Admin.Models.System;
-using Kasta.Web.Helpers;
 using Kasta.Web.Models;
 using Kasta.Web.Models.Components;
 using Kasta.Web.Services;
@@ -15,13 +16,17 @@ namespace Kasta.Web.Areas.Admin.Controllers;
 [Authorize(Roles = RoleKind.Administrator)]
 public class SystemController : Controller
 {
+    private readonly SystemSettingsProxy _systemSettingsProxy;
     private readonly ApplicationDbContext _db;
+    private readonly IEasyCachingProvider _cache;
     private readonly FileService _fileService;
     private readonly ILogger<SystemController> _logger;
 
     public SystemController(IServiceProvider services, ILogger<SystemController> logger)
     {
+        _systemSettingsProxy = services.GetRequiredService<SystemSettingsProxy>();
         _db = services.GetRequiredService<ApplicationDbContext>();
+        _cache = services.GetRequiredService<IEasyCachingProvider>();
         _fileService = services.GetRequiredService<FileService>();
 
         _logger = logger;
@@ -72,7 +77,8 @@ public class SystemController : Controller
     [HttpGet("SettingsComponent")]
     public IActionResult GetSettingsComponent()
     {
-        var settings = _db.GetSystemSettings();
+        var settings = new SystemSettingsViewModel();
+        settings.Read(_systemSettingsProxy);
         var vm = new SettingsComponentViewModel()
         {
             SystemSettings = settings
@@ -82,20 +88,20 @@ public class SystemController : Controller
 
     [HttpPost("SettingsComponent")]
     public async Task<IActionResult> SaveSettingsComponent(
-        [FromForm] SystemSettingsParams data)
+        [FromForm] SystemSettingsViewModel data)
     {
-        using var ctx = _db.CreateSession();
-        using var transaction = await ctx.Database.BeginTransactionAsync();
+        await using var ctx = _db.CreateSession();
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
 
-        var currentSettings = ctx.GetSystemSettings();
-        bool refresh = false;
+        var refreshTimezone = false;
         try
         {
-            if (currentSettings.EnableGeoIP != data.EnableGeoIP || currentSettings.GeoIPDatabaseLocation != data.GeoIPDatabaseLocation)
+            if (_systemSettingsProxy.EnableGeoIp != data.EnableGeoIP ||
+                _systemSettingsProxy.GeoIpDatabaseLocation != data.GeoIPDatabaseLocation)
             {
-                refresh = true;
+                refreshTimezone = true;
             }
-            data.InsertOrUpdate(ctx);
+            data.InsertOrUpdate(_systemSettingsProxy);
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();
         }
@@ -105,7 +111,7 @@ public class SystemController : Controller
             throw;
         }
 
-        if (refresh)
+        if (refreshTimezone)
         {
             try
             {
@@ -118,6 +124,9 @@ public class SystemController : Controller
             }
         }
 
+        var currentSettings = new SystemSettingsViewModel();
+        currentSettings.Read(_systemSettingsProxy);
+        
         var vm = new SettingsComponentViewModel()
         {
             SystemSettings = currentSettings,
@@ -133,11 +142,11 @@ public class SystemController : Controller
     {
         var taskList = new List<Task>();
         long fileCount = 0;
-        foreach (var user in _db.Users.ToList())
+        foreach (var user in await _db.Users.ToListAsync())
         {
             taskList.Add(new Task(delegate
             {
-                fileCount += _fileService.RecalculateSpaceUsed(user).Result;
+                fileCount += _fileService.RecalculateSpaceUsed(user).GetAwaiter().GetResult();
             }));
         }
         foreach (var t in taskList)

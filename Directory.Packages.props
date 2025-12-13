@@ -50,7 +50,15 @@
     <PackageVersion Include="NLog.Web.AspNetCore" Version="6.1.0" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.0.0" />
     <PackageVersion Include="Sentry.NLog" Version="6.0.0" />
+    
+    <!-- Unit Testing -->
+    <PackageVersion Include="coverlet.collector" Version="6.0.4"/>
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.0"/>
+    <PackageVersion Include="NUnit" Version="4.3.2"/>
+    <PackageVersion Include="NUnit.Analyzers" Version="4.7.0"/>
+    <PackageVersion Include="NUnit3TestAdapter" Version="5.0.0"/>
 
     <!-- Misc -->
+    <PackageVersion Include="NeoSmart.PrettySize" Version="3.1.1" />
   </ItemGroup>
 </Project>

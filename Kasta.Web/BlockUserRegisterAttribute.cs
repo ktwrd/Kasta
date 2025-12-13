@@ -16,16 +16,13 @@ public class BlockUserRegisterFilter : IAuthorizationFilter
         if (context == null)
             throw new ArgumentNullException(nameof(context));
 
-        if (context.HttpContext.Request.Path.HasValue)
+        if (context.HttpContext.Request.Path.HasValue &&
+            context.HttpContext.Request.Path.Value.StartsWith("/Identity/Account/Register"))
         {
-            if (context.HttpContext.Request.Path.Value.ToString().StartsWith("/Identity/Account/Register"))
+            var settings = context.HttpContext.RequestServices.GetRequiredService<SystemSettingsProxy>();
+            if (!settings.EnableUserRegister)
             {
-                var db = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
-                var settings = db.GetSystemSettings();
-                if (!settings.EnableUserRegister)
-                {
-                    context.Result = new RedirectResult("/Identity/Account/Login");
-                }
+                context.Result = new RedirectResult("/Identity/Account/Login");
             }
         }
     }

@@ -8,7 +8,7 @@ public class UserListViewModel
     public List<UserModel> Users { get; set; } = [];
     public Dictionary<string, long> UserFileCount { get; set; } = [];
     public Dictionary<string, long> UserPreviewFileCount { get; set; } = [];
-    public SystemSettingsParams SystemSettings { get; set; } = new();
+    public SystemSettingsViewModel SystemSettings { get; set; } = new();
 
     public int Page { get; set; }
     public bool IsLastPage { get; set; }

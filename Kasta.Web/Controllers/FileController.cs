@@ -17,6 +17,7 @@ public class FileController : Controller
     private readonly UserManager<UserModel> _userManager;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly FileService _fileService;
+    private readonly SystemSettingsProxy _systemSettingsProxy;
 
     private readonly ILogger<FileController> _log;
 
@@ -26,6 +27,7 @@ public class FileController : Controller
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _fileService = services.GetRequiredService<FileService>();
+        _systemSettingsProxy = services.GetRequiredService<SystemSettingsProxy>();
 
         _log = logger;
     }
@@ -75,11 +77,10 @@ public class FileController : Controller
             })!);
         }
 
-        var systemSettings = _db.GetSystemSettings();
-        var vm = new FileDetailViewModel()
+        var vm = new FileDetailViewModel
         {
             File = file,
-            Embed = systemSettings.EnableEmbeds
+            Embed = _systemSettingsProxy.EnableEmbeds
         };
 
 

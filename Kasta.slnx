@@ -26,5 +26,6 @@
   </Folder>
   <Project Path="Kasta.Data/Kasta.Data.csproj" />
   <Project Path="Kasta.Shared/Kasta.Shared.csproj" />
+  <Project Path="Kasta.Test/Kasta.Test.csproj" />
   <Project Path="Kasta.Web/Kasta.Web.csproj" />
 </Solution>

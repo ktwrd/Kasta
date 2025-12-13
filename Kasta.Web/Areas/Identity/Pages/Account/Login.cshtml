@@ -1,15 +1,17 @@
 ﻿@page
 @using Kasta.Data
+@using Kasta.Web
 @using Kasta.Web.Helpers
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @model LoginModel
 @inject ApplicationDbContext Database
+@inject SystemSettingsProxy SystemSettings
 
 @{
     ViewData["Title"] = "Log in";
     ViewData["Navbar"] = false;
-    var systemSettings = Database.GetSystemSettings();
-    var appTitle = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingTitle : "Kasta";
+    var appTitle = SystemSettings.EnableCustomBranding && !string.IsNullOrEmpty(SystemSettings.CustomBrandingTitle)
+        ? SystemSettings.CustomBrandingTitle : "Kasta";
 }
 
 <div class="d-flex justify-content-center mt-5">
@@ -38,7 +40,7 @@
                 <div class="text-center mt-2">
                     Missing confirmation email? <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend it</a>
                 </div>
-                @if (systemSettings.EnableUserRegister)
+                @if (SystemSettings.EnableUserRegister)
                 {
                     <div class="text-center mt-2">
                         New user? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create account</a>
