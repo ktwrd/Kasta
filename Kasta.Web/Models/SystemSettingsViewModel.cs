@@ -1,12 +1,8 @@
-using EasyCaching.Core;
-using Kasta.Data;
-using Kasta.Data.Models;
-using Kasta.Web.Helpers;
-using Microsoft.EntityFrameworkCore;
+using Kasta.Shared.Helpers;
 
 namespace Kasta.Web.Models;
 
-public class SystemSettingsParams
+public class SystemSettingsViewModel
 {
     public bool EnableUserRegister { get; set; }
     public bool EnableEmbeds { get; set; }
@@ -27,10 +23,8 @@ public class SystemSettingsParams
     public long? DefaultStorageQuotaReal => SizeHelper.ParseToByteCount(DefaultStorageQuota);
     public long? FileServicePlainTextPreviewSizeLimitReal => SizeHelper.ParseToByteCount(FileServicePlainTextPreviewSizeLimit);
 
-    public void InsertOrUpdate(ApplicationDbContext db, IEasyCachingProvider cache)
+    public void InsertOrUpdate(SystemSettingsProxy proxy)
     {
-        var proxy = new SystemSettingsProxy(db, cache);
-
         proxy.EnableUserRegister = EnableUserRegister;
         proxy.EnableEmbeds = EnableEmbeds;
         proxy.EnableLinkShortener = EnableLinkShortener;
@@ -44,14 +38,12 @@ public class SystemSettingsParams
         proxy.S3UsePresignedUrl = S3UsePresignedUrl;
         proxy.FileServiceGenerateFileMetadataThreadCount = Math.Min(
             int.Parse(FileServiceGenerateFileMetadataThreadCount),
-            SystemSettingsProxy.FileServiceGenerateFileMetadataThreadCountDefault);
+            SystemSettingsProxy.DefaultValues.FileServiceGenerateFileMetadataThreadCount);
         proxy.FileServicePlainTextPreviewSizeLimit = SizeHelper.ParseToByteCount(FileServicePlainTextPreviewSizeLimit);
     }
 
-    public void Read(ApplicationDbContext db, IEasyCachingProvider cache)
+    public void Read(SystemSettingsProxy proxy)
     {
-        var proxy = new SystemSettingsProxy(db, cache);
-
         EnableUserRegister = proxy.EnableUserRegister;
         EnableEmbeds = proxy.EnableEmbeds;
         EnableLinkShortener = proxy.EnableLinkShortener;

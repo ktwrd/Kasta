@@ -156,120 +156,132 @@ public class SystemSettingsProxy
         }
     }
 
-    private const string EnableUserRegisterKey = "enableUserRegister";
-    public const bool EnableUserRegisterDefault = true;
     public bool EnableUserRegister
     {
-        get => GetBool(EnableUserRegisterKey, EnableUserRegisterDefault);
-        set => SetValue(EnableUserRegisterKey, value);
+        get => GetBool(Keys.EnableUserRegister, DefaultValues.EnableUserRegister);
+        set => SetValue(Keys.EnableUserRegister, value);
     }
-    public const string EnableEmbedsKey = "embedEnable";
-    public const bool EnableEmbedsDefault = true;
     public bool EnableEmbeds
     {
-        get => GetBool(EnableEmbedsKey, EnableEmbedsDefault);
-        set => SetValue(EnableEmbedsKey, value);
+        get => GetBool(Keys.EnableEmbeds, DefaultValues.EnableEmbeds);
+        set => SetValue(Keys.EnableEmbeds, value);
     }
-    public const string EnableLinkShortenerKey = "enableLinkShortener";
-    public const bool EnableLinkShortenerDefault = false;
     public bool EnableLinkShortener
     {
-        get => GetBool(EnableLinkShortenerKey, EnableLinkShortenerDefault);
-        set => SetValue(EnableLinkShortenerKey, value);
+        get => GetBool(Keys.EnableLinkShortener, DefaultValues.EnableLinkShortener);
+        set => SetValue(Keys.EnableLinkShortener, value);
     }
 
-    public const string EnableCustomBrandingKey = "customBrandEnable";
-    public const bool EnableCustomBrandingDefault = false;
     public bool EnableCustomBranding
     {
-        get => GetBool(EnableCustomBrandingKey, EnableCustomBrandingDefault);
-        set => SetValue(EnableCustomBrandingKey, value);
+        get => GetBool(Keys.EnableCustomBranding, DefaultValues.EnableCustomBranding);
+        set => SetValue(Keys.EnableCustomBranding, value);
     }
 
-    public const string CustomBrandingTitleKey = "customBrandTitle";
-    public const string CustomBrandingTitleDefault = "Kasta";
     public string CustomBrandingTitle
     {
         get
         {
-            var result = GetString(CustomBrandingTitleKey, CustomBrandingTitleDefault);
-            return string.IsNullOrEmpty(result) ? CustomBrandingTitleDefault : result;
+            var result = GetString(Keys.CustomBrandingTitle, DefaultValues.CustomBrandingTitle);
+            return string.IsNullOrEmpty(result.Trim()) ? DefaultValues.CustomBrandingTitle : result;
         }
-        set => SetValue(CustomBrandingTitleKey, value);
+        set => SetValue(Keys.CustomBrandingTitle, value);
     }
 
-    public const string EnableQuotaKey = "quotaEnable";
-    public const bool EnableQuotaDefault = false;
     public bool EnableQuota
     {
-        get => GetBool(EnableQuotaKey, EnableQuotaDefault);
-        set => SetValue(EnableQuotaKey, value);
+        get => GetBool(Keys.EnableQuota, DefaultValues.EnableQuota);
+        set => SetValue(Keys.EnableQuota, value);
     }
-    public const string DefaultUploadQuotaKey = "defaultUploadQuota";
     public long? DefaultUploadQuota
     {
-        get => GetLong(DefaultUploadQuotaKey, null);
-        set => SetValue(DefaultUploadQuotaKey, value);
+        get => GetLong(Keys.DefaultUploadQuota, null);
+        set => SetValue(Keys.DefaultUploadQuota, value is >= 0 ? value : null);
     }
-    public const string DefaultStorageQuotaKey = "defaultStorageQuota";
+
     public long? DefaultStorageQuota
     {
-        get => GetLong(DefaultStorageQuotaKey, null);
-        set => SetValue(DefaultStorageQuotaKey, value);
+        get => GetLong(Keys.DefaultStorageQuota, null);
+        set => SetValue(Keys.DefaultStorageQuota, value is >= 0 ? value : null);
     }
-    public const string EnableGeoIpKey = "enableGeoIP";
-    public const bool EnableGeoIpDefault = false;
+
     public bool EnableGeoIp
     {
-        get => GetBool(EnableGeoIpKey, EnableGeoIpDefault);
-        set => SetValue(EnableGeoIpKey, value);
+        get => GetBool(Keys.EnableGeoIp, DefaultValues.EnableGeoIp);
+        set => SetValue(Keys.EnableGeoIp, value);
     }
-    public const string GeoIpDatabaseLocationKey = "geoIPDbLocation";
-    public const string GeoIpDatabaseLocationDefault = "";
     public string GeoIpDatabaseLocation
     {
         get
         {
-            var result = GetString(GeoIpDatabaseLocationKey, GeoIpDatabaseLocationDefault);
+            var result = GetString(Keys.GeoIpDatabaseLocation, DefaultValues.GeoIpDatabaseLocation);
             return string.IsNullOrEmpty(result)
-                ? GeoIpDatabaseLocationDefault
+                ? DefaultValues.GeoIpDatabaseLocation
                 : result;
         }
-        set => SetValue(GeoIpDatabaseLocationKey, value);
+        set => SetValue(Keys.GeoIpDatabaseLocation, value);
     }
 
-    public const string S3UsePresignedUrlKey = "s3_usePresignedUrl";
-    public const bool S3UsePresignedUrlDefault = false;
     public bool S3UsePresignedUrl
     {
-        get => GetBool(S3UsePresignedUrlKey, S3UsePresignedUrlDefault);
-        set => SetValue(S3UsePresignedUrlKey, value);
+        get => GetBool(Keys.S3UsePresignedUrl, DefaultValues.S3UsePresignedUrl);
+        set => SetValue(Keys.S3UsePresignedUrl, value);
     }
 
-    public const string FileServiceGenerateFileMetadataThreadCountKey = "fileService_generateFileMetadata_threadCount";
-    public const int FileServiceGenerateFileMetadataThreadCountDefault = 0;
     public int FileServiceGenerateFileMetadataThreadCount
     {
         get => Math.Min(
-            GetInt(FileServiceGenerateFileMetadataThreadCountKey, FileServiceGenerateFileMetadataThreadCountDefault)
-                ?? FileServiceGenerateFileMetadataThreadCountDefault, 
-            FileServiceGenerateFileMetadataThreadCountDefault);
-        set => SetValue(FileServiceGenerateFileMetadataThreadCountKey, value);
+            GetInt(Keys.FileServiceGenerateFileMetadataThreadCount, DefaultValues.FileServiceGenerateFileMetadataThreadCount)
+                ?? DefaultValues.FileServiceGenerateFileMetadataThreadCount,
+                DefaultValues.FileServiceGenerateFileMetadataThreadCount);
+        set => SetValue(
+            Keys.FileServiceGenerateFileMetadataThreadCount,
+            Math.Max(value, DefaultValues.FileServiceGenerateFileMetadataThreadCount));
     }
 
-    public const string FileServicePlainTextPreviewSizeLimitKey = "fileService_plainTextPreview_maxSize";
-    public const long FileServicePlainTextPreviewSizeLimitDefault = 524_288;
     public long? FileServicePlainTextPreviewSizeLimit
     {
         get
         {
-            var value = GetLong(FileServicePlainTextPreviewSizeLimitKey, FileServicePlainTextPreviewSizeLimitDefault);
-            if (value.HasValue) return Math.Max(0, value.Value);
-            return value;
+            var value = GetLong(Keys.FileServicePlainTextPreviewSizeLimit, DefaultValues.FileServicePlainTextPreviewSizeLimit);
+            return value.HasValue
+                ? Math.Max(0, value.Value)
+                : null;
         }
-        set
-        {
-            SetValue(FileServicePlainTextPreviewSizeLimitKey, value.HasValue ? Math.Max(0, value.Value) : null);
-        }
+        set => SetValue(
+            Keys.FileServicePlainTextPreviewSizeLimit,
+            value.HasValue ? Math.Max(0, value.Value) : null);
+    }
+
+    public static class Keys
+    {
+        public const string EnableUserRegister = "enableUserRegister";
+        public const string EnableEmbeds = "embedEnable";
+        public const string EnableLinkShortener = "enableLinkShortener";
+        public const string EnableCustomBranding = "customBrandEnable";
+        public const string CustomBrandingTitle = "customBrandTitle";
+        public const string EnableQuota = "quotaEnable";
+        public const string DefaultUploadQuota = "defaultUploadQuota";
+        public const string DefaultStorageQuota = "defaultStorageQuota";
+        public const string EnableGeoIp = "enableGeoIP";
+        public const string GeoIpDatabaseLocation = "geoIPDbLocation";
+        public const string S3UsePresignedUrl = "s3_usePresignedUrl";
+        public const string FileServiceGenerateFileMetadataThreadCount = "fileService_generateFileMetadata_threadCount";
+        public const string FileServicePlainTextPreviewSizeLimit = "fileService_plainTextPreview_maxSize";
+    }
+
+    public static class DefaultValues
+    {
+        public const bool EnableUserRegister = true;
+        public const bool EnableEmbeds = true;
+        public const bool EnableLinkShortener = false;
+        public const bool EnableCustomBranding = false;
+        public const string CustomBrandingTitle = "Kasta";
+        public const bool EnableQuota = false;
+        public const bool EnableGeoIp = false;
+        public const string GeoIpDatabaseLocation = "";
+        public const bool S3UsePresignedUrl = false;
+        public const int FileServiceGenerateFileMetadataThreadCount = 0;
+        public const long FileServicePlainTextPreviewSizeLimit = 524_288;
     }
 }
