@@ -8,11 +8,6 @@ namespace Kasta.Web.Helpers;
 
 public static class DataExtensions
 {
-    [Obsolete("Please use SystemSettingsProxy when possible")]
-    public static SystemSettingsParams GetSystemSettings(this ApplicationDbContext context)
-    {
-        throw new NotImplementedException("Please migrate to " + typeof(SystemSettingsProxy));
-    }
     private static string GetFileUrlId(FileModel file)
     {
         return string.IsNullOrEmpty(file.ShortUrl)

@@ -6,12 +6,12 @@
 @using Vivet.AspNetCore.RequestTimeZone.Extensions
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
+@inject SystemSettingsProxy SystemSettings
 @inject ApplicationDbContext _db
 @inject IHttpContextAccessor ctx
 @{
     UserLimitModel? userLimit = null;
-    var systemSettings = _db.GetSystemSettings();
-    var appTitle = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingTitle : "Kasta";
+    var appTitle = SystemSettings.EnableCustomBranding ? SystemSettings.CustomBrandingTitle : "Kasta";
     string bootstrapThemeAttributeValue = "auto";
     string currentTheme = "";
     bool isAdmin = false;
@@ -52,15 +52,15 @@
     }
 
     string? userQuotaValue = "null";
-    if (systemSettings.EnableQuota)
+    if (SystemSettings.EnableQuota)
     {
         if (userLimit?.MaxFileSize != null)
         {
             userQuotaValue = $"parseInt('{userLimit?.MaxFileSize}')";
         }
-        else if (systemSettings.DefaultUploadQuotaReal > -1)
+        else if (SystemSettings.DefaultUploadQuota > -1)
         {
-            userQuotaValue = $"'parseInt({systemSettings.DefaultUploadQuotaReal})'";
+            userQuotaValue = $"'parseInt({SystemSettings.DefaultUploadQuota})'";
         }
     }
 
@@ -140,7 +140,7 @@
     }
     <script type="text/javascript">
         window.UserLimits = {
-            MaxUploadQuota: @(systemSettings.EnableQuota ? "null" : (userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal)?.ToString() ?? "null")
+            MaxUploadQuota: @(SystemSettings.EnableQuota ? "null" : (userLimit?.MaxFileSize ?? SystemSettings.DefaultUploadQuota)?.ToString() ?? "null")
         };
     </script>
     @await RenderSectionAsync("Head", required: false)
@@ -167,7 +167,7 @@
                                 Home
                             </a>
                         </li>
-                        @if (systemSettings.EnableLinkShortener)
+                        @if (SystemSettings.EnableLinkShortener)
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="LinkList">

@@ -15,12 +15,14 @@ namespace Kasta.Web.Areas.Admin.Controllers;
 [Authorize(Roles = $"{RoleKind.Administrator}, {RoleKind.UserAdmin}")]
 public class UserController : Controller
 {
-    private readonly UserManager<UserModel> _userManager;
     private readonly ApplicationDbContext _db;
+    private readonly UserManager<UserModel> _userManager;
+    private readonly SystemSettingsProxy _systemSettings;
     public UserController(IServiceProvider services)
     {
-        _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _db = services.GetRequiredService<ApplicationDbContext>();
+        _userManager = services.GetRequiredService<UserManager<UserModel>>();
+        _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
     }
 
     [HttpGet("List")]
@@ -37,9 +39,10 @@ public class UserController : Controller
             page = 1;
         var vm = new UserListViewModel()
         {
-            Page = page
+            Page = page,
+            SystemSettings = new SystemSettingsViewModel()
         };
-        vm.SystemSettings = _db.GetSystemSettings();
+        vm.SystemSettings.Read(_systemSettings);
         vm.Users = _db.Paginate(
             _db.Users.OrderBy(e => e.IsAdmin).Include(e => e.Limit),
             vm.Page,

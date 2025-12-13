@@ -21,6 +21,7 @@ public class FileWebService
     private readonly S3Service _s3;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly UserManager<UserModel> _userManager;
+    private readonly SystemSettingsProxy _systemSettingsProxy;
     private readonly ILogger<FileWebService> _logger;
     
     public FileWebService(IServiceProvider services, ILogger<FileWebService> logger)
@@ -116,8 +117,7 @@ public class FileWebService
             mimeType = filePreview.MimeType;
         }
 
-        var sys = new SystemSettingsProxy(_db);
-        if (sys.S3UsePresignedUrl)
+        if (_systemSettingsProxy.S3UsePresignedUrl)
         {
             var url = await _s3.GeneratePresignedUrl(relativeLocation, TimeSpan.FromMinutes(15));
             context.Response.Headers.Location = new(url);
