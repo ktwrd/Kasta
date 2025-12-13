@@ -17,6 +17,12 @@
     <File Path=".github/workflows/build.yml" />
     <File Path=".github/workflows/manual-docker.yml" />
   </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="CODE_OF_CONDUCT.md" />
+    <File Path="Directory.Packages.props" />
+    <File Path="LICENSE.txt" />
+    <File Path="README.md" />
+  </Folder>
   <Project Path="Kasta.Data/Kasta.Data.csproj" />
   <Project Path="Kasta.Shared/Kasta.Shared.csproj" />
   <Project Path="Kasta.Web/Kasta.Web.csproj" />

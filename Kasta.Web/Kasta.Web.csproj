@@ -15,33 +15,33 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
-        <PackageReference Include="AWSSDK.S3" Version="4.0.14.2" />
-        <PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
-        <PackageReference Include="EasyCaching.Redis" Version="1.9.2" />
-        <PackageReference Include="EasyCaching.Serialization.MessagePack" Version="1.9.2" />
-        <PackageReference Include="EFCoreSecondLevelCacheInterceptor" Version="5.3.5" />
-        <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.5" />
-        <PackageReference Include="MessagePack" Version="2.5.198" />
-        <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.10.0" />
-        <PackageReference Include="Markdig" Version="0.44.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.1" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1">
+        <PackageReference Include="AspNet.Security.OAuth.GitHub" />
+        <PackageReference Include="AWSSDK.S3" />
+        <PackageReference Include="EasyCaching.InMemory" />
+        <PackageReference Include="EasyCaching.Redis" />
+        <PackageReference Include="EasyCaching.Serialization.MessagePack" />
+        <PackageReference Include="EFCoreSecondLevelCacheInterceptor" />
+        <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" />
+        <PackageReference Include="MessagePack" />
+        <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" />
+        <PackageReference Include="Markdig" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.0" />
-        <PackageReference Include="MimeTypes" Version="2.5.2" />
-        <PackageReference Include="NLog" Version="6.0.7" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
-        <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
-        <PackageReference Include="Sentry.AspNetCore" Version="5.16.2" />
-        <PackageReference Include="Sentry.NLog" Version="5.16.2" />
-        <PackageReference Include="Vivet.AspNetCore.RequestTimeZone" Version="9.0.11" />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
+        <PackageReference Include="MimeTypes" />
+        <PackageReference Include="NLog" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+        <PackageReference Include="NLog.Web.AspNetCore" />
+        <PackageReference Include="Sentry.AspNetCore" />
+        <PackageReference Include="Sentry.NLog" />
+        <PackageReference Include="Vivet.AspNetCore.RequestTimeZone" />
     </ItemGroup>
 
     <ItemGroup>
