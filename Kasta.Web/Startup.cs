@@ -40,6 +40,7 @@ public class Startup
         // Configure the HTTP request pipeline.
         if (env.IsDevelopment())
         {
+            app.UseDeveloperExceptionPage();
             app.UseMigrationsEndPoint();
         }
         else
@@ -51,10 +52,12 @@ public class Startup
 
                 var context = services.GetRequiredService<ApplicationDbContext>();
                 var migrations = context.Database.GetPendingMigrations().ToList();
-                if (migrations.Any())
+                if (migrations.Count > 0)
                 {
                     var logger = LogManager.GetCurrentClassLogger();
-                    logger.Info("Applying the following migrations:" + Environment.NewLine + string.Join(Environment.NewLine, migrations.Select(e => "- " + e)));
+                    logger.Info("Applying the following migrations:"
+                        + Environment.NewLine
+                        + string.Join(Environment.NewLine, migrations.Select(e => "- " + e)));
                     context.Database.Migrate();
                 }
             }
