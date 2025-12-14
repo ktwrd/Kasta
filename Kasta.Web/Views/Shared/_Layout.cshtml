@@ -3,6 +3,7 @@
 @using Kasta.Web.Helpers
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.EntityFrameworkCore
 @using Vivet.AspNetCore.RequestTimeZone.Extensions
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
@@ -40,10 +41,10 @@
 
         if (user != null)
         {
-            bool userAdministrator = await UserManager.IsInRoleAsync(user, RoleKind.Administrator);
-            showMailbox = userAdministrator;
-            showUserAdmin = userAdministrator;
-            if (!userAdministrator)
+            isAdmin |= await UserManager.IsInRoleAsync(user, RoleKind.Administrator);
+            showMailbox = isAdmin;
+            showUserAdmin = isAdmin;
+            if (!isAdmin)
             {
                 showMailbox = await UserManager.IsInRoleAsync(user, RoleKind.ViewSystemMailbox);
                 showUserAdmin = await UserManager.IsInRoleAsync(user, RoleKind.UserAdmin);
@@ -208,10 +209,18 @@
                 </div>
             </div>
         </nav>
-    </header>   
+    </header>
 }
 <div class="container-xl">
     <main role="main" class="pb-3">
+        @if (enableNavbar)
+        {
+            var pendingMigrations = await _db.Database.GetPendingMigrationsAsync();
+            @if (isAdmin && pendingMigrations.Any())
+            {
+                <partial name="_PendingMigrationsPartial"/>
+            }
+        }
         @RenderBody()
     </main>
 </div>
