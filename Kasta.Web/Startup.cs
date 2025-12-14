@@ -103,7 +103,9 @@ public class Startup
         ConfigureAuthenticationServices(services);
         ConfigureCacheServices(services);
         services.AddMvc();
-        services.AddScoped<S3Service>()
+        services
+            .AddScoped<SystemSettingsProxy>()
+            .AddScoped<S3Service>()
             .AddScoped<UploadService>()
             .AddScoped<ShortUrlService>()
             .AddScoped<FileService>()
@@ -112,8 +114,7 @@ public class Startup
             .AddScoped<FileWebService>()
             .AddScoped<LinkShortenerWebService>()
             .AddScoped<TimeZoneService>()
-            .AddScoped<MailboxService>()
-            .AddScoped<SystemSettingsProxy>();
+            .AddScoped<MailboxService>();
         services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new BlockUserRegisterAttribute());

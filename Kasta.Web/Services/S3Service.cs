@@ -34,7 +34,7 @@ public class S3Service
             config);
         _log.Info($"Created S3 Client");
     }
-    public async Task<GetObjectResponse> GetObject(string location)
+    public async Task<GetObjectResponse?> GetObject(string location)
     {
         var cfg = KastaConfig.Instance;
         // Create a GetObject request

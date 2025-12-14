@@ -30,6 +30,7 @@ public class FileWebService
         _s3 = services.GetRequiredService<S3Service>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
+        _systemSettingsProxy = services.GetRequiredService<SystemSettingsProxy>();
         _logger = logger;
     }
     
@@ -157,7 +158,13 @@ public class FileWebService
         }
         if (context.Request.Method != "OPTIONS" || context.Request.Method != "HEAD")
         {
-            await StreamCopyOperation.CopyToAsync(obj.ResponseStream, context.Response.Body, obj.ContentLength, context.HttpContext.RequestAborted);
+            var responseFeature = context.HttpContext.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpResponseBodyFeature>();
+            responseFeature?.DisableBuffering();
+            await StreamCopyOperation.CopyToAsync(
+                obj.ResponseStream, 
+                context.Response.Body,
+                obj.ContentLength,
+                context.HttpContext.RequestAborted);
         }
         return new EmptyResult();
     }
