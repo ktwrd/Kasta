@@ -3,64 +3,83 @@ using System.Text.RegularExpressions;
 
 namespace Kasta.Shared.Helpers;
 
-public static class SizeHelper
+public partial class SizeHelper
 {
-    public static long? ParseToByteCount(string value)
+    [GeneratedRegex(@"^([0-9]+(?:[,_][0-9]+){0,}((?:\.[0-9]+)?))[\s]*([kmgt]i?b?|b|)$", RegexOptions.IgnoreCase, "en-AU")]
+    private static partial Regex ParseToBytesExpression();
+    
+    /// <summary>
+    /// <para>
+    /// Parse the provided <paramref name="value"/> into it's respective bytes (e.g: 3.5MB is 3,670,016b)
+    /// </para>
+    /// 
+    /// If the multiplied decimal resolves to something like <c>103321.6</c> then it will always round up.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown if the number part of <paramref name="value"/> cannot be parsed
+    /// into a <see cref="decimal"/> or <see cref="long"/>
+    /// </exception>
+    public static long? ParseToByteCount(string? value)
     {
+        value = value?.Trim();
         if (string.IsNullOrEmpty(value))
             return null;
-        if (long.TryParse(value.Trim(), out var directParse))
+        if (long.TryParse(value, out var directParse))
         {
             return directParse;
         }
 
-        var actualRegex = new Regex(@"^([0-9]+(?:[,_][0-9]+){0,}((?:\.[0-9]+)?))([kmgt]i?b?|b|)$", RegexOptions.IgnoreCase);
-        var match = actualRegex.Match(value.Trim());
+        var match = ParseToBytesExpression().Match(value);
         var t = match.Groups[^1].Value.Trim().ToLower();
         var numberValue = match.Groups[1].Value.Replace(",", "").Replace("_", "");
         long result = 0;
+        var multReps = 0;
+        var mult = t is [_, 'i', ..] ? 1000 : 1024;
+        if (t.Length > 0)
+        {
+            multReps = t[0] switch
+            {
+                'k' => 1,
+                'm' => 2,
+                'g' => 3,
+                't' => 4,
+                _ => 0
+            };
+        }
         if (numberValue.Contains('.'))
         {
-            if (decimal.TryParse(numberValue, out var a))
+            if (decimal.TryParse(numberValue, out var @decimal))
             {
-                var x = a;
-                var c = t is [_, 'i', ..] ? 1000 : 1024;
-                var r = t[0] switch
+                var x = @decimal;
+                for (int i = 0; i < multReps; i++)
                 {
-                    'k' => 1,
-                    'm' => 2,
-                    'g' => 3,
-                    't' => 4,
-                    _ => 0
-                };
-                for (int i = 0; i < r; i++)
-                {
-                    x *= c;
+                    x *= mult;
                 }
 
-                result = Convert.ToInt64(Math.Max(Math.Round(x), 0));
+                result = Convert.ToInt64(Math.Max(Math.Ceiling(x), 0));
+            }
+            else
+            {
+                throw new ArgumentException($"Could not parse value \"{value}\" into {typeof(decimal)}", nameof(value));
             }
         }
         else
         {
-            if (long.TryParse(numberValue, out var b))
+            if (long.TryParse(numberValue, out var @long))
             {
-                var x = b;
-                var c = t is [_, 'i', ..] ? 1000 : 1024;
-                var r = t[0] switch
+                var x = @long;
+                for (int i = 0; i < multReps; i++)
                 {
-                    'k' => 1,
-                    'm' => 2,
-                    'g' => 3,
-                    't' => 4,
-                    _ => 0
-                };
-                for (int i = 0; i < r; i++)
-                {
-                    x *= c;
+                    x *= mult;
                 }
 
                 result = x;
+            }
+            else
+            {
+                throw new ArgumentException($"Could not parse value \"{value}\" into {typeof(long)}", nameof(value));
             }
         }
         return result;
