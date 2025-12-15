@@ -45,13 +45,13 @@
             }
         }
 
-        if (currentTheme == "dark" || currentTheme == "light")
+        if (currentTheme == "dark" || currentTheme == "light" || currentTheme == "auto")
         {
             bootstrapThemeAttributeValue = currentTheme;
         }
     }
 
-    string? userQuotaValue = "null";
+    var userQuotaValue = "null";
     if (SystemSettings.EnableQuota)
     {
         if (userLimit?.MaxFileSize != null)
@@ -231,6 +231,7 @@
         <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html">GPL v2</a>
     </div>
 </div>
+<script src="~/js/bootstrap-auto-dark-mode.js" asp-append-version="true"></script>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/lib/dropzone/js/dropzone.min.js"></script>

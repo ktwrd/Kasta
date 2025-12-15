@@ -31,15 +31,17 @@ public class UploadService
     public async Task<FileModel> UploadBasicAsync(UserModel user, Stream stream, string filename, long length)
     {
         var fn = Path.GetFileName(filename) ?? "blob";
+        var id = Guid.NewGuid().ToString();
         var fileModel = new FileModel()
         {
+            Id = id,
             Filename = fn,
+            RelativeLocation = $"{id}/{fn}",
             MimeType = MimeTypes.GetMimeType(fn),
             Size = length,
             ShortUrl = _shortUrlService.Generate(),
             CreatedByUserId = user.Id,
         };
-        fileModel.RelativeLocation = $"{fileModel.Id}/{fileModel.Filename}";
 
         await using var ctx = _db.CreateSession();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
@@ -99,7 +101,8 @@ public class UploadService
     
     public async Task<ChunkUploadSessionModel> CreateSession(UserModel user, CreateUploadSessionRequest @params)
     {
-        if (string.IsNullOrEmpty(@params.Filename))
+        throw new NotImplementedException();
+        /*if (string.IsNullOrEmpty(@params.Filename))
         {
             throw new BadHttpRequestException($"Empty filename");
         }
@@ -152,6 +155,6 @@ public class UploadService
             await transaction.RollbackAsync();
             _log.Error($"Failed to create upload session for user {user.UserName} ({user.Id})\n{ex}");
             throw;
-        }
+        }*/
     }
 }

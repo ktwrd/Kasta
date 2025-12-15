@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using NpgsqlTypes;
 
 namespace Kasta.Data.Models;
@@ -19,13 +18,14 @@ public class FileModel
     public string Id { get; set; }
     
     [MaxLength(1000)]
-    public string Filename { get; set; }
+    public required string Filename { get; set; }
     
     [MaxLength(2000)]
-    public string RelativeLocation { get; set; }
+    public required string RelativeLocation { get; set; }
 
     [MaxLength(100)]
     public string ShortUrl { get; set; }
+
     /// <summary>
     /// MIME Type of the file
     /// </summary>

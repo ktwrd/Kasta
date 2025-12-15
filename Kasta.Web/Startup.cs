@@ -1,4 +1,3 @@
-using System.Net;
 using EFCoreSecondLevelCacheInterceptor;
 using Kasta.Data;
 using Kasta.Data.Models;
@@ -12,11 +11,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using NLog;
+using System.IO.Compression;
+using System.Net;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
 
 namespace Kasta.Web;
@@ -104,19 +106,18 @@ public class Startup
         ConfigureAuthenticationServices(services);
         ConfigureCacheServices(services);
         services.AddMvc();
-        services
-            .AddScoped<GenericFileService>()
-            .AddScoped<SystemSettingsProxy>()
-            .AddScoped<S3Service>()
-            .AddScoped<UploadService>()
-            .AddScoped<ShortUrlService>()
-            .AddScoped<FileService>()
-            .AddScoped<PreviewService>()
-            .AddScoped<AuditService>()
-            .AddScoped<FileWebService>()
-            .AddScoped<LinkShortenerWebService>()
-            .AddScoped<TimeZoneService>()
-            .AddScoped<MailboxService>();
+        services.AddScoped<GenericFileService>()
+                .AddScoped<SystemSettingsProxy>()
+                .AddScoped<S3Service>()
+                .AddScoped<UploadService>()
+                .AddScoped<ShortUrlService>()
+                .AddScoped<FileService>()
+                .AddScoped<PreviewService>()
+                .AddScoped<AuditService>()
+                .AddScoped<FileWebService>()
+                .AddScoped<LinkShortenerWebService>()
+                .AddScoped<TimeZoneService>()
+                .AddScoped<MailboxService>();
         services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new BlockUserRegisterAttribute());
@@ -126,15 +127,65 @@ public class Startup
         services.AddRequestTimeZone(opts =>
         {
             var cfg = KastaConfig.Instance;
-            if (string.IsNullOrEmpty(cfg.DefaultTimezone))
-            {
-                opts.Id = "UTC";
-            }
-            else
-            {
-                opts.Id = cfg.DefaultTimezone;   
-            }
+            opts.Id = string.IsNullOrEmpty(cfg.DefaultTimezone?.Trim())
+                ? "UTC"
+                : cfg.DefaultTimezone;
             opts.RequestTimeZoneProviders.Add(new IPAddressRequestTimeZoneProvider());
+        });
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat([
+                "application/json", "application/geo+json",
+                "application/json", "application/pdf",
+                "application/sql", "application/toml",
+                "application/octet-stream", "application/xml",
+                "application/wasm",
+                "application/font-woff2",
+
+                "audio/aac", "audio/flac",
+                "audio/mp4", "audio/mpeg",
+                "audio/ogg", "audio/opus",
+                "audio/vorbis",
+                "audio/midi", "audio/x-midi",
+
+                "image/apng", "image/avif", "image/bmp",
+                "image/gif", "image/heic", "image/heic-sequence",
+                "image/heif", "image/heif-sequence",
+                "image/jpeg", "image/jxl", "image/png",
+                "image/svg+xml", "image/tiff", "image/tiff-fx",
+                "image/webp", "image/vnd.microsoft.icon",
+
+                "model/mtl", "model/mesh", "model/obj",
+
+                "application/font-woff2",
+                "font/collection", "font/otf",
+                "font/sfnt", "font/ttf",
+                "font/woff", "font/woff2",
+
+                "text/javascript", "text/css",
+                "text/css", "text/rtf",
+                "text/plain", "text/xml",
+                "text/markdown",
+
+
+                "video/mp4", "video/av1",
+                "video/mpeg", "video/mpeg",
+                "video/ogg", "video/quicktime",
+                "video/webm"
+            ]);
+        });
+
+        services.Configure<BrotliCompressionProviderOptions>(options =>
+        {
+            options.Level = CompressionLevel.Fastest;
+        });
+
+        services.Configure<GzipCompressionProviderOptions>(options =>
+        {
+            options.Level = CompressionLevel.SmallestSize;
         });
     }
 
