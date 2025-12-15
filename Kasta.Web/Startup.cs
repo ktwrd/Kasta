@@ -98,12 +98,14 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddSingleton(KastaConfig.Instance);
         ConfigureForwardedHeadersOptions(services);
         ConfigureDatabaseServices(services);
         ConfigureAuthenticationServices(services);
         ConfigureCacheServices(services);
         services.AddMvc();
         services
+            .AddScoped<GenericFileService>()
             .AddScoped<SystemSettingsProxy>()
             .AddScoped<S3Service>()
             .AddScoped<UploadService>()

@@ -1,5 +1,6 @@
 using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Shared;
 using Kasta.Web.Models.Api.Request;
 using NLog;
 
@@ -11,16 +12,18 @@ public class UploadService
     private readonly ApplicationDbContext _db;
     private readonly ShortUrlService _shortUrlService;
     private readonly FileService _fileService;
-    private readonly S3Service _s3;
+    private readonly GenericFileService _genericFileService;
     private readonly PreviewService _previewService;
+    private readonly KastaConfig _cfg;
 
     public UploadService(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
         _shortUrlService = services.GetRequiredService<ShortUrlService>();
         _fileService = services.GetRequiredService<FileService>();
-        _s3 = services.GetRequiredService<S3Service>();
+        _genericFileService = services.GetRequiredService<GenericFileService>();
         _previewService = services.GetRequiredService<PreviewService>();
+        _cfg = services.GetRequiredService<KastaConfig>();
     }
 
     public const int ChunkLimit = 1024 * 1024;
@@ -46,24 +49,30 @@ public class UploadService
             await using (var fs = File.Open(tmpFilename, FileMode.OpenOrCreate, FileAccess.Write))
             {
                 await stream.CopyToAsync(fs);
-            }
-            var s3UploadSource = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, System.IO.FileShare.Read);
-
-            var obj = await _s3.UploadObject(s3UploadSource, fileModel.RelativeLocation);
-            fileModel.Size = obj.ContentLength;
-            await ctx.Files.AddAsync(fileModel);
-
-            await ctx.SaveChangesAsync();
-            await s3UploadSource.DisposeAsync();
-            if (_previewService.PreviewSupported(fileModel))
-            {
-                await s3UploadSource.DisposeAsync();
-                s3UploadSource = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, System.IO.FileShare.Read);
-                await _previewService.Create(ctx, fileModel, s3UploadSource);
+                await fs.FlushAsync();
             }
 
             await using (var fileStream = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
+                await _genericFileService.UploadAsync(fileStream, fileModel.RelativeLocation);
+                await fileStream.FlushAsync();
+                fileModel.Size = (await _genericFileService.GetAsync(fileModel.RelativeLocation))?.Length ?? 0;
+            }
+            await ctx.Files.AddAsync(fileModel);
+
+
+            await ctx.SaveChangesAsync();
+
+            if (_previewService.PreviewSupported(fileModel))
+            {
+                using var other = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read);
+                await _previewService.Create(ctx, fileModel, other);
+                await other.FlushAsync();
+            }
+
+            await using (var fileStream = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                fileStream.Seek(0, SeekOrigin.Begin);
                 var imageInfo = _fileService.GenerateFileImageInfo(fileModel, fileStream);
                 if (imageInfo != null)
                 {
@@ -72,10 +81,10 @@ public class UploadService
                 }
             }
 
-            File.Delete(tmpFilename);
-
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            File.Delete(tmpFilename);
         }
         catch (Exception ex)
         {

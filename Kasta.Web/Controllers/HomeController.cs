@@ -37,55 +37,53 @@ public class HomeController : Controller
         _systemSettings = proxy;
     }
 
-    public IActionResult Index([FromQuery] string? search = null, [FromQuery] int? page = 1)
+    public async Task<IActionResult> Index([FromQuery] string? search = null, [FromQuery] int? page = 1)
     {
-        if (User.Identity?.IsAuthenticated ?? false)
-        {
-            var userModel = _userManager.GetUserAsync(User).Result;
-            if (userModel == null)
-            {
-                throw new InvalidOperationException($"User Model cannot be null when authenticated");
-            }
-            var viewModel = new FileListViewModel()
-            {
-                SearchQuery = string.IsNullOrEmpty(search) ? null : search
-            };
-            if (page.HasValue && page.Value >= 1)
-            {
-                viewModel.Page = page.Value;
-            }
-            var query = _db
-                .SearchFiles(viewModel.SearchQuery, userModel.Id)
-                .OrderByDescending(v => v.CreatedAt)
-                .Include(fileModel => fileModel.Preview);
-            viewModel.Files = _db.Paginate(query, viewModel.Page, 25, out bool lastPage);
-            viewModel.IsLastPage = lastPage;
-
-            var userQuota = _db.UserLimits
-                .AsNoTracking()
-                .FirstOrDefault(e => e.UserId == userModel.Id);
-            viewModel.SpaceUsed = PrettySize.Bytes(userQuota?.SpaceUsed ?? 0).ToString();
-            if (_systemSettings.EnableQuota)
-            {
-                if (userQuota?.MaxStorage is >= 0)
-                {
-                    viewModel.SpaceAvailable = PrettySize.Bytes(Math.Max(userQuota.MaxStorage.Value - userQuota.SpaceUsed, 0)).ToString();
-                }
-                else if (_systemSettings.DefaultStorageQuota is >= 0)
-                {
-                    var value = userQuota == null
-                        ? _systemSettings.DefaultStorageQuota.Value
-                        : Math.Max(_systemSettings.DefaultStorageQuota.Value - userQuota.SpaceUsed, 0);
-                    viewModel.SpaceAvailable = PrettySize.Bytes(value).ToString();
-                }
-            }
-
-            return View("FileList", viewModel);
-        }
-        else
+        var userModel = User.Identity?.IsAuthenticated ?? false ? await _userManager.GetUserAsync(User) : null;
+        if (userModel == null)
         {
             return new RedirectResult("/Identity/Account/Login", false);
         }
+
+        if (userModel == null)
+        {
+            throw new InvalidOperationException($"User Model cannot be null when authenticated");
+        }
+        var viewModel = new FileListViewModel()
+        {
+            SearchQuery = string.IsNullOrEmpty(search) ? null : search
+        };
+        if (page.HasValue && page.Value >= 1)
+        {
+            viewModel.Page = page.Value;
+        }
+        var query = _db
+            .SearchFiles(viewModel.SearchQuery, userModel.Id)
+            .OrderByDescending(v => v.CreatedAt)
+            .Include(fileModel => fileModel.Preview);
+        viewModel.Files = _db.Paginate(query, viewModel.Page, 25, out bool lastPage);
+        viewModel.IsLastPage = lastPage;
+
+        var userQuota = _db.UserLimits
+            .AsNoTracking()
+            .FirstOrDefault(e => e.UserId == userModel.Id);
+        viewModel.SpaceUsed = PrettySize.Bytes(userQuota?.SpaceUsed ?? 0).ToString();
+        if (_systemSettings.EnableQuota)
+        {
+            if (userQuota?.MaxStorage is >= 0)
+            {
+                viewModel.SpaceAvailable = PrettySize.Bytes(Math.Max(userQuota.MaxStorage.Value - userQuota.SpaceUsed, 0)).ToString();
+            }
+            else if (_systemSettings.DefaultStorageQuota is >= 0)
+            {
+                var value = userQuota == null
+                    ? _systemSettings.DefaultStorageQuota.Value
+                    : Math.Max(_systemSettings.DefaultStorageQuota.Value - userQuota.SpaceUsed, 0);
+                viewModel.SpaceAvailable = PrettySize.Bytes(value).ToString();
+            }
+        }
+
+        return View("FileList", viewModel);
     }
     
     [HttpGet("Links")]

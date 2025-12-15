@@ -22,25 +22,19 @@
     if (SignInManager.IsSignedIn(User))
     {
         var user = await UserManager.GetUserAsync(User);
-        var settings = await _db.GetUserSettingsAsync(user!);
         isAdmin = user?.IsAdmin ?? false;
-        if (!string.IsNullOrEmpty(settings.ThemeName))
-        {
-            currentTheme = settings.ThemeName.Trim().ToLower();
-            if (currentTheme == "2010")
-            {
-                bootstrapThemeAttributeValue = "dark";
-            }
-        }
         userLimit = user?.Limit;
-
-        if (currentTheme == "dark" || currentTheme == "light")
-        {
-            bootstrapThemeAttributeValue = currentTheme;
-        }
-
         if (user != null)
         {
+            var settings = await _db.GetUserSettingsAsync(user);
+            if (!string.IsNullOrEmpty(settings.ThemeName))
+            {
+                currentTheme = settings.ThemeName.Trim().ToLower();
+                if (currentTheme == "2010")
+                {
+                    bootstrapThemeAttributeValue = "dark";
+                }
+            }
             isAdmin |= await UserManager.IsInRoleAsync(user, RoleKind.Administrator);
             showMailbox = isAdmin;
             showUserAdmin = isAdmin;
@@ -49,6 +43,11 @@
                 showMailbox = await UserManager.IsInRoleAsync(user, RoleKind.ViewSystemMailbox);
                 showUserAdmin = await UserManager.IsInRoleAsync(user, RoleKind.UserAdmin);
             }
+        }
+
+        if (currentTheme == "dark" || currentTheme == "light")
+        {
+            bootstrapThemeAttributeValue = currentTheme;
         }
     }
 

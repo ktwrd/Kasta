@@ -21,6 +21,8 @@ public class S3Service
     public void InitializeClient()
     {
         var cfg = KastaConfig.Instance;
+        if (cfg.LocalFileStorage.Enabled) return;
+        if (cfg.S3 == null) throw new InvalidOperationException("S3 not configured!");
         var config = new AmazonS3Config()
         {
             ServiceURL = cfg.S3.ServiceUrl,
@@ -37,6 +39,7 @@ public class S3Service
     public async Task<GetObjectResponse?> GetObject(string location)
     {
         var cfg = KastaConfig.Instance;
+        if (cfg.S3 == null) throw new InvalidOperationException("S3 not configured!");
         // Create a GetObject request
         var request = new GetObjectRequest
         {
@@ -53,9 +56,10 @@ public class S3Service
         }
         return response;
     }
-    public async Task<GetObjectResponse> UploadObject(Stream stream, string location)
+    public async Task<GetObjectResponse?> UploadObject(Stream stream, string location)
     {
         var cfg = KastaConfig.Instance;
+        if (cfg.S3 == null) throw new InvalidOperationException("S3 not configured!");
         var c = _client;
         var fileTransferUtility = new TransferUtility(c);
         var fileTransferUtilityRequest = new TransferUtilityUploadRequest
@@ -76,6 +80,7 @@ public class S3Service
     public async Task<DeleteObjectResponse> DeleteObject(string location)
     {
         var cfg = KastaConfig.Instance;
+        if (cfg.S3 == null) throw new InvalidOperationException("S3 not configured!");
         // Create a DeleteObject request
         var request = new DeleteObjectRequest()
         {
@@ -92,6 +97,7 @@ public class S3Service
     public async Task<string> GeneratePresignedUrl(string location, TimeSpan duration)
     {
         var cfg = KastaConfig.Instance;
+        if (cfg.S3 == null) throw new InvalidOperationException("S3 not configured!");
         var request = new GetPreSignedUrlRequest()
         {
             BucketName = cfg.S3.BucketName,
