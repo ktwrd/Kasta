@@ -160,11 +160,6 @@ form#download-data {
     }
 }
 
-[data-bs-theme=dark] {
-    --bs-body-bg: oklch(14.5% 0 0) !important;
-    --bs-secondary-bg: oklch(20.5% 0 0) !important;
-}
-
 :root {
     --bs-blue: oklch(54.6% 0.245 262.881) !important;
     --bs-primary: oklch(54.6% 0.245 262.881) !important;
@@ -182,11 +177,25 @@ form#download-data {
     --bs-success-border-subtle: oklch(79.2% 0.209 151.711);
     --bs-danger-border-subtle: oklch(64.5% 0.246 16.439) !important;
     --bs-warning-border-subtle: oklch(90.1% 0.076 70.697) !important;
+    --bs-link-color: oklch(54.6% 0.245 262.881) !important;
+    --bs-link-hover-color: oklch(42.4% 0.199 265.638) !important;
 }
-.btn-primary {
+
+[data-bs-theme=dark] {
+    --bs-body-bg: oklch(14.5% 0 0) !important;
+    --bs-secondary-bg: oklch(20.5% 0 0) !important;
+    --bs-link-color: oklch(62.3% 0.214 259.815) !important;
+    --bs-link-hover-color: oklch(80.9% 0.105 251.813) !important;
+}
+
+.btn-primary,
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
     color: #fff;
     background-color: var(--bs-blue) !important;
-    border-color: var(--bs-primary-border-subtle) !important;
+    box-shadow: none !important;
+    transition: 100ms;
+    border: var(--bs-border-width) solid var(--bs-primary-border-subtle);
 }
 .btn-secondary {
     background-color: var(--bs-secondary) !important;
@@ -206,7 +215,7 @@ form#download-data {
 }
 
 .btn-primary:hover {
-    box-shadow: 0 var(--box-shadow-y) var(--box-shadow-spread) var(--bs-primary-border-subtle);
+    box-shadow: 0 var(--box-shadow-y) var(--box-shadow-spread) var(--bs-primary-border-subtle) !important;
 }
 .btn-secondary:hover {
     box-shadow: 0 var(--box-shadow-y) var(--box-shadow-spread) var(--bs-secondary-border-subtle);
@@ -223,11 +232,6 @@ form#download-data {
 
 .nav-pills {
     --bs-nav-pills-link-active-bg: var(--bs-primary) !important;
-}
-.nav-pills .nav-link.active,
-.nav-pills .show > .nav-link {
-    background-color: var(--bs-blue) !important;
-    border-color: var(--bs-primary-border-subtle) !important;
 }
 
 .btn:hover {
