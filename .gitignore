@@ -416,3 +416,6 @@ dist
 docker-compose.yml
 docker-compose*.yml
 !docker-compose.example.yml
+
+# App Licenses
+Kasta.Web/app-licenses.json

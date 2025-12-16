@@ -330,7 +330,13 @@ public class HomeController : Controller
         var vm = new LicensesViewModel
         {
             Licenses = data,
-            OtherLibraries = LicenseHelper.GetOtherLibraries()
+            OtherLibraries = [],
+#if RELEASE
+            HasPackageLicenses = true
+#else
+            HasPackageLicenses = false
+#endif
+
         };
         return View("Licenses", vm);
     }

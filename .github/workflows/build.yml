@@ -52,6 +52,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Pre-build
+        run: dotnet build Kasta.Web --configuration Debug
+      - name: Install and run "nuget-license" dotnet tool
+        run: |
+          dotnet tool install --global nuget-license
+          nuget-license -i Kasta.Web/Kasta.Web.csproj -o Json -fo Kasta.Web/app-licenses.json
       - name: Build
         run: dotnet build Kasta.Web --no-incremental --nologo --configuration Release
 
@@ -88,7 +94,15 @@ jobs:
 
       - name: Restore
         run: dotnet restore
-      
+
+      - name: Pre-build ${{ matrix.runtime }}
+        run: dotnet build Kasta.Web --configuration Debug
+
+      - name: Install and run "nuget-license" dotnet tool
+        run: |
+          dotnet tool install --global nuget-license
+          nuget-license -i Kasta.Web/Kasta.Web.csproj -o Json -fo Kasta.Web/app-licenses.json
+
       - name: Build ${{ matrix.runtime }}
         run: dotnet publish Kasta.Web --configuration Release -p:PublishSingleFile=true -p:ReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CopyOutputSymbolsToPublishDirectory=false --self-contained --runtime ${{ matrix.runtime }} --output dist
       
