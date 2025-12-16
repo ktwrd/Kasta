@@ -137,6 +137,7 @@
             MaxUploadQuota: @(SystemSettings.EnableQuota ? "null" : (userLimit?.MaxFileSize ?? SystemSettings.DefaultUploadQuota)?.ToString() ?? "null")
         };
     </script>
+    <script src="~/js/bootstrap-auto-dark-mode.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
