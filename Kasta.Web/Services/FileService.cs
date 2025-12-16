@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Amazon.S3.Model;
 using ImageMagick;
 using Kasta.Data;
@@ -13,15 +14,17 @@ public class FileService
 {
     private readonly Logger _log = LogManager.GetCurrentClassLogger();
     private readonly ApplicationDbContext _db;
-    private readonly S3Service _s3;
     private readonly AuditService _auditService;
     private readonly MailboxService _mailbox;
+    private readonly SystemSettingsProxy _systemSettings;
+    private readonly GenericFileService _genericFileService;
     public FileService(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
-        _s3 = services.GetRequiredService<S3Service>();
         _auditService = services.GetRequiredService<AuditService>();
         _mailbox = services.GetRequiredService<MailboxService>();
+        _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
+        _genericFileService = services.GetRequiredService<GenericFileService>();
     }
     public async Task DeleteFile(UserModel user, FileModel file)
     {
@@ -89,9 +92,9 @@ public class FileService
 
         if (previewLocation != null && previewLocation != file.RelativeLocation)
         {
-            await _s3.DeleteObject(previewLocation);
+            await _genericFileService.DeleteAsync(previewLocation);
         }
-        await _s3.DeleteObject(file.RelativeLocation);
+        await _genericFileService.DeleteAsync(file.RelativeLocation);
         if (file.CreatedByUser != null)
         {
             await RecalculateSpaceUsed(file.CreatedByUser);
@@ -191,18 +194,20 @@ public class FileService
         
         if (processOnDifferentThread)
         {
-            var thread = new Thread(
-                data =>
+            var thread = new Thread(data =>
+            {
+                if (!(data is List<FileModel> workingFiles))
                 {
-                    if (!(data is List<FileModel> workingFiles))
-                    {
-                        _log.Error(
-                            $"Failed to run thread since data has invalid type (expected List<FileModel>, got {data?.GetType()})");
-                        return;
-                    }
+                    _log.Error(
+                        $"Failed to run thread since data has invalid type (expected List<FileModel>, got {data?.GetType()})");
+                    return;
+                }
 
-                    GenerateFileMetadataTask(workingFiles);
-                });
+                GenerateFileMetadataTask(workingFiles);
+            })
+            {
+                Name = $"{GetType().Namespace}.{GetType().Name}.{nameof(GenerateFileMetadata)}({force}, {JsonSerializer.Serialize(userIdFilter)}, {processOnDifferentThread})"
+            };
             thread.Start(files);
         }
         else
@@ -226,7 +231,12 @@ public class FileService
         {
             int i = 0;
             int c = files.Count;
-            Parallel.ForEach(files, file =>
+            var threadCount = _systemSettings.FileServiceGenerateFileMetadataThreadCount;
+            var opts = new ParallelOptions()
+            {
+                MaxDegreeOfParallelism = threadCount <= 0 ? -1 : threadCount
+            };
+            Parallel.ForEach(files, opts, file =>
             {
                 try
                 {
@@ -299,53 +309,51 @@ public class FileService
             return;
         try
         {
-
-            var res = await _s3.GetObject(file.RelativeLocation);
-            var info = GenerateFileImageInfo(file, res.ResponseStream);
+            var s = await _genericFileService.GetStreamAsync(file.RelativeLocation);
+            if (s == null) throw new InvalidOperationException($"Could not find file {file.Id} in storage: {file.RelativeLocation}");
+            using var stream = s;
+            var info = GenerateFileImageInfo(file, stream);
             if (info == null)
             {
                 logger.Info($"Couldn't generate image info ({nameof(GenerateFileImageInfo)} returned null)");
                 return;
             }
 
-            await using (var ctx = _db.CreateSession())
+            await using var ctx = _db.CreateSession();
+            using var trans = await ctx.Database.BeginTransactionAsync();
+            logger.Debug($"Created transaction ({trans.TransactionId})");
+
+            try
             {
-                var trans = await ctx.Database.BeginTransactionAsync();
-                logger.Debug($"Created transaction ({trans.TransactionId})");
-
-                try
+                if (await ctx.FileImageInfos.AnyAsync(e => e.Id == info.Id))
                 {
-                    if (await ctx.FileImageInfos.AnyAsync(e => e.Id == info.Id))
-                    {
-                        var updateResult = await ctx.FileImageInfos
-                            .Where(e => e.Id == info.Id)
-                            .ExecuteUpdateAsync(e =>
-                                e.SetProperty(x => x.Width, info.Width)
-                                .SetProperty(x => x.Height, info.Height)
-                                .SetProperty(x => x.ColorSpace, info.ColorSpace)
-                                .SetProperty(x => x.CompressionMethod, info.CompressionMethod)
-                                .SetProperty(x => x.MagickFormat, info.MagickFormat)
-                                .SetProperty(x => x.Interlace, info.Interlace)
-                                .SetProperty(x => x.CompressionLevel, info.CompressionLevel));
-                        logger.Info($"Updated {updateResult} rows");
-                    }
-                    else
-                    {
-                        await ctx.FileImageInfos.AddAsync(info);
-                        logger.Info($"Added 1 row");
-                    }
-
-                    await ctx.SaveChangesAsync();
-                    await trans.CommitAsync();
+                    var updateResult = await ctx.FileImageInfos
+                        .Where(e => e.Id == info.Id)
+                        .ExecuteUpdateAsync(e =>
+                            e.SetProperty(x => x.Width, info.Width)
+                            .SetProperty(x => x.Height, info.Height)
+                            .SetProperty(x => x.ColorSpace, info.ColorSpace)
+                            .SetProperty(x => x.CompressionMethod, info.CompressionMethod)
+                            .SetProperty(x => x.MagickFormat, info.MagickFormat)
+                            .SetProperty(x => x.Interlace, info.Interlace)
+                            .SetProperty(x => x.CompressionLevel, info.CompressionLevel));
+                    logger.Info($"Updated {updateResult} rows");
                 }
-                catch (Exception ex)
+                else
                 {
-                    await trans.RollbackAsync();
-                    logger.Error(ex, $"Failed to insert or update file info");
-                    throw;
+                    await ctx.FileImageInfos.AddAsync(info);
+                    logger.Info($"Added 1 row");
                 }
+
+                await ctx.SaveChangesAsync();
+                await trans.CommitAsync();
             }
-            res.Dispose();
+            catch (Exception ex)
+            {
+                await trans.RollbackAsync();
+                logger.Error(ex, $"Failed to insert or update file info");
+                throw;
+            }
             logger.Info("Done! Generated file metadata");
         }
         catch (Exception ex)
@@ -373,17 +381,17 @@ public class FileService
         return model;
     }
     
-    public MemoryStream GetMemoryStream(FileModel file, out GetObjectResponse res)
+    public MemoryStream GetMemoryStream(FileModel file)
     {
-        res = _s3.GetObject(file.RelativeLocation).Result;
+        using var res = _genericFileService.GetStreamAsync(file.RelativeLocation).GetAwaiter().GetResult();
+        if (res == null) return new MemoryStream();
         var ms = new MemoryStream();
-        res.ResponseStream.CopyTo(ms);
+        res.CopyTo(ms);
         return ms;
     }
-    public Stream GetStream(FileModel file, out GetObjectResponse res)
+    public Stream? GetStream(FileModel file)
     {
-        res = _s3.GetObject(file.RelativeLocation).Result;
-        return res.ResponseStream;
+        return _genericFileService.GetStreamAsync(file.RelativeLocation).GetAwaiter().GetResult();
     }
 
     public bool AllowPlaintextPreview(FileModel file)
@@ -421,11 +429,10 @@ public class FileService
 
     public string? GetPlaintextPreview(FileModel file)
     {
-        var str = "";
-        using var stream = GetStream(file, out var r);
+        var s = GetStream(file);
+        if (s == null) return null;
+        using var stream = s;
         using var reader = new StreamReader(stream);
-        str = reader.ReadToEnd();
-
-        return str;
+        return reader.ReadToEnd();
     }
 }

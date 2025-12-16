@@ -85,9 +85,14 @@ public class KastaConfig
     [XmlElement("Database")]
     public PostgreSQLConfigElement Database { get; set; } = new();
 
-    [Required]
     [XmlElement("S3")]
-    public S3ConfigElement S3 { get; set; } = new();
+    public S3ConfigElement? S3 { get; set; } = new();
+
+    [XmlElement("LocalFileStorage")]
+    public LocalFileStorageConfigElement LocalFileStorage { get; set; } = new()
+    {
+        Enabled = true
+    };
 
     [XmlElement("Kestrel")]
     public KestrelConfigElement? Kestrel { get; set; }

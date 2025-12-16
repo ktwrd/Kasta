@@ -11,18 +11,19 @@ public class LinkShortenerWebService
 {
     private readonly ApplicationDbContext _db;
     private readonly UserManager<UserModel> _userManager;
+    private readonly SystemSettingsProxy _systemSettings;
 
     public LinkShortenerWebService(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
+        _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
     }
 
     public async Task<DeleteShortenedLinkResult> Delete<T>(ILogger<T> logger, string value, T controller, string? token = null)
         where T : Controller
     {
-        var systemSettings = _db.GetSystemSettings();
-        if (systemSettings.EnableLinkShortener == false)
+        if (!_systemSettings.EnableLinkShortener)
         {
             return DeleteShortenedLinkResult.NotAuthorized;
         }

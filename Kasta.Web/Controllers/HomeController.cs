@@ -8,6 +8,7 @@ using Kasta.Data;
 using Kasta.Web.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using NeoSmart.PrettySize;
 
 namespace Kasta.Web.Controllers;
 
@@ -18,83 +19,78 @@ public class HomeController : Controller
     private readonly UploadService _uploadService;
     private readonly ApplicationDbContext _db;
     private readonly FileService _fileService;
+    private readonly SystemSettingsProxy _systemSettings;
 
     public HomeController(
         ILogger<HomeController> logger,
         UserManager<UserModel> userManager,
         UploadService uploadService,
         ApplicationDbContext db,
-        FileService fileService)
+        FileService fileService,
+        SystemSettingsProxy proxy)
     {
         _logger = logger;
         _userManager = userManager;
         _uploadService = uploadService;
         _db = db;
         _fileService = fileService;
+        _systemSettings = proxy;
     }
 
-    public IActionResult Index([FromQuery] string? search = null, [FromQuery] int? page = 1)
+    public async Task<IActionResult> Index([FromQuery] string? search = null, [FromQuery] int? page = 1)
     {
-        if (User.Identity?.IsAuthenticated ?? false)
-        {
-            var userModel = _userManager.GetUserAsync(User).Result;
-            if (userModel == null)
-            {
-                throw new InvalidOperationException($"User Model cannot be null when authenticated");
-            }
-            var viewModel = new FileListViewModel()
-            {
-                SearchQuery = string.IsNullOrEmpty(search) ? null : search
-            };
-            if (page.HasValue && page.Value >= 1)
-            {
-                viewModel.Page = page.Value;
-            }
-            var query = _db
-                .SearchFiles(viewModel.SearchQuery, userModel.Id)
-                .OrderByDescending(v => v.CreatedAt)
-                .Include(fileModel => fileModel.Preview);
-            viewModel.Files = _db.Paginate(query, viewModel.Page, 25, out bool lastPage);
-            viewModel.IsLastPage = lastPage;
-
-            var systemSettings = _db.GetSystemSettings();
-            var userQuota = _db.UserLimits
-                .AsNoTracking()
-                .FirstOrDefault(e => e.UserId == userModel.Id);
-            viewModel.SpaceUsed = SizeHelper.BytesToString(userQuota?.SpaceUsed ?? 0);
-            if (systemSettings.EnableQuota)
-            {
-                if (userQuota?.MaxStorage >= 0)
-                {
-                    viewModel.SpaceAvailable = SizeHelper.BytesToString(Math.Max((userQuota.MaxStorage - userQuota.SpaceUsed) ?? 0, 0));
-                }
-                else if (systemSettings?.DefaultStorageQuotaReal >= 0)
-                {
-                    if (userQuota == null)
-                    {
-                        viewModel.SpaceAvailable = SizeHelper.BytesToString(systemSettings.DefaultStorageQuotaReal ?? 0);
-                    }
-                    else
-                    {
-                        viewModel.SpaceAvailable = SizeHelper.BytesToString(Math.Max((systemSettings?.DefaultStorageQuotaReal - userQuota.SpaceUsed) ?? 0, 0));
-                    }
-                }
-            }
-
-            return View("FileList", viewModel);
-        }
-        else
+        var userModel = User.Identity?.IsAuthenticated ?? false ? await _userManager.GetUserAsync(User) : null;
+        if (userModel == null)
         {
             return new RedirectResult("/Identity/Account/Login", false);
         }
+
+        if (userModel == null)
+        {
+            throw new InvalidOperationException($"User Model cannot be null when authenticated");
+        }
+        var viewModel = new FileListViewModel()
+        {
+            SearchQuery = string.IsNullOrEmpty(search) ? null : search
+        };
+        if (page.HasValue && page.Value >= 1)
+        {
+            viewModel.Page = page.Value;
+        }
+        var query = _db
+            .SearchFiles(viewModel.SearchQuery, userModel.Id)
+            .OrderByDescending(v => v.CreatedAt)
+            .Include(fileModel => fileModel.Preview);
+        viewModel.Files = _db.Paginate(query, viewModel.Page, 25, out bool lastPage);
+        viewModel.IsLastPage = lastPage;
+
+        var userQuota = _db.UserLimits
+            .AsNoTracking()
+            .FirstOrDefault(e => e.UserId == userModel.Id);
+        viewModel.SpaceUsed = PrettySize.Bytes(userQuota?.SpaceUsed ?? 0).ToString();
+        if (_systemSettings.EnableQuota)
+        {
+            if (userQuota?.MaxStorage is >= 0)
+            {
+                viewModel.SpaceAvailable = PrettySize.Bytes(Math.Max(userQuota.MaxStorage.Value - userQuota.SpaceUsed, 0)).ToString();
+            }
+            else if (_systemSettings.DefaultStorageQuota is >= 0)
+            {
+                var value = userQuota == null
+                    ? _systemSettings.DefaultStorageQuota.Value
+                    : Math.Max(_systemSettings.DefaultStorageQuota.Value - userQuota.SpaceUsed, 0);
+                viewModel.SpaceAvailable = PrettySize.Bytes(value).ToString();
+            }
+        }
+
+        return View("FileList", viewModel);
     }
     
     [HttpGet("Links")]
     [Authorize]
     public async Task<IActionResult> LinkList([FromQuery] int? page = 1)
     {
-        var systemSettings = _db.GetSystemSettings();
-        if (systemSettings.EnableLinkShortener == false)
+        if (!_systemSettings.EnableLinkShortener)
         {
             return View("NotAuthorized", new NotAuthorizedViewModel()
             {
@@ -117,8 +113,7 @@ public class HomeController : Controller
     [Authorize]
     public async Task<IActionResult> DeleteShortenedLink([FromQuery] string value, [FromQuery] string? returnUrl = null)
     {
-        var systemSettings = _db.GetSystemSettings();
-        if (systemSettings.EnableLinkShortener == false)
+        if (!_systemSettings.EnableLinkShortener)
         {
             return View("NotAuthorized", new NotAuthorizedViewModel()
             {
@@ -155,7 +150,7 @@ public class HomeController : Controller
             }
         }
 
-        using (var ctx = _db.CreateSession())
+        await using (var ctx = _db.CreateSession())
         {
             var trans = await ctx.Database.BeginTransactionAsync();
             try
@@ -198,17 +193,16 @@ public class HomeController : Controller
         var userLimit = await _db.UserLimits
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.UserId == user.Id);
-        var systemSettings = _db.GetSystemSettings();
-        if (systemSettings.EnableQuota)
+        if (_systemSettings.EnableQuota)
         {
             long spaceUsed = userLimit?.SpaceUsed ?? 0;
-            var spaceAllocated = userLimit?.MaxStorage ?? systemSettings.DefaultStorageQuotaReal ?? 0;
+            var spaceAllocated = userLimit?.MaxStorage ?? _systemSettings.DefaultStorageQuota ?? 0;
             if ((spaceUsed + file.Length) > spaceAllocated)
             {
                 HttpContext.Response.StatusCode = 401;
                 var vm = new NotAuthorizedViewModel()
                 {
-                    Message = $"You don't have enough space to upload file (file size: {SizeHelper.BytesToString(file.Length)}, storage: {SizeHelper.BytesToString(spaceAllocated)})",
+                    Message = $"You don't have enough space to upload file (file size: {PrettySize.Bytes(file.Length)}, storage: {PrettySize.Bytes(spaceAllocated)})",
                 };
                 if (returnJson)
                 {
@@ -217,13 +211,13 @@ public class HomeController : Controller
                 return View("NotAuthorized", vm);
             }
 
-            var maxFileSize = userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal ?? long.MaxValue;
+            var maxFileSize = userLimit?.MaxFileSize ?? _systemSettings.DefaultUploadQuota ?? long.MaxValue;
             if (file.Length > maxFileSize)
             {
                 HttpContext.Response.StatusCode = 413;
                 var vm = new NotAuthorizedViewModel()
                 {
-                    Message = $"Provided file exceeds maximum file size ({SizeHelper.BytesToString(maxFileSize)})"
+                    Message = $"Provided file exceeds maximum file size ({PrettySize.Bytes(maxFileSize)})"
                 };
                 if (returnJson)
                 {

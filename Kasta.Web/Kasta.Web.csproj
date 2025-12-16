@@ -36,6 +36,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
         <PackageReference Include="MimeTypes" />
+        <PackageReference Include="NeoSmart.PrettySize" />
         <PackageReference Include="NLog" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="NLog.Web.AspNetCore" />

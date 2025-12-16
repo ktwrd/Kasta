@@ -21,6 +21,8 @@ public class FileWebService
     private readonly S3Service _s3;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly UserManager<UserModel> _userManager;
+    private readonly SystemSettingsProxy _systemSettingsProxy;
+    private readonly GenericFileService _genericFileService;
     private readonly ILogger<FileWebService> _logger;
     
     public FileWebService(IServiceProvider services, ILogger<FileWebService> logger)
@@ -29,6 +31,8 @@ public class FileWebService
         _s3 = services.GetRequiredService<S3Service>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
+        _systemSettingsProxy = services.GetRequiredService<SystemSettingsProxy>();
+        _genericFileService = services.GetRequiredService<GenericFileService>();
         _logger = logger;
     }
     
@@ -116,17 +120,21 @@ public class FileWebService
             mimeType = filePreview.MimeType;
         }
 
-        var sys = new SystemSettingsProxy(_db);
-        if (sys.S3UsePresignedUrl)
+        if (_systemSettingsProxy.S3UsePresignedUrl)
         {
-            var url = await _s3.GeneratePresignedUrl(relativeLocation, TimeSpan.FromMinutes(15));
-            context.Response.Headers.Location = new(url);
-            context.Response.StatusCode = 302;
-            return new EmptyResult();
+            var presignedUrl = await _genericFileService.PresignedUrlAsync(relativeLocation, TimeSpan.FromMinutes(15));
+            if (presignedUrl != null)
+            {
+                context.Response.Headers.Location = new(presignedUrl);
+                context.Response.StatusCode = 302;
+                return new EmptyResult();
+            }
         }
-        var obj = await _s3.GetObject(relativeLocation);
-        if (obj == null)
+        var file = await _genericFileService.GetAsync(relativeLocation);
+        var stream = await _genericFileService.GetStreamAsync(relativeLocation);
+        if (file == null || stream == null)
         {
+            stream?.Dispose();
             context.Response.StatusCode = 404;
             return new ViewResult()
             {
@@ -135,9 +143,9 @@ public class FileWebService
         } 
         
         context.Response.StatusCode = 200;
-        context.Response.ContentLength = obj.ContentLength;
+        context.Response.ContentLength = file.Length;
         context.Response.ContentType = mimeType ?? "application/octet-stream";
-        context.Response.Headers.LastModified = obj.LastModified?.ToString("R");
+        context.Response.Headers.LastModified = file.ModifiedAt?.ToString("R");
         var disposition = new List<string>()
         {
             "attachment",
@@ -157,7 +165,13 @@ public class FileWebService
         }
         if (context.Request.Method != "OPTIONS" || context.Request.Method != "HEAD")
         {
-            await StreamCopyOperation.CopyToAsync(obj.ResponseStream, context.Response.Body, obj.ContentLength, context.HttpContext.RequestAborted);
+            var responseFeature = context.HttpContext.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpResponseBodyFeature>();
+            responseFeature?.DisableBuffering();
+            await StreamCopyOperation.CopyToAsync(
+                stream, 
+                context.Response.Body,
+                file.Length,
+                context.HttpContext.RequestAborted);
         }
         return new EmptyResult();
     }
