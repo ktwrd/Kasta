@@ -133,6 +133,15 @@ tr.bg-warning th {
     color: black;
 }
 
+/* fix text being top aligned for provider info in /Identity/Account/Manage/ExternalLogins */
+.table td[id^='login-provider'] {
+    vertical-align: middle;
+}
+/* add spacing between buttons in /Identity/Account/Manage/PersonalData */
+form#download-data {
+    margin-bottom: 0.5rem;
+}
+
 .card-header-sm {
     font-size: 16px;
     float: right;
@@ -210,6 +219,15 @@ tr.bg-warning th {
 }
 .btn-warning:hover {
     box-shadow: 0 var(--box-shadow-y) var(--box-shadow-spread) var(--bs-warning-border-subtle);
+}
+
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--bs-primary) !important;
+}
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+    background-color: var(--bs-blue) !important;
+    border-color: var(--bs-primary-border-subtle) !important;
 }
 
 .btn:hover {
