@@ -223,3 +223,19 @@ tr.bg-warning th {
     border-color: var(--bs-secondary);
     border-width: 1px;
 }
+
+.login-page-inputs input:first-of-type {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.login-page-inputs input {
+    border-radius: 0;
+}
+.login-page-inputs input:last-of-type {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.login-page-inputs input:not(:last-of-type) {
+    border-bottom: none;
+}
