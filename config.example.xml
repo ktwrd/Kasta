@@ -43,6 +43,7 @@
         <ForcePathStyle>true</ForcePathStyle>
         -->
     </S3>
+    <LocalFileStorage Enabled="false" />
 
     <!-- Database Caching Options.
         Note: If nothing is defined in the Cache element, then

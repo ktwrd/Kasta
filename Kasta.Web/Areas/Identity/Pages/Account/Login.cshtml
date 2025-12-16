@@ -1,15 +1,17 @@
 ﻿@page
 @using Kasta.Data
+@using Kasta.Web
 @using Kasta.Web.Helpers
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @model LoginModel
 @inject ApplicationDbContext Database
+@inject SystemSettingsProxy SystemSettings
 
 @{
     ViewData["Title"] = "Log in";
     ViewData["Navbar"] = false;
-    var systemSettings = Database.GetSystemSettings();
-    var appTitle = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingTitle : "Kasta";
+    var appTitle = SystemSettings.EnableCustomBranding && !string.IsNullOrEmpty(SystemSettings.CustomBrandingTitle)
+        ? SystemSettings.CustomBrandingTitle : "Kasta";
 }
 
 <div class="d-flex justify-content-center mt-5">
@@ -18,15 +20,27 @@
             <h4>@appTitle</h4>
         </div>
         <form id="account" method="post">
-            <div class="row">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="Email"/>
+            <div class="row login-page-inputs">
+                <input asp-for="Input.Email"
+                       type="email"
+                       class="form-control rounded-top"
+                       autocomplete="section-login username"
+                       aria-required="true"
+                       placeholder="Email" />
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
-                <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Password"/>
+                <input asp-for="Input.Password"
+                       type="password"
+                       class="form-control rounded-bottom"
+                       autocomplete="section-login current-password"
+                       aria-required="true"
+                       placeholder="Password" />
                 <span asp-validation-for="Input.Password" class="text-danger"></span>
-                <div class="d-flex justify-content-between">
+            </div>
+            <div class="row mt-1">
+                <div class="d-flex justify-content-between mt-1">
                     <div class="checkbox">
                         <label asp-for="Input.RememberMe" class="form-label">
-                            <input class="form-check-input" asp-for="Input.RememberMe"/>
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
                             @Html.DisplayNameFor(m => m.Input.RememberMe)
                         </label>
                     </div>
@@ -38,7 +52,7 @@
                 <div class="text-center mt-2">
                     Missing confirmation email? <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend it</a>
                 </div>
-                @if (systemSettings.EnableUserRegister)
+                @if (SystemSettings.EnableUserRegister)
                 {
                     <div class="text-center mt-2">
                         New user? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create account</a>
@@ -48,7 +62,7 @@
         </form>
         @if (Model.ExternalLogins!.Count > 0)
         {
-            <div class="row mt-5 text-center">
+            <div class="row mt-4 text-center">
                 <strong>Login with external service</strong>
                 <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
                     @foreach (var provider in Model.ExternalLogins!)

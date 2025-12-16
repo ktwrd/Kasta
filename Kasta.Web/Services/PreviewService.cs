@@ -6,13 +6,11 @@ namespace Kasta.Web.Services;
 
 public class PreviewService
 {
-    private readonly FileService _fileService;
-    private readonly S3Service _s3;
+    private readonly GenericFileService _genericFileService;
 
     public PreviewService(IServiceProvider services)
     {
-        _fileService = services.GetRequiredService<FileService>();
-        _s3 = services.GetRequiredService<S3Service>();
+        _genericFileService = services.GetRequiredService<GenericFileService>();
     }
 
     public bool PreviewSupported(FileModel file)
@@ -94,18 +92,10 @@ public class PreviewService
             return null;
         }
 
-        await using var stream = _fileService.GetStream(file, out var r);
-        try
-        {
-            var result = await CreateImagePreview(file, stream);
-            r.Dispose();
-            return result;
-        }
-        catch
-        {
-            r.Dispose();
-            throw;
-        }
+        var s = await _genericFileService.GetStreamAsync(file.RelativeLocation);
+        if (s == null) return null;
+        await using var stream = s;
+        return await CreateImagePreview(file, stream);
     }
     public async Task<FilePreviewModel?> CreateVideoPreview(FileModel file)
     {
@@ -114,18 +104,10 @@ public class PreviewService
             return null;
         }
 
-        using var stream = _fileService.GetStream(file, out var r);
-        try
-        {
-            var result = await CreateVideoPreview(file, stream);
-            r.Dispose();
-            return result;
-        }
-        catch
-        {
-            r.Dispose();
-            throw;
-        }
+        var s = await _genericFileService.GetStreamAsync(file.RelativeLocation);
+        if (s == null) return null;
+        await using var stream = s;
+        return await CreateVideoPreview(file, stream);
     }
     public async Task<FilePreviewModel?> CreateImagePreview(FileModel file, Stream inputStream)
     {
@@ -137,10 +119,12 @@ public class PreviewService
         try
         {
             inputStream.Seek(0, SeekOrigin.Begin);
+
             var img = new MagickImage(inputStream);
             var resultStream = new MemoryStream();
 
             await GeneratePreview(img, resultStream);
+            resultStream.Seek(0, SeekOrigin.Begin);
             var model = await UploadFile(file, resultStream);
 
             await resultStream.DisposeAsync();
@@ -202,7 +186,7 @@ public class PreviewService
         }
         model.RelativeLocation += model.Filename;
                 
-        using var uploadResult = await _s3.UploadObject(imageStream, model.RelativeLocation);
+        await _genericFileService.UploadAsync(imageStream, model.RelativeLocation);
         return model;
     }
     
@@ -229,6 +213,7 @@ public class PreviewService
                 var targetImage = videoFrames[target];
                 await GeneratePreview(targetImage, resultStream);
             }
+            resultStream.Seek(0, SeekOrigin.Begin);
 
             var model = await UploadFile(file, resultStream);
             return model;

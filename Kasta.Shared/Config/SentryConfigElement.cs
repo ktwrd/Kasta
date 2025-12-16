@@ -43,4 +43,54 @@ public class SentryConfigElement
     /// </remarks>
     [XmlElement("TracesSampleRate")]
     public double? TracesSampleRate { get; set; }
+
+    [XmlElement("DiagnosticLevel")]
+    public XmlSentryLevel? DiagnosticLevel { get; set; }
+
+    /// <summary>
+    /// The level of the event sent to Sentry.
+    /// </summary>
+    public enum XmlSentryLevel
+    {
+        Debug,
+        Info,
+        Warning,
+        Error,
+        Fatal
+    }
+
+    /// <summary>
+    /// NLog Sentry configuration
+    /// </summary>
+    [XmlElement("NLog")]
+    public SentryNLogConfigElement? NLog { get; set; }
+}
+
+public class SentryNLogConfigElement
+{
+    [XmlElement("MinimumEventLevel")]
+    public XmlLogLevel? MinimumEventLevel { get; set; }
+
+    [XmlElement("MinimumBreadcrumbLevel")]
+    public XmlLogLevel? MinimumBreadcrumbLevel { get; set; }
+
+    [XmlElement("IgnoreEventsWithNoException")]
+    public bool IgnoreEventsWithNoException { get; set; } = false;
+
+    [XmlElement("IncludeEventPropertiesAsTags")]
+    public bool IncludeEventPropertiesAsTags { get; set; } = false;
+
+    [XmlElement("IncludeEventDataOnBreadcrumbs")]
+    public bool IncludeEventDataOnBreadcrumbs { get; set; } = false;
+
+    public enum XmlLogLevel
+    {
+        Trace = 0,
+        Debug = 1,
+        Info = 2,
+        Warn = 3,
+        Error = 4,
+        Fatal = 5,
+        Off = 6
+    }
 }

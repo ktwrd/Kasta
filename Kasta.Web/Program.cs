@@ -5,6 +5,8 @@ using NLog.Web;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Trace = System.Diagnostics.Trace;
 using MinDataRate = Microsoft.AspNetCore.Server.Kestrel.Core.MinDataRate;
+using Kasta.Web.Helpers;
+using Sentry.NLog;
 
 namespace Kasta.Web;
 
@@ -45,108 +47,7 @@ public static class Program
                     .UseStartup<Startup>();
                 
                 var cfg = KastaConfig.Instance;
-                webBuilder.UseKestrel(opts =>
-                {
-                    if (cfg?.Kestrel?.Limits != null)
-                    {
-                        var limits = cfg.Kestrel.Limits;
-                        if (limits.MaxResponseBufferSize != null)
-                        {
-                            if (limits.MaxResponseBufferSize == -1)
-                            {
-                                opts.Limits.MaxResponseBufferSize = -1;
-                            }
-                            else
-                            {
-                                opts.Limits.MaxResponseBufferSize = limits.MaxResponseBufferSize.Value;
-                            }
-                        }
-                        if (limits.MaxRequestBufferSize != null)
-                        {
-                            if (limits.MaxRequestBufferSize == -1)
-                            {
-                                opts.Limits.MaxRequestBufferSize = null;
-                            }
-                            else
-                            {
-                                opts.Limits.MaxRequestBufferSize = limits.MaxRequestBufferSize.Value;
-                            }
-                        }
-                        if (limits.MaxRequestLineSize != null && limits.MaxRequestLineSize.HasValue)
-                        {
-                            opts.Limits.MaxRequestLineSize = limits.MaxRequestLineSize.Value;
-                        }
-                        if (limits.MaxRequestHeadersTotalSize != null && limits.MaxRequestHeadersTotalSize.HasValue)
-                        {
-                            opts.Limits.MaxRequestHeadersTotalSize = limits.MaxRequestHeadersTotalSize.Value;
-                        }
-                        if (limits.MaxRequestHeaderCount != null && limits.MaxRequestHeaderCount.HasValue)
-                        {
-                            opts.Limits.MaxRequestHeaderCount = limits.MaxRequestHeaderCount.Value;
-                        }
-                        if (limits.MaxRequestBodySize != null)
-                        {
-                            if (limits.MaxRequestBodySize == -1)
-                            {
-                                opts.Limits.MaxRequestBodySize = null;
-                            }
-                            else
-                            {
-                                opts.Limits.MaxRequestBodySize = limits.MaxRequestBodySize.Value;
-                            }
-                        }
-                        if (limits.KeepAliveTimeout != null)
-                        {
-                            opts.Limits.KeepAliveTimeout = limits.KeepAliveTimeout.ToTimeSpan();
-                        }
-                        if (limits.RequestHeadersTimeout != null)
-                        {
-                            opts.Limits.RequestHeadersTimeout = limits.RequestHeadersTimeout.ToTimeSpan();
-                        }
-                        if (limits.MaxConcurrentConnections != null)
-                        {
-                            if (limits.MaxConcurrentConnections == -1)
-                            {
-                                opts.Limits.MaxConcurrentConnections = null;
-                            }
-                            else
-                            {
-                                opts.Limits.MaxConcurrentConnections = limits.MaxConcurrentConnections.Value;
-                            }
-                        }
-                        if (limits.MaxConcurrentUpgradedConnections != null)
-                        {
-                            if (limits.MaxConcurrentUpgradedConnections == -1)
-                            {
-                                opts.Limits.MaxConcurrentUpgradedConnections = null;
-                            }
-                            else
-                            {
-                                opts.Limits.MaxConcurrentUpgradedConnections = limits.MaxConcurrentUpgradedConnections.Value;
-                            }
-                        }
-
-                        if (limits.EnforceMinRequestBodyDataRate == false)
-                        {
-                            opts.Limits.MinRequestBodyDataRate = null;
-                        }
-                        else if (limits.MinRequestBodyDataRate != null)
-                        {
-                            var dataRate = limits.MinRequestBodyDataRate;
-                            opts.Limits.MinRequestBodyDataRate = new MinDataRate(dataRate.BytesPerSecond, dataRate.GracePeriod.ToTimeSpan());
-                        }
-
-                        if (limits.EnforceMinResponseDataRate == false)
-                        {
-                            opts.Limits.MinResponseDataRate = null;
-                        }
-                        else if (limits.MinResponseDataRate != null)
-                        {
-                            var dataRate = limits.MinResponseDataRate;
-                            opts.Limits.MinResponseDataRate = new MinDataRate(dataRate.BytesPerSecond, dataRate.GracePeriod.ToTimeSpan());
-                        }
-                    }
-                });
+                webBuilder.UseKestrel(opts => opts.FromConfiguration(cfg));
                 if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
                 {
                     webBuilder.UseSentry(opts =>
@@ -163,27 +64,23 @@ public static class Program
 
     private static void InitializeNLog()
     {
-        Trace.WriteLine($"Initialize NLog");
+        const string prefix = "[InitializeNLog]";
         var relativeConfigurationLocation = Path.Combine(Environment.CurrentDirectory, "nlog.config");
         if (File.Exists(relativeConfigurationLocation))
         {
-            Trace.WriteLine("Loading configuration from " + relativeConfigurationLocation);
+            Console.WriteLine(prefix + " Loading configuration from " + relativeConfigurationLocation);
             LogManager.Setup().LoadConfigurationFromFile(relativeConfigurationLocation);
         }
         else
         {
+            Console.WriteLine(prefix + " Loading configuration from embedded resource");
             LogManager.Setup().LoadConfigurationFromAssemblyResource(typeof(Program).Assembly, "nlog.config");
         }
 
         if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
         {
-            LogManager.Configuration.AddSentry(
-                opts =>
-                {
-                    SetSentryOptions(opts);
-                    opts.MinimumBreadcrumbLevel = NLog.LogLevel.Trace;
-                    opts.MinimumEventLevel = NLog.LogLevel.Warn;
-                });
+            Console.WriteLine(prefix + " Enabling Sentry Integration: " + FeatureFlags.SentryDsn);
+            LogManager.Configuration?.AddSentry(SetSentryOptions);
         }
     }
     private static void SetSentryOptions(SentryOptions opts)
@@ -201,72 +98,28 @@ public static class Program
 #endif
         if (File.Exists(FeatureFlags.XmlConfigLocation))
         {
-            PopulateSentryOptionsFromConfig(opts);
+            opts.FromConfiguration();
         }
-    }
-    private static void PopulateSentryOptionsFromConfig(SentryOptions opts)
-    {
-        var cfg = KastaConfig.Instance;
-        if (cfg.Sentry != null)
+        if (opts is SentryNLogOptions nlogOptions)
         {
-            if (cfg.Sentry.SampleRate != null && cfg.Sentry.SampleRate.HasValue)
+            if (File.Exists(FeatureFlags.XmlConfigLocation))
             {
-                if (cfg.Sentry.SampleRate < 0.0f)
-                {
-                    opts.SampleRate = null;
-                }
-                else if (cfg.Sentry.SampleRate <= 1.0f)
-                {
-                    opts.SampleRate = cfg.Sentry.SampleRate.Value;
-                }
-                else if (cfg.Sentry.SampleRate > 1.0f)
-                {
-                    opts.SampleRate = cfg.Sentry.SampleRate.Value % 1.0f;
-                }
+                nlogOptions.FromConfiguration();
             }
-
-            if (cfg.Sentry.ProfilesSampleRate != null && cfg.Sentry.ProfilesSampleRate.HasValue)
+            else
             {
-                if (cfg.Sentry.ProfilesSampleRate < 0.0f)
-                {
-                    opts.ProfilesSampleRate = null;
-                }
-                else if (cfg.Sentry.ProfilesSampleRate <= 1.0f)
-                {
-                    opts.ProfilesSampleRate = cfg.Sentry.ProfilesSampleRate.Value;
-                }
-                else if (cfg.Sentry.ProfilesSampleRate > 1.0f)
-                {
-                    opts.ProfilesSampleRate = cfg.Sentry.ProfilesSampleRate.Value % 1.0f;
-                }
+                nlogOptions.MinimumBreadcrumbLevel = NLog.LogLevel.Trace;
+                nlogOptions.MinimumEventLevel = NLog.LogLevel.Warn;
             }
-
-            if (cfg.Sentry.TracesSampleRate != null && cfg.Sentry.TracesSampleRate.HasValue)
-            {
-                if (cfg.Sentry.TracesSampleRate < 0.0f)
-                {
-                    opts.TracesSampleRate = null;
-                }
-                else if (cfg.Sentry.TracesSampleRate <= 1.0f)
-                {
-                    opts.TracesSampleRate = cfg.Sentry.TracesSampleRate.Value;
-                }
-                else if (cfg.Sentry.TracesSampleRate > 1.0f)
-                {
-                    opts.TracesSampleRate = cfg.Sentry.TracesSampleRate.Value % 1.0f;
-                }
-            }
-        }
-        else
-        {
-            opts.TracesSampleRate = 1.0;
         }
     }
     private static void CheckConfiguration()
     {
         var logger = LogManager.GetLogger(nameof(CheckConfiguration));
+#if !DEBUG
         try
         {
+#endif
             // We know for sure that the default configuration location used
             // by Kasta is "/config", and that this will only happen on Docker.
             //
@@ -283,7 +136,7 @@ public static class Program
             logger.Info($"Using File: {FeatureFlags.XmlConfigLocation}");
             if (string.IsNullOrEmpty(FeatureFlags.XmlConfigLocation))
             {
-                logger.Error($"Environment Variable CONFIG_LOCATION has not been set!!!");
+                logger.Error($"Environment Variable \"{FeatureFlags.Keys.XmlConfigLocation}\" has not been set!!!");
                 Environment.Exit(1);
                 return;
             }
@@ -325,27 +178,26 @@ public static class Program
             else
             {
                 logger.Info($"Configuration file found! ({FeatureFlags.XmlConfigLocation})");
-            }
+        }
+#if !DEBUG
         }
         catch (Exception ex)
         {
             logger.Fatal(ex, "Failed to check configuration!");
+            Environment.Exit(1);
         }
+#endif
     }
 
     private static bool TryGetExampleConfigurationStream(out Stream? stream)
     {
-        var current = typeof(Program);
-        foreach (var resource in current.Assembly.GetManifestResourceNames())
-        {
-            if (resource.ToLower().Trim().EndsWith(".config.example.xml"))
-            {
-                stream = current.Assembly.GetManifestResourceStream(resource);
-                if (stream != null)
-                    return true;
-            }
-        }
         stream = null;
-        return false;
+
+        var current = typeof(Program);
+        var resourceName = current.Assembly.GetManifestResourceNames().FirstOrDefault(e => e.Trim().EndsWith(".config.example.xml", StringComparison.OrdinalIgnoreCase));
+        if (resourceName == null) return false;
+
+        stream = current.Assembly.GetManifestResourceStream(resourceName);
+        return stream != null;
     }
 }

@@ -22,6 +22,7 @@ public class ApiShortLinkController : Controller
     private readonly SignInManager<UserModel> _signInManager;
     private readonly ShortUrlService _shortUrlService;
     private readonly LinkShortenerWebService _linkShortenerWebService;
+    private readonly SystemSettingsProxy _systemSettingsProxy;
     
     private readonly ILogger<ApiShortLinkController> _logger;
 
@@ -32,6 +33,7 @@ public class ApiShortLinkController : Controller
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _shortUrlService = services.GetRequiredService<ShortUrlService>();
         _linkShortenerWebService = services.GetRequiredService<LinkShortenerWebService>();
+        _systemSettingsProxy = services.GetRequiredService<SystemSettingsProxy>();
 
         _logger = logger;
     }
@@ -59,8 +61,7 @@ public class ApiShortLinkController : Controller
     [HttpGet("~/l/{value}")]
     public async Task<IActionResult> RedirectToLinkDestination(string value)
     {
-        var systemSettings = _db.GetSystemSettings();
-        if (systemSettings.EnableLinkShortener == false)
+        if (!_systemSettingsProxy.EnableLinkShortener)
         {
             HttpContext.Response.StatusCode = 403;
             return new ViewResult()
@@ -113,8 +114,7 @@ public class ApiShortLinkController : Controller
             }, new JsonSerializerOptions { WriteIndented = true });
         }
 
-        var systemSettings = _db.GetSystemSettings();
-        if (systemSettings.EnableLinkShortener == false)
+        if (!_systemSettingsProxy.EnableLinkShortener)
         {
             HttpContext.Response.StatusCode = 400;
             return Json(new JsonErrorResponseModel()

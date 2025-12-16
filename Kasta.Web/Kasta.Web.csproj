@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-Kasta-be2e7886-b576-461b-9096-e78871b03d07</UserSecretsId>
@@ -15,36 +15,34 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="9.4.0" />
-        <PackageReference Include="AWSSDK.S3" Version="4.0.6.10" />
-        <PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
-        <PackageReference Include="EasyCaching.Redis" Version="1.9.2" />
-        <PackageReference Include="EasyCaching.Serialization.MessagePack" Version="1.9.2" />
-        <PackageReference Include="EFCoreSecondLevelCacheInterceptor" Version="5.3.1" />
-        <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.1" />
-   		  <PackageReference Include="GeoTimeZone" Version="6.0.0" />
-        <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.9.0" />
-		    <PackageReference Include="MaxMind.GeoIP2" Version="5.3.0" />
-        <PackageReference Include="Markdig" Version="0.41.3" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.8" />
-		    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.8" />
-		    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.3.5" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
+        <PackageReference Include="AspNet.Security.OAuth.GitHub" />
+        <PackageReference Include="AWSSDK.S3" />
+        <PackageReference Include="EasyCaching.InMemory" />
+        <PackageReference Include="EasyCaching.Redis" />
+        <PackageReference Include="EasyCaching.Serialization.MessagePack" />
+        <PackageReference Include="EFCoreSecondLevelCacheInterceptor" />
+        <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" />
+        <PackageReference Include="MessagePack" />
+        <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" />
+        <PackageReference Include="Markdig" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
-        <PackageReference Include="MimeTypes" Version="2.5.2" />
-        <PackageReference Include="NLog" Version="6.0.3" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-        <PackageReference Include="NLog.Web.AspNetCore" Version="6.0.3" />
-        <PackageReference Include="Sentry.AspNetCore" Version="5.14.1" />
-        <PackageReference Include="Sentry.NLog" Version="5.14.1" />
-        <PackageReference Include="Vivet.AspNetCore.RequestTimeZone" Version="9.0.0" />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
+        <PackageReference Include="MimeTypes" />
+        <PackageReference Include="NeoSmart.PrettySize" />
+        <PackageReference Include="NLog" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+        <PackageReference Include="NLog.Web.AspNetCore" />
+        <PackageReference Include="Sentry.AspNetCore" />
+        <PackageReference Include="Sentry.NLog" />
+        <PackageReference Include="Vivet.AspNetCore.RequestTimeZone" />
     </ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
@@ -53,145 +51,16 @@
 	</ItemGroup>
 	
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
       <EmbeddedResource Include="..\config.example.xml">
         <Link>config.example.xml</Link>
       </EmbeddedResource>
       <Content Remove="nlog.config" />
       <EmbeddedResource Include="nlog.config" />
-      <Content Remove="ThirdPartyLibraryInfo\bootstrap\info.json" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\awssdk-s3\info.json">
+
+      <EmbeddedResource Include="ThirdPartyLibraryInfo\**\*">
         <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\bootstrap\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\efcore-aspnetcore-identity\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\efcore\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\geotimezone\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\maxmind-geoip2\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\sentry-aspnetcore\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\sentry-nlog\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\sentry\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\vivet-aspnetcore-requesttimezone\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\bootstrap\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\bootstrap\license.txt">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <Content Remove="ThirdPartyLibraryInfo\bootstrap-icons\info.json" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\bootstrap-icons\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\bootstrap-icons\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\bootstrap-icons\license.txt">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <Content Remove="ThirdPartyLibraryInfo\dropzone\info.json" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\dropzone\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\dropzone\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\dropzone\license.txt">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <Content Remove="ThirdPartyLibraryInfo\highlight-js\info.json" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\easycaching-inmemory\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\easycaching-redis\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\easycaching-serialization-messagepack\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\efcore-postgres\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\highlight-js\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\highlight-js\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\highlight-js\license.txt">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <Content Remove="ThirdPartyLibraryInfo\htmx\info.json" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\htmx\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\htmx\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\htmx\license.txt">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <Content Remove="ThirdPartyLibraryInfo\jquery\info.json" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\jquery\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\jquery\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\jquery\license.txt">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <Content Remove="ThirdPartyLibraryInfo\nlog\info.json" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\markdig\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\mimetypes\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\nlog\info.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\nlog\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\nlog\license.txt">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\efcore\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\efcore\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\maxmind-geoip2\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\maxmind-geoip2\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\sentry\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\sentry\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\markdig\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\markdig\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\geotimezone\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\geotimezone\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\sentry-nlog\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\sentry-nlog\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\easycaching-serialization-messagepack\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\easycaching-serialization-messagepack\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\efcore-postgres\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\efcore-postgres\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\awssdk-s3\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\awssdk-s3\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\easycaching-inmemory\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\easycaching-inmemory\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\vivet-aspnetcore-requesttimezone\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\vivet-aspnetcore-requesttimezone\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\efcore-aspnetcore-identity\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\efcore-aspnetcore-identity\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\mimetypes\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\mimetypes\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\sentry-aspnetcore\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\sentry-aspnetcore\license.txt" />
-      <None Remove="ThirdPartyLibraryInfo\easycaching-redis\license.txt" />
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\easycaching-redis\license.txt" />
+      <None Remove="ThirdPartyLibraryInfo\**\*" />
     </ItemGroup>
     <Target Name="CopyAfterBuild" AfterTargets="AfterBuild">
         <Copy SourceFiles="..\LICENSE.txt" DestinationFolder="$(OutDir)" />

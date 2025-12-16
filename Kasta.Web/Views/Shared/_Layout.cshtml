@@ -3,15 +3,16 @@
 @using Kasta.Web.Helpers
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.EntityFrameworkCore
 @using Vivet.AspNetCore.RequestTimeZone.Extensions
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
+@inject SystemSettingsProxy SystemSettings
 @inject ApplicationDbContext _db
 @inject IHttpContextAccessor ctx
 @{
     UserLimitModel? userLimit = null;
-    var systemSettings = _db.GetSystemSettings();
-    var appTitle = systemSettings.EnableCustomBranding ? systemSettings.CustomBrandingTitle : "Kasta";
+    var appTitle = SystemSettings.EnableCustomBranding ? SystemSettings.CustomBrandingTitle : "Kasta";
     string bootstrapThemeAttributeValue = "auto";
     string currentTheme = "";
     bool isAdmin = false;
@@ -21,46 +22,32 @@
     if (SignInManager.IsSignedIn(User))
     {
         var user = await UserManager.GetUserAsync(User);
-        var settings = await _db.GetUserSettingsAsync(user!);
         isAdmin = user?.IsAdmin ?? false;
-        if (!string.IsNullOrEmpty(settings.ThemeName))
-        {
-            currentTheme = settings.ThemeName.Trim().ToLower();
-            if (currentTheme == "2010")
-            {
-                bootstrapThemeAttributeValue = "dark";
-            }
-        }
         userLimit = user?.Limit;
-
-        if (currentTheme == "dark" || currentTheme == "light")
-        {
-            bootstrapThemeAttributeValue = currentTheme;
-        }
-
         if (user != null)
         {
-            bool userAdministrator = await UserManager.IsInRoleAsync(user, RoleKind.Administrator);
-            showMailbox = userAdministrator;
-            showUserAdmin = userAdministrator;
-            if (!userAdministrator)
+            var settings = await _db.GetUserSettingsAsync(user);
+            if (!string.IsNullOrEmpty(settings.ThemeName))
+            {
+                currentTheme = settings.ThemeName.Trim().ToLower();
+                if (currentTheme == "2010")
+                {
+                    bootstrapThemeAttributeValue = "dark";
+                }
+            }
+            isAdmin |= await UserManager.IsInRoleAsync(user, RoleKind.Administrator);
+            showMailbox = isAdmin;
+            showUserAdmin = isAdmin;
+            if (!isAdmin)
             {
                 showMailbox = await UserManager.IsInRoleAsync(user, RoleKind.ViewSystemMailbox);
                 showUserAdmin = await UserManager.IsInRoleAsync(user, RoleKind.UserAdmin);
             }
         }
-    }
 
-    string? userQuotaValue = "null";
-    if (systemSettings.EnableQuota)
-    {
-        if (userLimit?.MaxFileSize != null)
+        if (currentTheme == "dark" || currentTheme == "light" || currentTheme == "auto")
         {
-            userQuotaValue = $"parseInt('{userLimit?.MaxFileSize}')";
-        }
-        else if (systemSettings.DefaultUploadQuotaReal > -1)
-        {
-            userQuotaValue = $"'parseInt({systemSettings.DefaultUploadQuotaReal})'";
+            bootstrapThemeAttributeValue = currentTheme;
         }
     }
 
@@ -108,9 +95,16 @@
     ViewData["TargetTimezone"] = targetTimezone;
 
     var title = ViewData["Title"]?.ToString();
-    if (title != null && !string.IsNullOrEmpty(appTitle))
+    if (!string.IsNullOrEmpty(appTitle))
     {
-        title += " - " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
+        if (string.IsNullOrEmpty(title?.Trim()))
+        {
+            title = appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
+        }
+        else
+        {
+            title += " - " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
+        }
     }
 }
 <!DOCTYPE html>
@@ -121,7 +115,7 @@
     <title>@title</title>
     <link rel="stylesheet" href="~/lib/dropzone/css/dropzone.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css"/>
     @if (currentTheme == "2010")
     {
         <link rel="stylesheet" href="~/css/theme-2010.css" asp-append-version="true"/>
@@ -140,9 +134,10 @@
     }
     <script type="text/javascript">
         window.UserLimits = {
-            MaxUploadQuota: @(systemSettings.EnableQuota ? "null" : (userLimit?.MaxFileSize ?? systemSettings.DefaultUploadQuotaReal)?.ToString() ?? "null")
+            MaxUploadQuota: @(SystemSettings.EnableQuota ? "null" : (userLimit?.MaxFileSize ?? SystemSettings.DefaultUploadQuota)?.ToString() ?? "null")
         };
     </script>
+    <script src="~/js/bootstrap-auto-dark-mode.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
@@ -167,7 +162,7 @@
                                 Home
                             </a>
                         </li>
-                        @if (systemSettings.EnableLinkShortener)
+                        @if (SystemSettings.EnableLinkShortener)
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="LinkList">
@@ -208,10 +203,18 @@
                 </div>
             </div>
         </nav>
-    </header>   
+    </header>
 }
 <div class="container-xl">
     <main role="main" class="pb-3">
+        @if (enableNavbar)
+        {
+            var pendingMigrations = await _db.Database.GetPendingMigrationsAsync();
+            @if (isAdmin && pendingMigrations.Any())
+            {
+                <partial name="_PendingMigrationsPartial"/>
+            }
+        }
         @RenderBody()
     </main>
 </div>
@@ -223,6 +226,7 @@
         <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html">GPL v2</a>
     </div>
 </div>
+<script src="~/js/bootstrap-auto-dark-mode.js" asp-append-version="true"></script>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/lib/dropzone/js/dropzone.min.js"></script>

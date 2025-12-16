@@ -9,12 +9,37 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '9'
+  DOTNET_VERSION: '10'
 
 jobs:
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      # TODO: make separate workflow just for unit test
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
+
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: test
     permissions:
       contents: read
     steps:
@@ -39,7 +64,7 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, test]
     permissions:
       contents: write
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
@@ -66,6 +91,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
       - name: Pre-build ${{ matrix.runtime }}
         run: dotnet build Kasta.Web --configuration Debug
 
@@ -86,7 +115,7 @@ jobs:
   docker:
     name: Build & Publish Docker Image
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, test]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
     permissions:
       packages: write

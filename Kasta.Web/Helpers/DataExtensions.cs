@@ -8,13 +8,6 @@ namespace Kasta.Web.Helpers;
 
 public static class DataExtensions
 {
-
-    public static SystemSettingsParams GetSystemSettings(this ApplicationDbContext context)
-    {
-        var instance = new SystemSettingsParams();
-        instance.Get(context);
-        return instance;
-    }
     private static string GetFileUrlId(FileModel file)
     {
         return string.IsNullOrEmpty(file.ShortUrl)
