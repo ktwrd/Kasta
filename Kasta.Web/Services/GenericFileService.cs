@@ -98,19 +98,33 @@ public class GenericFileService
         return await _s3.GeneratePresignedUrl(location, duration);
     }
 
-
+    /// <summary>
+    /// Safely parse the on-disk location for a user.
+    /// </summary>
+    /// <param name="inputLocation">Input location to make absolute to <see cref="LocalFileStorageConfigElement.Directory"/></param>
+    /// <param name="exists">Does the returned location exist?</param>
+    /// <returns>Absolute location on-disk.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when <see cref="LocalFileStorageConfigElement.Directory"/> is null/empty.</exception>
+    /// <exception cref="AttemptedPathTraversalAttackException">
+    /// Thrown when <paramref name="inputLocation"/> attempts to do a path traversal attack. (e.g: <c>../../../etc/passwd</c>)
+    /// </exception>
     private string ParseLocation(string inputLocation, out bool exists)
     {
         if (string.IsNullOrEmpty(_cfg.LocalFileStorage.Directory?.Trim()))
         {
             throw new InvalidOperationException("Local File Storage Directory not properly configured!");
         }
-        var location = Path.Combine(_cfg.LocalFileStorage.Directory, inputLocation);
-        if (!location.StartsWith(_cfg.LocalFileStorage.Directory))
+        var baseLocation = new DirectoryInfo(_cfg.LocalFileStorage.Directory);
+        if (!baseLocation.Exists)
         {
-            throw new Exception($"Location attempted to escape\n" +
-                $"{nameof(location)}: {location}\n" +
-                $"_cfg.LocalFileStorage.Directory: {_cfg.LocalFileStorage.Directory})");
+            Directory.CreateDirectory(_cfg.LocalFileStorage.Directory);
+            baseLocation = new DirectoryInfo(_cfg.LocalFileStorage.Directory);
+        }
+        var location = Path.Combine(baseLocation.FullName, inputLocation);
+        if (!location.StartsWith(baseLocation.FullName, StringComparison.Ordinal))
+        {
+            throw new AttemptedPathTraversalAttackException(baseLocation.FullName, inputLocation);
         }
         exists = File.Exists(location);
         var locationParent = Path.GetDirectoryName(location);
