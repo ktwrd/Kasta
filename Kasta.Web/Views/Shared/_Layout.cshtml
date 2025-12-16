@@ -109,10 +109,10 @@
 
     var title = ViewData["Title"]?.ToString();
     if (title != null && !string.IsNullOrEmpty(appTitle))
-    {
-        title += " - " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
+        {
+            title += " - " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
+        }
     }
-}
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@bootstrapThemeAttributeValue">
 <head>
@@ -121,7 +121,7 @@
     <title>@title</title>
     <link rel="stylesheet" href="~/lib/dropzone/css/dropzone.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css"/>
     @if (currentTheme == "2010")
     {
         <link rel="stylesheet" href="~/css/theme-2010.css" asp-append-version="true"/>
