@@ -26,6 +26,7 @@ COPY . ./
 RUN dotnet restore "Kasta.Web/Kasta.Web.csproj"
 WORKDIR "/src/Kasta.Web"
 RUN dotnet tool install --global nuget-license
+ENV PATH="$PATH:/root/.dotnet/tools"
 RUN nuget-license -i Kasta.Web.csproj -o Json -fo app-licenses.json
 RUN dotnet build "Kasta.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
