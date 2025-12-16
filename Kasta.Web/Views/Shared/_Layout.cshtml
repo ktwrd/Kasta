@@ -51,19 +51,6 @@
         }
     }
 
-    var userQuotaValue = "null";
-    if (SystemSettings.EnableQuota)
-    {
-        if (userLimit?.MaxFileSize != null)
-        {
-            userQuotaValue = $"parseInt('{userLimit?.MaxFileSize}')";
-        }
-        else if (SystemSettings.DefaultUploadQuota > -1)
-        {
-            userQuotaValue = $"'parseInt({SystemSettings.DefaultUploadQuota})'";
-        }
-    }
-
     string versionString = "";
     var ver = typeof(Kasta.Web.Program).Assembly.GetName().Version;
     if (ver != null)
@@ -108,11 +95,18 @@
     ViewData["TargetTimezone"] = targetTimezone;
 
     var title = ViewData["Title"]?.ToString();
-    if (title != null && !string.IsNullOrEmpty(appTitle))
+    if (!string.IsNullOrEmpty(appTitle))
+    {
+        if (string.IsNullOrEmpty(title?.Trim()))
+        {
+            title = appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
+        }
+        else
         {
             title += " - " + appTitle.Replace("<", "&lt;").Replace(">", "&gt;");
         }
     }
+}
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@bootstrapThemeAttributeValue">
 <head>
