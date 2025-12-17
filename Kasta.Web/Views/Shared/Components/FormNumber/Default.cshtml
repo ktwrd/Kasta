@@ -1,0 +1,27 @@
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
+@using Markdig
+@model FormNumberComponentViewModel
+
+@if (!string.IsNullOrEmpty(Model.DisplayName))
+{
+    <label class="form-label" for="@Model.Id">@Model.DisplayName</label>
+}
+<input type="number"
+        class="form-control @(Model.ExtraClass ?? string.Empty)"
+        id="@Model.Id" name="@Model.Name"
+        value="@Model.Value"
+        max="@Model.MaxValue"
+        min="@Model.MinValue"
+        step="@Model.Step"
+        form="@Model.ParentFormId"
+        placeholder="@(Model.Placeholder ?? string.Empty)"
+        readonly="@Model.ReadOnly"
+        @(Model.Required ? "required" : "") 
+        @(Model.Disabled ? "disabled" : "") />
+@if (!string.IsNullOrEmpty(Model.HelpText))
+{
+    <div id="@(Model.Id)Help" class="form-text">
+        @Html.Raw(KastaWebHelper.MarkdownToHtmlBasic(Model.HelpText))
+    </div>
+}
