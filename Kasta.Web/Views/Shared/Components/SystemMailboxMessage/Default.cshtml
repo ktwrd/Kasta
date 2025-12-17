@@ -1,5 +1,6 @@
 ﻿@using Kasta.Shared.Helpers
 @using Kasta.Web.Helpers
+@using NeoSmart.PrettySize
 @using Vivet.AspNetCore.RequestTimeZone.Extensions
 @model Kasta.Data.Models.SystemMailboxMessageModel
 @inject IHttpContextAccessor ContextAccessor
@@ -37,7 +38,7 @@
         <a class="btn btn-sm btn-danger m-2" asp-area="Admin" asp-controller="Mailbox" asp-action="DeleteMessage" asp-route-id="@Model.Id">Delete</a>
     }
     <br/>
-    <sup>@SizeHelper.BytesToString(SizeHelper.GetByteCount(Model.Message))</sup>
+    <sup>@PrettySize.Bytes(System.Text.Encoding.UTF8.GetByteCount(Model.Message))</sup>
 </p>
 <hr/>
 @Html.Raw(KastaWebHelper.MarkdownToHtml(Model.Message))

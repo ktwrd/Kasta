@@ -1,6 +1,7 @@
 @using Kasta.Shared.Helpers
 @using Kasta.Web.Areas.Admin.Models.User
 @using Kasta.Web.Models.Components
+@using NeoSmart.PrettySize
 @model EditDetailsComponentViewModel
 
 <form hx-post="@Url.Action("EditUserLimitComponentPost", "User", new { area = "Admin", userId = Model.UserId })"
@@ -25,7 +26,7 @@
         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
         {
             Id = "storageQuotaValue",
-            Value = (Model.Limit?.MaxStorage ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxStorage ?? 0) : "",
+            Value = (Model.Limit?.MaxStorage ?? -1) >= 0 ? PrettySize.Bytes(Model.Limit?.MaxStorage ?? 0).ToString() : "",
             Name = nameof(EditUserContract.StorageQuotaValue),
             DisplayName = "Storage Quota",
             HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Storage Quota' is unchecked."
@@ -44,7 +45,7 @@
         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
         {
             Id = "uploadLimitValue",
-            Value = (Model.Limit?.MaxFileSize ?? -1) >= 0 ? SizeHelper.BytesToString(Model.Limit?.MaxFileSize ?? 0) : "",
+            Value = (Model.Limit?.MaxFileSize ?? -1) >= 0 ? PrettySize.Bytes(Model.Limit?.MaxFileSize ?? 0).ToString() : "",
             Name = nameof(EditUserContract.UploadLimitValue),
             DisplayName = "Upload Limit",
             HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Upload Limit' is unchecked."

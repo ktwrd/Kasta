@@ -2,6 +2,7 @@
 @using Kasta.Web.Helpers
 @using Kasta.Web.Areas.Admin.Models.User
 @using Kasta.Web.Models.Components
+@using NeoSmart.PrettySize
 @model UserListViewModel
 
 @{
@@ -78,8 +79,8 @@
                         </td>
                         @if (Model.SystemSettings.EnableQuota)
                         {
-                            <td>@(user.Limit?.MaxStorage == null || user.Limit.MaxStorage < 0 ? "Default" : SizeHelper.BytesToString((long)user.Limit.MaxStorage!))</td>
-                            <td>@(user.Limit?.MaxFileSize == null || user.Limit.MaxFileSize < 0 ? "Default" : SizeHelper.BytesToString((long)user.Limit.MaxFileSize!))</td>
+                            <td>@(user.Limit?.MaxStorage == null || user.Limit.MaxStorage < 0 ? "Default" : PrettySize.Bytes(user.Limit.MaxStorage.Value))</td>
+                            <td>@(user.Limit?.MaxFileSize == null || user.Limit.MaxFileSize < 0 ? "Default" : PrettySize.Bytes(user.Limit.MaxFileSize.Value))</td>
                         }
                         <td>
                             @if (user.Limit?.SpaceUsed <= 0)
@@ -88,7 +89,7 @@
                             }
                             else
                             {
-                                @SizeHelper.BytesToString((long)(user.Limit?.SpaceUsed ?? 0))
+                                @PrettySize.Bytes(user.Limit?.SpaceUsed ?? 0)
                             }
                         </td>
                         <td>

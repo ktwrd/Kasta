@@ -15,7 +15,7 @@
                 <td>@Model.UserCount</td>
                 <td>
                     <span>@Model.TotalSpaceUsed</span>
-                    @if (Model.TotalPreviewSpaceUsed.ToUpper() != "0B")
+                    @if (Model.TotalPreviewSpaceUsed.Trim().ToUpper() != "0B")
                     {
                         <br/>
                         <sup>Preview: @Model.TotalPreviewSpaceUsed</sup>

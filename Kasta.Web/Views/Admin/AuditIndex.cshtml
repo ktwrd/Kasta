@@ -19,7 +19,9 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var master in Database.Audit.Include(e => e.CreatedByUser).ToList())
+        @foreach (var master in Database.Audit
+            .Include(e => e.CreatedByUser)
+            .OrderByDescending(e => e.CreatedAt).ToList())
         {
             <tr>
                 <th>@master.EntityName</th>

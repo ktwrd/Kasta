@@ -60,12 +60,12 @@
                 }
             </div>
         </form>
-        @if (Model.ExternalLogins!.Count > 0)
+        @if (Model.ExternalLogins != null && Model.ExternalLogins.Count > 0)
         {
             <div class="row mt-4 text-center">
                 <strong>Login with external service</strong>
                 <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                    @foreach (var provider in Model.ExternalLogins!)
+                    @foreach (var provider in Model.ExternalLogins)
                     {
                         <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
                         <br/>

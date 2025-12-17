@@ -1,6 +1,7 @@
 @using Kasta.Shared.Helpers
 @using Kasta.Web.Models.Components
 @using Kasta.Web.Helpers
+@using NeoSmart.PrettySize
 @using Vivet.AspNetCore.RequestTimeZone.Extensions
 @model FileListItemComponentViewModel
 @inject IHttpContextAccessor ctx
@@ -88,7 +89,7 @@
             }
         </a>
         <br/>
-        @SizeHelper.BytesToString(Model.File.Size)
+        @PrettySize.Bytes(Model.File.Size)
     </td>
     <td>
         @TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt.UtcDateTime, targetTimezone)

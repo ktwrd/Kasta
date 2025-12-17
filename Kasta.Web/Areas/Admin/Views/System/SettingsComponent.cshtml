@@ -1,6 +1,7 @@
 @using Kasta.Shared.Helpers
 @using Kasta.Web.Areas.Admin.Models.System
 @using Kasta.Web.Models.Components
+@using NeoSmart.PrettySize
 @model SettingsComponentViewModel
 
 <form hx-post="@Url.Action("SaveSettingsComponent", "System", new {area = "Admin"})"
@@ -70,7 +71,7 @@
         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
         {
             Id = "defaultUploadQuota",
-            Value = SizeHelper.BytesToString(Model.SystemSettings.DefaultUploadQuotaReal ?? 0),
+            Value = PrettySize.Bytes(Model.SystemSettings.DefaultUploadQuotaReal ?? 0).ToString(),
             Name = nameof(Model.SystemSettings.DefaultUploadQuota),
             DisplayName = "Default User Upload Quota",
             HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."
@@ -80,7 +81,7 @@
         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
         {
             Id = "defaultStorageQuota",
-            Value = SizeHelper.BytesToString(Model.SystemSettings.DefaultStorageQuotaReal ?? 0),
+            Value = PrettySize.Bytes(Model.SystemSettings.DefaultStorageQuotaReal ?? 0).ToString(),
             Name = nameof(Model.SystemSettings.DefaultStorageQuota),
             DisplayName = "Default User Storage Quota",
             HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."
@@ -111,7 +112,7 @@
         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
         {
             Id = Kasta.Web.SystemSettingsProxy.Keys.FileServicePlainTextPreviewSizeLimit,
-            Value = SizeHelper.BytesToString(Model.SystemSettings.FileServicePlainTextPreviewSizeLimitReal ?? 0),
+            Value = PrettySize.Bytes(Model.SystemSettings.FileServicePlainTextPreviewSizeLimitReal ?? 0).ToString(),
             Name = nameof(Model.SystemSettings.FileServicePlainTextPreviewSizeLimit),
             DisplayName = "Text Preview Size Limit",
             HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."

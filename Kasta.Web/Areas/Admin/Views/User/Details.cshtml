@@ -55,7 +55,7 @@
                         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
                         {
                             Id = "storageQuotaValue",
-                            Value = (user.Limit?.MaxStorage ?? -1) >= 0 ? SizeHelper.BytesToString(user.Limit?.MaxStorage ?? 0) : "",
+                            Value = (user.Limit?.MaxStorage ?? -1) >= 0 ? PrettySize.Bytes(user.Limit?.MaxStorage ?? 0).ToString() : "",
                             Name = nameof(EditUserContract.StorageQuotaValue),
                             DisplayName = "Storage Quota",
                             HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Storage Quota' is unchecked."
@@ -74,7 +74,7 @@
                         @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
                         {
                             Id = "uploadLimitValue",
-                            Value = (user.Limit?.MaxFileSize ?? -1) >= 0 ? SizeHelper.BytesToString(user.Limit?.MaxFileSize ?? 0) : "",
+                            Value = (user.Limit?.MaxFileSize ?? -1) >= 0 ? PrettySize.Bytes(user.Limit?.MaxFileSize ?? 0).ToString() : "",
                             Name = nameof(EditUserContract.UploadLimitValue),
                             DisplayName = "Upload Limit",
                             HelpText = "500KB, 500K, 512M, 5G, 1T, etc...\nWill be ignored when 'Enable Upload Limit' is unchecked."

@@ -1,6 +1,5 @@
 using EasyCaching.Core;
 using Kasta.Data;
-using Kasta.Shared.Helpers;
 using Kasta.Web.Areas.Admin.Models.System;
 using Kasta.Web.Models;
 using Kasta.Web.Models.Components;
@@ -8,6 +7,7 @@ using Kasta.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NeoSmart.PrettySize;
 
 namespace Kasta.Web.Areas.Admin.Controllers;
 
@@ -40,10 +40,10 @@ public class SystemController : Controller
         model.UserCount = _db.Users.Count();
 
         var spaceUsedValue = _db.UserLimits.Select(e => e.SpaceUsed).Sum();
-        model.TotalSpaceUsed = SizeHelper.BytesToString(spaceUsedValue);
+        model.TotalSpaceUsed = PrettySize.Bytes(spaceUsedValue).ToString();
 
         var previewSpaceUsedValue = _db.UserLimits.Select(e => e.PreviewSpaceUsed).Sum();
-        model.TotalPreviewSpaceUsed = SizeHelper.BytesToString(previewSpaceUsedValue);
+        model.TotalPreviewSpaceUsed = PrettySize.Bytes(previewSpaceUsedValue).ToString();
 
         model.OrphanFileCount = _db.Files.Where(e => e.CreatedByUser == null).Include(e => e.CreatedByUser).Count();
 
@@ -65,9 +65,9 @@ public class SystemController : Controller
         var vm = new MetricsComponentViewModel();
         vm.UserCount = _db.Users.Count();
         var spaceUsedValue = _db.UserLimits.Select(e => e.SpaceUsed).Sum();
-        vm.TotalSpaceUsed = SizeHelper.BytesToString(spaceUsedValue);
+        vm.TotalSpaceUsed = PrettySize.Bytes(spaceUsedValue).ToString();
         var previewSpaceUsedValue = _db.UserLimits.Select(e => e.PreviewSpaceUsed).Sum();
-        vm.TotalPreviewSpaceUsed = SizeHelper.BytesToString(previewSpaceUsedValue);
+        vm.TotalPreviewSpaceUsed = PrettySize.Bytes(previewSpaceUsedValue).ToString();;
         vm.OrphanFileCount = _db.Files.Where(e => e.CreatedByUser == null).Include(e => e.CreatedByUser).Count();
         vm.FileCount = _db.Files.Count();
         vm.LinkCount = _db.ShortLinks.Count();
@@ -153,9 +153,10 @@ public class SystemController : Controller
             t.Start();
         await Task.WhenAll(taskList);
 
+        var fileCountPlural = fileCount == 1 || fileCount == -1 ? "" : "s";
         var alertViewModel = new BaseAlertViewModel()
         {
-            AlertContent = $"Recalculated storage space ({fileCount} files)",
+            AlertContent = $"Recalculated storage space ({fileCount:n0} file{fileCountPlural})",
             AlertType = "success",
             AlertIsSmall = true
         };
