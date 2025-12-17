@@ -122,6 +122,7 @@ public class ProfileController : Controller
         catch
         {
             await trans.RollbackAsync();
+            throw;
         }
         return new FileStreamResult(ms, "application/json")
         {
@@ -175,6 +176,7 @@ public class ProfileController : Controller
         catch
         {
             await trans.RollbackAsync();
+            throw;
         }
         return new FileStreamResult(ms, "application/json")
         {
