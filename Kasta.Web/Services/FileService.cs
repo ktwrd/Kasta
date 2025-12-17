@@ -108,7 +108,8 @@ public class FileService
         long fileCount = 0;
         try
         {
-            var totalSpaceQuery = ctx.Files.Where(e => e.CreatedByUserId == user.Id)
+            var totalSpaceQuery = ctx.Files
+                .Where(e => e.CreatedByUserId == user.Id)
                 .Include(e => e.Preview)
                 .Select(e => e.Size + (e.Preview == null ? 0 : e.Preview.Size));
             var totalSpace = await totalSpaceQuery.SumAsync();
@@ -116,22 +117,25 @@ public class FileService
             var previewSpace = await ctx.Files
                 .Where(e => e.CreatedByUserId == user.Id)
                 .Where(e => e.Preview != null)
-                .Include(e => e.Preview)
                 .Select(e => e.Preview!.Size)
                 .SumAsync();
 
-            var limitModel = await ctx.UserLimits
-                .FirstOrDefaultAsync(e => e.UserId == user.Id);
-            if (limitModel == null)
+            if (!await ctx.UserLimits.AnyAsync(e => e.UserId == user.Id))
             {
-                limitModel = new()
+                await ctx.UserLimits.AddAsync(new()
                 {
-                    UserId = user.Id
-                };
-                await ctx.UserLimits.AddAsync(limitModel);
+                    UserId = user.Id,
+                    SpaceUsed = totalSpace,
+                    PreviewSpaceUsed = previewSpace
+                });
             }
-            limitModel.SpaceUsed = totalSpace;
-            limitModel.PreviewSpaceUsed = previewSpace;
+            else
+            {
+                await ctx.UserLimits.Where(e => e.UserId == user.Id)
+                    .ExecuteUpdateAsync(e => e
+                        .SetProperty(p => p.SpaceUsed, totalSpace)
+                        .SetProperty(p => p.PreviewSpaceUsed, previewSpace));
+            }
             await ctx.SaveChangesAsync();
             await transaction.CommitAsync();
         }
