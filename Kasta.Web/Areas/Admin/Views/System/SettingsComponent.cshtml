@@ -88,6 +88,47 @@
     </div>
     <hr/>
     <div class="mb-3 row">
+        @await Component.InvokeAsync("FormNumber", new FormNumberComponentViewModel()
+        {
+            Id = Kasta.Web.SystemSettingsProxy.Keys.FileServiceGenerateFileMetadataThreadCount,
+            Value = Model.SystemSettings.FileServiceGenerateFileMetadataThreadCountReal,
+            Name = nameof(Model.SystemSettings.FileServiceGenerateFileMetadataThreadCount),
+            DisplayName = "Maximum amount of threads allowed for file preview generation",
+            HelpText = "0: Default, <0: Invalid, >0: Actual thread count"
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = Kasta.Web.SystemSettingsProxy.Keys.FileServicePlainTextPreviewSizeLimitEnforce,
+            State = Model.SystemSettings.FileServicePlainTextPreviewSizeLimitEnforce,
+            Name = nameof(Model.SystemSettings.FileServicePlainTextPreviewSizeLimitEnforce),
+            Label = "Enforce Text Preview Size Limit",
+            HelpText = "When disabled, any file that can be previewed will be previewed, no matter how big or small it is."
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormText", new FormTextComponentViewModel()
+        {
+            Id = Kasta.Web.SystemSettingsProxy.Keys.FileServicePlainTextPreviewSizeLimit,
+            Value = SizeHelper.BytesToString(Model.SystemSettings.FileServicePlainTextPreviewSizeLimitReal ?? 0),
+            Name = nameof(Model.SystemSettings.FileServicePlainTextPreviewSizeLimit),
+            DisplayName = "Text Preview Size Limit",
+            HelpText = "500KB, 500K, 512M, 5G, 1T, etc..."
+        })
+    </div>
+    <div class="mb-3 row">
+        @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
+        {
+            Id = Kasta.Web.SystemSettingsProxy.Keys.FileServiceAllowPlainTextPreview,
+            State = Model.SystemSettings.FileServiceAllowPlainTextPreview,
+            Name = nameof(Model.SystemSettings.FileServiceAllowPlainTextPreview),
+            Label = "Enable Text File Preview",
+            HelpText = "When disabled, text file previews will never be shown."
+        })
+    </div>
+    <hr/>
+    <div class="mb-3 row">
         @await Component.InvokeAsync("FormCheckbox", new FormCheckboxComponentViewModel()
         {
             Id = "enableGeoIP",

@@ -13,15 +13,19 @@ public class SystemSettingsViewModel
     public string DefaultUploadQuota {get; set; } = "";
     public string DefaultStorageQuota { get; set; } = "";
     public string FileServiceGenerateFileMetadataThreadCount { get; set; } = "0";
-    public string FileServicePlainTextPreviewSizeLimit { get; set; } = "";
+    public string FileServicePlainTextPreviewSizeLimit { get; set; } = "0";
+    public bool FileServicePlainTextPreviewSizeLimitEnforce { get; set; }
+    public bool FileServiceAllowPlainTextPreview { get; set; }
     public bool EnableGeoIP { get; set; }
     public string GeoIPDatabaseLocation { get;set; } = "";
     public bool S3UsePresignedUrl { get; set; }
 
     public long? DefaultUploadQuotaReal => SizeHelper.ParseToByteCount(DefaultUploadQuota);
-
     public long? DefaultStorageQuotaReal => SizeHelper.ParseToByteCount(DefaultStorageQuota);
     public long? FileServicePlainTextPreviewSizeLimitReal => SizeHelper.ParseToByteCount(FileServicePlainTextPreviewSizeLimit);
+    public int FileServiceGenerateFileMetadataThreadCountReal
+        => int.TryParse(FileServiceGenerateFileMetadataThreadCount, out var r)
+        ? r : SystemSettingsProxy.DefaultValues.FileServiceGenerateFileMetadataThreadCount;
 
     public void InsertOrUpdate(SystemSettingsProxy proxy)
     {
@@ -40,6 +44,8 @@ public class SystemSettingsViewModel
             int.Parse(FileServiceGenerateFileMetadataThreadCount),
             SystemSettingsProxy.DefaultValues.FileServiceGenerateFileMetadataThreadCount);
         proxy.FileServicePlainTextPreviewSizeLimit = SizeHelper.ParseToByteCount(FileServicePlainTextPreviewSizeLimit);
+        proxy.FileServicePlainTextPreviewSizeLimitEnforce = FileServicePlainTextPreviewSizeLimitEnforce;
+        proxy.FileServiceAllowPlainTextPreview = FileServiceAllowPlainTextPreview;
     }
 
     public void Read(SystemSettingsProxy proxy)
@@ -57,5 +63,7 @@ public class SystemSettingsViewModel
         S3UsePresignedUrl = proxy.S3UsePresignedUrl;
         FileServiceGenerateFileMetadataThreadCount = proxy.FileServiceGenerateFileMetadataThreadCount.ToString();
         FileServicePlainTextPreviewSizeLimit = proxy.FileServicePlainTextPreviewSizeLimit?.ToString() ?? "";
+        FileServicePlainTextPreviewSizeLimitEnforce = proxy.FileServicePlainTextPreviewSizeLimitEnforce;
+        FileServiceAllowPlainTextPreview = proxy.FileServiceAllowPlainTextPreview;
     }
 }
