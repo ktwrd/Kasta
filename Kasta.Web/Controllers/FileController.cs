@@ -84,7 +84,7 @@ public class FileController : Controller
         };
 
 
-        if (_fileService.AllowPlaintextPreview(file))
+        if (await _fileService.AllowPlaintextPreview(file))
         {
             vm.PreviewContent = _fileService.GetPlaintextPreview(file);
         }

@@ -394,38 +394,42 @@ public class FileService
         return _genericFileService.GetStreamAsync(file.RelativeLocation).GetAwaiter().GetResult();
     }
 
-    public bool AllowPlaintextPreview(FileModel file)
+    public async Task<bool> AllowPlaintextPreview(FileModel file)
     {
-        if (file.Size > 524_288) return false;
-
-        if (string.IsNullOrEmpty(file.MimeType))
-            return false;
+        if (string.IsNullOrEmpty(file.MimeType)) return false;
         
-        var mimeWhitelist = new string[]
-        {
-            "application/json",
-            "application/javascript",
-            "application/xml",
-            "application/xhtml+xml",
-            "application/xhtml",
-            "application/html",
-            "application/toml",
-            "application/sql",
-            "application/postscript",
-            "application/x-perl"
-        };
-        var mimeBlacklist = new string[]
-        {
-            "text/rtf",
-            "text/richtext"
-        };
-        if (mimeBlacklist.Contains(file.MimeType))
+        var mimeType = file.MimeType?.Trim().ToLower();
+
+        var defaultLimit = Math.Max(-1, _systemSettings.FileServicePlainTextPreviewSizeLimit.GetValueOrDefault(SystemSettingsProxy.DefaultValues.FileServicePlainTextPreviewSizeLimit));
+        if (defaultLimit <= -1) return true;
+        if (defaultLimit == 0) return false;
+        
+        if (file.Size > defaultLimit) return false;
+
+        if (FallbackMimeBlacklist.Contains(mimeType))
             return false;
-        if (file.MimeType?.StartsWith("text/") ?? false)
+        if (mimeType?.StartsWith("text/") ?? false)
             return true;
         
-        return mimeWhitelist.Contains(file.MimeType);
+        return FallbackMimeWhitelist.Contains(mimeType);
     }
+
+    private static readonly string[] FallbackMimeWhitelist = [
+        "application/json",
+        "application/javascript",
+        "application/xml",
+        "application/xhtml+xml",
+        "application/xhtml",
+        "application/html",
+        "application/toml",
+        "application/sql",
+        "application/postscript",
+        "application/x-perl"
+    ];
+    private static readonly string[] FallbackMimeBlacklist = [
+        "text/rtf",
+        "text/richtext"
+    ];
 
     public string? GetPlaintextPreview(FileModel file)
     {

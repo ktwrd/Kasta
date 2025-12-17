@@ -265,11 +265,16 @@ public class SystemSettingsProxy
     }
 
     /// <summary>
-    /// File size limit in bytes
-    /// 
-    /// 0: Disable
-    /// -1: No Limit
+    /// <para>File size limit in bytes.</para>
+    /// <para>Default value: 512kb (524288)</para>
     /// </summary>
+    /// <remarks>
+    /// <list type="bullet" >
+    /// <item>If this is <c>0</c>, then plaintext file previews are disabled.</item>
+    /// <item>If this is <c>-1</c> then there is no limit.</item>
+    /// <item>Otherwise, this is the maximum file size in bytes for a preview to be shown in plaintext.</item>
+    /// </list>
+    /// </remarks>
     public long? FileServicePlainTextPreviewSizeLimit
     {
         get
@@ -313,6 +318,6 @@ public class SystemSettingsProxy
         public const string GeoIpDatabaseLocation = "";
         public const bool S3UsePresignedUrl = false;
         public const int FileServiceGenerateFileMetadataThreadCount = 0;
-        public const long FileServicePlainTextPreviewSizeLimit = 524_288;
+        public const long FileServicePlainTextPreviewSizeLimit = 524_288; // 512kb
     }
 }
