@@ -94,26 +94,23 @@ public class ProfileController : Controller
             Purpose = "Generate ShareX Config (from Profile)"
         };
 
-        var data = new Dictionary<string, object>()
+        var data = new ShareXConfigModel()
         {
-            {"DestinationType", "ImageUploader, TextUploader, FileUploader"},
-            {"RequestURL", $"{FeatureFlags.Endpoint}/api/v1/File/Upload/Form"},
-            {"FileFormName", "file"},
-            {"Arguments", new Dictionary<string, object>()
+            DestinationType = "ImageUploader, TextUploader, FileUploader",
+            RequestUrl = $"{FeatureFlags.Endpoint}/api/v1/File/Upload/Form",
+            FileFormName = "file",
+            Arguments = new()
             {
-                {"filename", "$filename$"},
-                {"token", apiKey.Token}
-            }},
-            {"URL", "$json:urlDetail$"},
-            {"ThumbnailURL", "$json:url$"},
-            {"DeletionURL", "$json:urlDelete$?token=" + apiKey.Token},
+                { "filename", "$filename$" },
+                { "token", apiKey.Token }
+            },
+            Url = "$json:urlDetail$",
+            ThumbnailUrl = "$json:url$",
+            DeletionUrl = "$json:urlDelete$?token=" + apiKey.Token
         };
-        var fileContent = JsonSerializer.Serialize(data, new JsonSerializerOptions()
-        {
-            IncludeFields = true,
-            WriteIndented = true
-        });
-        var ms = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+
+        var ms = new MemoryStream();
+        JsonSerializer.Serialize(ms, data, JsonSerializerOptions);
         await using var ctx = _db.CreateSession();
         await using var trans = await ctx.Database.BeginTransactionAsync();
         try
@@ -131,6 +128,12 @@ public class ProfileController : Controller
             FileDownloadName = $"{currentUser.UserName}-ShareX.sxcu"
         };
     }
+
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        IncludeFields = true,
+        WriteIndented = true
+    };
 
     [AuthRequired]
     [HttpGet]
@@ -150,6 +153,7 @@ public class ProfileController : Controller
             Purpose = "Generate rustgrab Config (from Profile)"
         };
         
+        // TODO create a new class instead of raw-dogging it with a dict
         var data = new Dictionary<string, object>()
         {
             {"xbackbone_config", new Dictionary<string, object>()
@@ -158,12 +162,8 @@ public class ProfileController : Controller
                 {"url", $"{FeatureFlags.Endpoint}/api/v1/File/Upload/Form"}
             }}
         };
-        var fileContent = JsonSerializer.Serialize(data, new JsonSerializerOptions()
-        {
-            IncludeFields = true,
-            WriteIndented = true
-        });
-        var ms = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+        var ms = new MemoryStream();
+        JsonSerializer.Serialize(ms, data, JsonSerializerOptions);
         await using var ctx = _db.CreateSession();
         await using var trans = await ctx.Database.BeginTransactionAsync();
         try
