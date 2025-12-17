@@ -289,6 +289,12 @@ public class SystemSettingsProxy
             value.HasValue ? Math.Max(-1, value.Value) : null);
     }
 
+    public bool FileServiceAllowPlainTextPreview
+    {
+        get => GetBool(Keys.FileServiceAllowPlainTextPreview, DefaultValues.FileServiceAllowPlainTextPreview);
+        set => SetValue(Keys.FileServiceAllowPlainTextPreview, value);
+    }
+
     public static class Keys
     {
         public const string EnableUserRegister = "enableUserRegister";
@@ -304,6 +310,7 @@ public class SystemSettingsProxy
         public const string S3UsePresignedUrl = "s3_usePresignedUrl";
         public const string FileServiceGenerateFileMetadataThreadCount = "fileService_generateFileMetadata_threadCount";
         public const string FileServicePlainTextPreviewSizeLimit = "fileService_plainTextPreview_maxSize";
+        public const string FileServiceAllowPlainTextPreview = "fileService_plainTextPreview_enable";
     }
 
     public static class DefaultValues
@@ -319,5 +326,6 @@ public class SystemSettingsProxy
         public const bool S3UsePresignedUrl = false;
         public const int FileServiceGenerateFileMetadataThreadCount = 0;
         public const long FileServicePlainTextPreviewSizeLimit = 524_288; // 512kb
+        public const bool FileServiceAllowPlainTextPreview = true;
     }
 }
