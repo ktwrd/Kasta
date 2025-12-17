@@ -271,7 +271,6 @@ public class SystemSettingsProxy
     /// <remarks>
     /// <list type="bullet" >
     /// <item>If this is <c>0</c>, then plaintext file previews are disabled.</item>
-    /// <item>If this is <c>-1</c> then there is no limit.</item>
     /// <item>Otherwise, this is the maximum file size in bytes for a preview to be shown in plaintext.</item>
     /// </list>
     /// </remarks>
@@ -281,12 +280,18 @@ public class SystemSettingsProxy
         {
             var value = GetLong(Keys.FileServicePlainTextPreviewSizeLimit, DefaultValues.FileServicePlainTextPreviewSizeLimit);
             return value.HasValue
-                ? Math.Max(-1, value.Value)
+                ? Math.Max(0, value.Value)
                 : null;
         }
         set => SetValue(
             Keys.FileServicePlainTextPreviewSizeLimit,
-            value.HasValue ? Math.Max(-1, value.Value) : null);
+            value.HasValue ? Math.Max(0, value.Value) : null);
+    }
+
+    public bool FileServicePlainTextPreviewSizeLimitEnforce
+    {
+        get => GetBool(Keys.FileServicePlainTextPreviewSizeLimitEnforce, DefaultValues.FileServicePlainTextPreviewSizeLimitEnforce);
+        set => SetValue(Keys.FileServicePlainTextPreviewSizeLimitEnforce, value);
     }
 
     public bool FileServiceAllowPlainTextPreview
@@ -310,6 +315,7 @@ public class SystemSettingsProxy
         public const string S3UsePresignedUrl = "s3_usePresignedUrl";
         public const string FileServiceGenerateFileMetadataThreadCount = "fileService_generateFileMetadata_threadCount";
         public const string FileServicePlainTextPreviewSizeLimit = "fileService_plainTextPreview_maxSize";
+        public const string FileServicePlainTextPreviewSizeLimitEnforce = "fileService_plainTextPreview_maxSize_enforce";
         public const string FileServiceAllowPlainTextPreview = "fileService_plainTextPreview_enable";
     }
 
@@ -326,6 +332,7 @@ public class SystemSettingsProxy
         public const bool S3UsePresignedUrl = false;
         public const int FileServiceGenerateFileMetadataThreadCount = 0;
         public const long FileServicePlainTextPreviewSizeLimit = 524_288; // 512kb
+        public const bool FileServicePlainTextPreviewSizeLimitEnforce = true;
         public const bool FileServiceAllowPlainTextPreview = true;
     }
 }

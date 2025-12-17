@@ -404,11 +404,12 @@ public class FileService
         
         var mimeType = file.MimeType?.Trim().ToLower();
 
-        var defaultLimit = Math.Max(-1, _systemSettings.FileServicePlainTextPreviewSizeLimit.GetValueOrDefault(SystemSettingsProxy.DefaultValues.FileServicePlainTextPreviewSizeLimit));
-        if (defaultLimit <= -1) return true;
-        if (defaultLimit == 0) return false;
-        
-        if (file.Size > defaultLimit) return false;
+        if (_systemSettings.FileServicePlainTextPreviewSizeLimitEnforce)
+        {
+            var defaultLimit = Math.Max(-1, _systemSettings.FileServicePlainTextPreviewSizeLimit.GetValueOrDefault(SystemSettingsProxy.DefaultValues.FileServicePlainTextPreviewSizeLimit));
+            if (defaultLimit <= 0) return false;
+            if (file.Size > defaultLimit) return false;
+        }
 
         if (FallbackMimeBlacklist.Contains(mimeType))
             return false;
