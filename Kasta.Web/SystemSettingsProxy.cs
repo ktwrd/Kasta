@@ -264,18 +264,24 @@ public class SystemSettingsProxy
             Math.Max(value, DefaultValues.FileServiceGenerateFileMetadataThreadCount));
     }
 
+    /// <summary>
+    /// File size limit in bytes
+    /// 
+    /// 0: Disable
+    /// -1: No Limit
+    /// </summary>
     public long? FileServicePlainTextPreviewSizeLimit
     {
         get
         {
             var value = GetLong(Keys.FileServicePlainTextPreviewSizeLimit, DefaultValues.FileServicePlainTextPreviewSizeLimit);
             return value.HasValue
-                ? Math.Max(0, value.Value)
+                ? Math.Max(-1, value.Value)
                 : null;
         }
         set => SetValue(
             Keys.FileServicePlainTextPreviewSizeLimit,
-            value.HasValue ? Math.Max(0, value.Value) : null);
+            value.HasValue ? Math.Max(-1, value.Value) : null);
     }
 
     public static class Keys
