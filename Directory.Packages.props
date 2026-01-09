@@ -6,11 +6,11 @@
   <ItemGroup>
 
     <!-- ASP.NET -->
-    <PackageVersion Include="Microsoft.AspNetCore.HttpOverrides" Version="2.3.7" />
+    <PackageVersion Include="Microsoft.AspNetCore.HttpOverrides" Version="2.3.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.0" />
-    <PackageVersion Include="Vivet.AspNetCore.RequestTimeZone" Version="9.0.11" />
+    <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.1" />
+    <PackageVersion Include="Vivet.AspNetCore.RequestTimeZone" Version="10.0.0" />
 
     <!-- ASP.NET - Auth -->
     <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
@@ -29,19 +29,19 @@
     <PackageVersion Include="EasyCaching.InMemory" Version="1.9.2" />
     <PackageVersion Include="EasyCaching.Redis" Version="1.9.2" />
     <PackageVersion Include="EasyCaching.Serialization.MessagePack" Version="1.9.2" />
-    <PackageVersion Include="EFCoreSecondLevelCacheInterceptor" Version="5.3.5" />
-    <PackageVersion Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.5" />
-    <PackageVersion Include="MessagePack" Version="2.5.198" />
+    <PackageVersion Include="EFCoreSecondLevelCacheInterceptor" Version="5.3.8" />
+    <PackageVersion Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.8" />
+    <PackageVersion Include="MessagePack" Version="3.1.4" />
 
     <!-- Storage -->
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.14.2" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.16.4" />
 
     <!-- Geolocation Network Data -->
     <PackageVersion Include="MaxMind.GeoIP2" Version="5.4.1" />
     <PackageVersion Include="GeoTimeZone" Version="6.1.0" />
 
     <!-- Content parsing/manupliation -->
-    <PackageVersion Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.10.0" />
+    <PackageVersion Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.10.1" />
     <PackageVersion Include="Markdig" Version="0.44.0" />
     <PackageVersion Include="MimeTypes" Version="2.5.2" />
 
@@ -53,10 +53,10 @@
     
     <!-- Unit Testing -->
     <PackageVersion Include="coverlet.collector" Version="6.0.4"/>
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.0"/>
-    <PackageVersion Include="NUnit" Version="4.3.2"/>
-    <PackageVersion Include="NUnit.Analyzers" Version="4.7.0"/>
-    <PackageVersion Include="NUnit3TestAdapter" Version="5.0.0"/>
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1"/>
+    <PackageVersion Include="NUnit" Version="4.4.0"/>
+    <PackageVersion Include="NUnit.Analyzers" Version="4.11.2"/>
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0"/>
 
     <!-- Misc -->
     <PackageVersion Include="NeoSmart.PrettySize" Version="3.1.1" />
