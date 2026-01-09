@@ -4,12 +4,15 @@ using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web.Controllers;
 
+[AuthRequired]
+[Authorize]
 public class ProfileController : Controller
 {
     private readonly ApplicationDbContext _db;
@@ -21,7 +24,6 @@ public class ProfileController : Controller
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
     }
     
-    [AuthRequired]
     public async Task<IActionResult> Index()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -43,7 +45,6 @@ public class ProfileController : Controller
         return View("Index", vm);
     }
 
-    [AuthRequired]
     public async Task<IActionResult> Save(
         [FromForm] UserProfileSaveParams data)
     {
@@ -76,7 +77,6 @@ public class ProfileController : Controller
         return new RedirectToActionResult(nameof(Index), "Profile", null);
     }
 
-    [AuthRequired]
     [HttpGet]
     public async Task<IActionResult> GenerateShareXConfig()
     {
@@ -110,7 +110,8 @@ public class ProfileController : Controller
         };
 
         var ms = new MemoryStream();
-        JsonSerializer.Serialize(ms, data, JsonSerializerOptions);
+        await JsonSerializer.SerializeAsync(ms, data, JsonSerializerOptions);
+        ms.Seek(0, SeekOrigin.Begin);
         await using var ctx = _db.CreateSession();
         await using var trans = await ctx.Database.BeginTransactionAsync();
         try
@@ -136,7 +137,6 @@ public class ProfileController : Controller
         WriteIndented = true
     };
 
-    [AuthRequired]
     [HttpGet]
     public async Task<IActionResult> GenerateRustGrabConfig()
     {
@@ -164,7 +164,7 @@ public class ProfileController : Controller
             }}
         };
         var ms = new MemoryStream();
-        JsonSerializer.Serialize(ms, data, JsonSerializerOptions);
+        await JsonSerializer.SerializeAsync(ms, data, JsonSerializerOptions);
         await using var ctx = _db.CreateSession();
         await using var trans = await ctx.Database.BeginTransactionAsync();
         try
