@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
-public class OAuthConfigElement
+public class GenericOAuthConfig
 {
     /// <summary>
     /// Unique Identifier for OAuth. Required and should never be changed!

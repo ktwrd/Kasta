@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
-public class CacheConfigElement
+public class CacheConfig
 {
     [XmlElement("InMemory")]
     public InMemoryCacheElement? InMemory { get; set; }

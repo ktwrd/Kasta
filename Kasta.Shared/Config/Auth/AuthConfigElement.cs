@@ -5,5 +5,5 @@ namespace Kasta.Shared;
 public class AuthConfigElement
 {
     [XmlElement("OAuth")]
-    public List<OAuthConfigElement> OAuth { get; set; } = [];
+    public List<GenericOAuthConfig> OAuth { get; set; } = [];
 }

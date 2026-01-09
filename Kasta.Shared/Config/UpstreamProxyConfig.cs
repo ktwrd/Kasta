@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Kasta.Shared;
 
-public class ProxyConfigElement
+public class UpstreamProxyConfig
 {
     /// <summary>
     /// Known/trusted proxy for ASP.NET.

@@ -10,25 +10,25 @@ public class KastaConfig2025
     public AuthConfigElement? Auth { get; set; }
 
     [XmlElement("Database")]
-    public PostgreSQLConfigElement Database { get; set; } = new();
+    public PostgresDatabaseConfig Database { get; set; } = new();
 
     [XmlElement("S3")]
-    public S3ConfigElement? S3 { get; set; } = new();
+    public S3StorageConfig? S3 { get; set; } = new();
 
     [XmlElement("LocalFileStorage")]
-    public LocalFileStorageConfigElement LocalFileStorage { get; set; } = new()
+    public LocalStorageConfig LocalFileStorage { get; set; } = new()
     {
         Enabled = true
     };
 
     [XmlElement("Kestrel")]
-    public KestrelConfigElement? Kestrel { get; set; }
+    public KestrelConfig? Kestrel { get; set; }
 
     [XmlElement("Sentry")]
-    public SentryConfigElement? Sentry { get; set; }
+    public SentryConfig? Sentry { get; set; }
     
     [XmlElement("Proxy")]
-    public ProxyConfigElement? Proxy { get; set; }
+    public UpstreamProxyConfig? Proxy { get; set; }
 
     [DefaultValue("http://localhost:5280")]
     [XmlElement(nameof(Endpoint))]
@@ -39,5 +39,5 @@ public class KastaConfig2025
     public string DefaultTimezone { get; set; } = "UTC";
 
     [XmlElement(nameof(Cache))]
-    public CacheConfigElement Cache { get; set; } = new();
+    public CacheConfig Cache { get; set; } = new();
 }

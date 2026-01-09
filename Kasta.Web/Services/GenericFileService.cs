@@ -101,11 +101,11 @@ public class GenericFileService
     /// <summary>
     /// Safely parse the on-disk location for a user.
     /// </summary>
-    /// <param name="inputLocation">Input location to make absolute to <see cref="LocalFileStorageConfigElement.Directory"/></param>
+    /// <param name="inputLocation">Input location to make absolute to <see cref="LocalStorageConfig.Directory"/></param>
     /// <param name="exists">Does the returned location exist?</param>
     /// <returns>Absolute location on-disk.</returns>
     /// <exception cref="InvalidOperationException">
-    /// Thrown when <see cref="LocalFileStorageConfigElement.Directory"/> is null/empty.</exception>
+    /// Thrown when <see cref="LocalStorageConfig.Directory"/> is null/empty.</exception>
     /// <exception cref="AttemptedPathTraversalAttackException">
     /// Thrown when <paramref name="inputLocation"/> attempts to do a path traversal attack. (e.g: <c>../../../etc/passwd</c>)
     /// </exception>

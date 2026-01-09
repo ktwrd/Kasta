@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
-public class KestrelConfigElement
+public class KestrelConfig
 {
     [XmlElement("Limits")]
     public KestrelLimitsElement? Limits { get; set; }

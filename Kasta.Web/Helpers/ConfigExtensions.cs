@@ -1,7 +1,7 @@
 ﻿using Kasta.Shared;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
-using XmlSentryLevel = Kasta.Shared.SentryConfigElement.XmlSentryLevel;
+using XmlSentryLevel = Kasta.Shared.SentryConfig.XmlSentryLevel;
 using XmlNLogLogLevel = Kasta.Shared.SentryNLogConfigElement.XmlLogLevel;
 using Sentry.NLog;
 
