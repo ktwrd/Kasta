@@ -3,11 +3,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
+using Kasta.Shared.ConfigEditions;
 
 namespace Kasta.Shared;
 
 [XmlRoot("Kasta")]
-public class KastaConfig
+public class KastaConfig : KastaConfig2025
 {
     private static KastaConfig InternalGet()
     {
@@ -26,10 +27,7 @@ public class KastaConfig
     {
         get
         {
-            if (InternalInstance == null)
-            {
-                InternalInstance = InternalGet();
-            }
+            InternalInstance ??= InternalGet();
             return InternalInstance;
         }
     }
@@ -50,7 +48,10 @@ public class KastaConfig
 
         var content = File.ReadAllText(location);
         var xmlSerializer = new XmlSerializer(GetType());
-        var xmlTextReader = new XmlTextReader(new StringReader(content)) {XmlResolver = null};
+        var xmlTextReader = new XmlTextReader(new StringReader(content))
+        {
+            XmlResolver = null
+        };
         var data = (KastaConfig?)xmlSerializer.Deserialize(xmlTextReader);
         if (data == null)
         {
@@ -78,39 +79,4 @@ public class KastaConfig
         using var writer = XmlWriter.Create(stream, options);
         serializer.Serialize(writer, this);
     }
-
-    [XmlElement("Auth")]
-    public AuthConfigElement? Auth { get; set; }
-
-    [XmlElement("Database")]
-    public PostgreSQLConfigElement Database { get; set; } = new();
-
-    [XmlElement("S3")]
-    public S3ConfigElement? S3 { get; set; } = new();
-
-    [XmlElement("LocalFileStorage")]
-    public LocalFileStorageConfigElement LocalFileStorage { get; set; } = new()
-    {
-        Enabled = true
-    };
-
-    [XmlElement("Kestrel")]
-    public KestrelConfigElement? Kestrel { get; set; }
-
-    [XmlElement("Sentry")]
-    public SentryConfigElement? Sentry { get; set; }
-    
-    [XmlElement("Proxy")]
-    public ProxyConfigElement? Proxy { get; set; }
-
-    [DefaultValue("http://localhost:5280")]
-    [XmlElement(nameof(Endpoint))]
-    public string Endpoint { get; set; } = "http://localhost:5280";
-
-    [DefaultValue("UTC")]
-    [XmlElement(nameof(DefaultTimezone))]
-    public string DefaultTimezone { get; set; } = "UTC";
-
-    [XmlElement(nameof(Cache))]
-    public CacheConfigElement Cache { get; set; } = new();
 }
