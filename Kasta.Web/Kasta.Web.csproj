@@ -7,8 +7,9 @@
         <UserSecretsId>aspnet-Kasta-be2e7886-b576-461b-9096-e78871b03d07</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>Kasta.Web</RootNamespace>
-        <FileVersion>0.9.5.1</FileVersion>
-        <AssemblyVersion>0.9.5.1</AssemblyVersion>
+        <AssemblyVersion>0.10.0.0</AssemblyVersion>
+        <Version>$(AssemblyVersion)</Version>
+        <FileVersion>$(AssemblyVersion)</FileVersion>
         <RepositoryUrl>https://github.com/ktwrd/Kasta</RepositoryUrl>
         <Copyright>Copyright (c) Kate Ward</Copyright>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
