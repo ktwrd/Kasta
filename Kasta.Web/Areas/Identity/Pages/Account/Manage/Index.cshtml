@@ -1,4 +1,5 @@
 @page
+@using Kasta.Shared
 @model IndexModel
 @{
     ViewData["Title"] = "Profile";
@@ -14,7 +15,34 @@
                 <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
                 <label asp-for="Username" class="form-label"></label>
             </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+            <div class="form-floating mb-3">
+                <div class="form-check">
+                    <input asp-for="Input.ShowFilePreviewInHome" class="form-check-input" id="profile-showFilePreviewInHome" />
+                    <label asp-for="Input.ShowFilePreviewInHome" for="profile-showFilePreviewInHome" class="form-check-label"></label>
+                    <div asp-validation-for="Input.ShowFilePreviewInHome" class="invalid-feedback"></div>
+                    <div class="form-text" id="profile-showFilePreviewInHome-help">
+                        File Previews will still be generated (if possible), but preview images will not be shown in the file list.
+                    </div>
+                </div>
+            </div>
+            <div class="form-floating mb-3">
+                <select asp-for="Input.Theme" class="form-select" id="profile-theme">
+                    @foreach (UserProfileThemeKind kind in Enum.GetValues<UserProfileThemeKind>())
+                    {
+                        if (kind == Model.Input.Theme)
+                        {
+                            <option value="@kind.ToString()" selected>@kind.ToDescriptionString(kind.ToString())</option>
+                        }
+                        else
+                        {
+                            <option value="@kind.ToString()">@kind.ToDescriptionString(kind.ToString())</option>
+                        }
+                    }
+                </select>
+                <label asp-for="Input.Theme" for="profile-theme"></label>
+                <div asp-validation-for="Input.Theme" class="invalid-feedback"></div>
+            </div>
+            <button id="update-profile-button" type="submit" class="w-100 btn btn-success">Save</button>
         </form>
     </div>
 </div>

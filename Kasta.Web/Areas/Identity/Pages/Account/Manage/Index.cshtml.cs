@@ -2,30 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Kasta.Data;
 using Kasta.Data.Models;
+using Kasta.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Web.Areas.Identity.Pages.Account.Manage
 {
     public class IndexModel : PageModel
     {
         private readonly ApplicationDbContext _db;
-        // private readonly UserService _userService;
         private readonly UserManager<UserModel> _userManager;
         private readonly SignInManager<UserModel> _signInManager;
 
         public IndexModel(
             ApplicationDbContext db,
-            // UserService userService,
             UserManager<UserModel> userManager,
             SignInManager<UserModel> signInManager)
         {
             _db = db;
-            // _userService = userService;
             _userManager = userManager;
             _signInManager = signInManager;
         }
@@ -56,25 +56,29 @@ namespace Kasta.Web.Areas.Identity.Pages.Account.Manage
         /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Phone]
-            [Display(Name = "Phone number")]
-            public string PhoneNumber { get; set; }
+            [DefaultValue(false)]
+            [Display(Name = "Show File Preview in File List (Home)")]
+            public bool ShowFilePreviewInHome { get; set; }
+
+            [Display(Name = "Theme")]
+            public UserProfileThemeKind? Theme { get; set; }
         }
 
         private async Task LoadAsync(UserModel user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
+            var settings = await _db.GetUserSettingsAsync(user);
+            var themeName = user.ThemeName ?? settings.ThemeName;
+            
             Username = userName;
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                ShowFilePreviewInHome = settings.ShowFilePreviewInHome,
+                Theme = Enum.GetValues<UserProfileThemeKind>()
+                    .FirstOrDefault(kind => kind.ToCodeValue()?.
+                        Equals(themeName, StringComparison.OrdinalIgnoreCase) ?? false)
             };
         }
 
@@ -103,37 +107,56 @@ namespace Kasta.Web.Areas.Identity.Pages.Account.Manage
                 await LoadAsync(user);
                 return Page();
             }
-
-            // var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            // if (Input.PhoneNumber != phoneNumber)
-            // {
-            //     var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-            //     if (!setPhoneResult.Succeeded)
-            //     {
-            //         StatusMessage = "Unexpected error when trying to set phone number.";
-            //         return RedirectToPage();
-            //     }
-            // }
             
-            /*if (DoDeleteAvatar.GetValueOrDefault(false))
+            await using var trans = await _db.Database.BeginTransactionAsync();
+            try
             {
-                await _userService.DeleteAvatarAsync(user);
-                user = await _userManager.GetUserAsync(User);
+                if (await _db.UserSettings.AnyAsync(e => e.Id == user.Id))
+                {
+                    await _db.UserSettings.Where(e => e.Id == user.Id)
+                        .ExecuteUpdateAsync(e => e
+                            .SetProperty(p => p.ShowFilePreviewInHome, Input.ShowFilePreviewInHome)
+                            .SetProperty(p => p.ThemeName, Input.Theme?.ToCodeValue()));
+                }
+                else
+                {
+                    await _db.UserSettings.AddAsync(new UserSettingModel()
+                    {
+                        ShowFilePreviewInHome = Input.ShowFilePreviewInHome,
+                        ThemeName = Input.Theme?.ToCodeValue()
+                    });
+                }
+                await _db.Users.Where(e => e.Id == user.Id)
+                    .ExecuteUpdateAsync(e => e
+                        .SetProperty(p => p.ThemeName, Input.Theme?.ToCodeValue()));
+                await _db.SaveChangesAsync();
+                await trans.CommitAsync();
             }
-            else if (AvatarUpload != null)
+            catch
             {
-                await _userService.SetAvatarAsync(user, AvatarUpload);
-                user = await _userManager.GetUserAsync(User);
+                await trans.RollbackAsync();
+                throw;
             }
-            
-            if (user == null)
-            {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-            }*/
 
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
         }
     }
+}
+
+public enum UserProfileThemeKind
+{
+    [Code(null)]
+    [Description("Auto")]
+    Auto,
+    [Code("dark")]
+    [Description("Dark")]
+    Dark,
+    [Code("light")]
+    [Description("Light")]
+    Light,
+    [Code("2010")]
+    [Description("2010 Theme")]
+    TwentyTen
 }
