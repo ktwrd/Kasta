@@ -4,22 +4,8 @@ using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
-public class GenericOAuthConfig
+public class GenericOAuthConfig : AuthConfigBase
 {
-    /// <summary>
-    /// Unique Identifier for OAuth. Required and should never be changed!
-    /// </summary>
-    [Required]
-    [XmlAttribute("id")]
-    public string Identifier { get; set; } = "";
-
-    /// <summary>
-    /// Display Name for this OAuth configuration item. Will be how it's displayed in the frontend.
-    /// </summary>
-    [Required]
-    [XmlAttribute("DisplayName")]
-    public string DisplayName { get; set; } = "";
-
     /// <summary>
     /// Will be ignored when <see langword="false"/>
     /// </summary>
