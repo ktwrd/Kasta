@@ -27,8 +27,8 @@ public class UserService
     public async Task<UserModel?> GetCurrentUser(HttpContext? httpContext)
     {
         if (httpContext == null) return null;
-        return await _userManager.GetUserAsync(httpContext.User)
-               ?? await GetCurrentUserViaApiKey(httpContext);
+        return await GetCurrentUserViaApiKey(httpContext)
+            ?? await _userManager.GetUserAsync(httpContext.User);
     }
 
     public Task<UserApiKeyModel?> GetCurrentApiKey() => GetCurrentApiKey(_httpContextAccessor.HttpContext);
@@ -52,7 +52,7 @@ public class UserService
         var apiKey = await _db.UserApiKeys
             .Include(e => e.User)
             .AsNoTracking()
-            .Where(e => e.Token == apiKeyValue && !e.IsDeleted && !e.User.LockoutEnabled)
+            .Where(e => e.Token == apiKeyValue && !e.IsDeleted)
             .FirstOrDefaultAsync();
         return apiKey?.User == null ? null : apiKey;
     }
@@ -103,7 +103,7 @@ public class UserService
         var httpContext = options.HttpContext ?? _httpContextAccessor.HttpContext;
         var currentUser = await GetCurrentUser(httpContext);
 
-        if (currentUser == null || currentUser.LockoutEnabled)
+        if (currentUser == null || (currentUser.LockoutEnd.HasValue && currentUser.LockoutEnd > DateTimeOffset.UtcNow))
         {
             return CreateUserApiKeyErrorKind.NotLoggedIn;
         }

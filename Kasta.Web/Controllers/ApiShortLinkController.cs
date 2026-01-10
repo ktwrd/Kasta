@@ -18,43 +18,22 @@ namespace Kasta.Web.Controllers;
 public class ApiShortLinkController : Controller
 {
     private readonly ApplicationDbContext _db;
-    private readonly UserManager<UserModel> _userManager;
-    private readonly SignInManager<UserModel> _signInManager;
     private readonly ShortUrlService _shortUrlService;
     private readonly LinkShortenerWebService _linkShortenerWebService;
     private readonly SystemSettingsProxy _systemSettingsProxy;
+    private readonly UserService _userService;
     
     private readonly ILogger<ApiShortLinkController> _logger;
 
     public ApiShortLinkController(IServiceProvider services, ILogger<ApiShortLinkController> logger)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
-        _userManager = services.GetRequiredService<UserManager<UserModel>>();
-        _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _shortUrlService = services.GetRequiredService<ShortUrlService>();
         _linkShortenerWebService = services.GetRequiredService<LinkShortenerWebService>();
         _systemSettingsProxy = services.GetRequiredService<SystemSettingsProxy>();
+        _userService = services.GetRequiredService<UserService>();
 
         _logger = logger;
-    }
-    
-    private async Task<UserModel?> GetUserOrFromToken(string? token)
-    {
-        var user = await _userManager.GetUserAsync(HttpContext.User);
-        if (user == null && !string.IsNullOrEmpty(token))
-        {
-            var u = await _db.UserApiKeys
-                .AsNoTracking()
-                .Where(e => e.Token == token)
-                .Include(e => e.User)
-                .FirstOrDefaultAsync();
-            if (u != null)
-            {
-                user = u.User;
-            }
-        }
-
-        return user;
     }
 
     [HttpGet("~/api/v1/Link/{value}")]
@@ -104,7 +83,7 @@ public class ApiShortLinkController : Controller
         [FromForm] CreateShortLinkRequest contract,
         [FromQuery] string? token = null)
     {
-        var user = await GetUserOrFromToken(token);
+        var user = await _userService.GetCurrentUser();
         if (user == null)
         {
             HttpContext.Response.StatusCode = 403;
@@ -164,12 +143,14 @@ public class ApiShortLinkController : Controller
             }
         }
 
+        var currentApiKey = await _userService.GetCurrentApiKey();
+
         return Json(new Dictionary<string, object>()
         {
             { "url", $"{FeatureFlags.Endpoint}/l/{model.ShortLink}" },
             { "destination", model.Destination },
             { "id", model.Id },
-            { "deleteUrl", $"{FeatureFlags.Endpoint}/api/v1/Link/{model.Id}/Delete" + (string.IsNullOrEmpty(token) ? "" : $"?token={token}") },
+            { "deleteUrl", $"{FeatureFlags.Endpoint}/api/v1/Link/{model.Id}/Delete" + (string.IsNullOrEmpty(currentApiKey?.Token) ? "" : $"?token={currentApiKey?.Token}") },
         }, new JsonSerializerOptions() { WriteIndented = true });
     }
     
