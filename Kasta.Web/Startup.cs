@@ -19,6 +19,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using NLog;
 using System.IO.Compression;
 using System.Net;
+using EasyCaching.Core.Configurations;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
 
 namespace Kasta.Web;
@@ -40,7 +41,7 @@ public class Startup
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         // Configure the HTTP request pipeline.
-        if (env.IsDevelopment())
+        if (env.IsDevelopment() || _env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
             app.UseMigrationsEndPoint();
@@ -48,37 +49,44 @@ public class Startup
         else
         {
             app.UseExceptionHandler("/Error");
-            using (var scope = app.ApplicationServices.CreateScope())
-            {
-                var services = scope.ServiceProvider;
+            using var scope = app.ApplicationServices.CreateScope();
+            var services = scope.ServiceProvider;
 
-                var context = services.GetRequiredService<ApplicationDbContext>();
-                var migrations = context.Database.GetPendingMigrations().ToList();
-                if (migrations.Count > 0)
-                {
-                    var logger = LogManager.GetCurrentClassLogger();
-                    logger.Info("Applying the following migrations:"
-                        + Environment.NewLine
-                        + string.Join(Environment.NewLine, migrations.Select(e => "- " + e)));
-                    context.Database.Migrate();
-                }
+            // TODO migrate this to FluentScheduler, and attempt to run this every minute (and instantly).
+            // if this then fails SPECIFICALLY because it can't connect to the database, then silently fail
+            // otherwise, catastrophically fail.
+            var context = services.GetRequiredService<ApplicationDbContext>();
+            var migrations = context.Database.GetPendingMigrations().ToList();
+            if (migrations.Count > 0)
+            {
+                var logger = LogManager.GetCurrentClassLogger();
+                logger.Info("Applying the following migrations:"
+                    + Environment.NewLine
+                    + string.Join(Environment.NewLine, migrations.Select(e => "- " + e)));
+                context.Database.Migrate();
             }
         }
 
+        // TODO configure this as a scheduled task with FluentScheduler to run instantly, and every hour
         using (var scope = app.ApplicationServices.CreateScope())
         {
-            using (var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().CreateSession())
+            using var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().CreateSession();
+            try
             {
                 ctx.EnsureInitialRoles();
-                try
-                {
-                    scope.ServiceProvider.GetRequiredService<SystemSettingsProxy>()
-                        .EnsureInitialized();
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"Failed to insert global preferences.\n{ex}");
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Failed to ensure initial roles\n{ex}");
+            }
+            try
+            {
+                scope.ServiceProvider.GetRequiredService<SystemSettingsProxy>()
+                    .EnsureInitialized();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Failed to insert global preferences.\n{ex}");
             }
         }
 
@@ -132,6 +140,7 @@ public class Startup
         ConfigureDatabaseServices(services);
         ConfigureAuthenticationServices(services);
         ConfigureCacheServices(services);
+        ConfigureCompression(services);
         services.AddMvc();
         services.AddScoped<GenericFileService>()
                 .AddScoped<SystemSettingsProxy>()
@@ -159,6 +168,10 @@ public class Startup
                 : cfg.DefaultTimezone;
             opts.RequestTimeZoneProviders.Add(new IPAddressRequestTimeZoneProvider());
         });
+    }
+
+    private static void ConfigureCompression(IServiceCollection services)
+    {
         services.AddResponseCompression(options =>
         {
             options.EnableForHttps = true;
@@ -216,10 +229,9 @@ public class Startup
         });
     }
 
-    private void ConfigureForwardedHeadersOptions(IServiceCollection services)
+    private static void ConfigureForwardedHeadersOptions(IServiceCollection services)
     {
         var cfg = KastaConfig.Instance;
-        if (cfg.Proxy == null) return;
         var parsedProxyAddresses = new List<IPAddress>();
         var ipAddressValueMapping = new List<(string, IPAddress)>()
         {
@@ -229,7 +241,7 @@ public class Startup
             ("ipv6any", IPAddress.IPv6Any),
             ("ipv6loopback", IPAddress.IPv6Loopback),
         };
-        foreach (var addr in cfg.Proxy.KnownProxies.Distinct())
+        foreach (var addr in cfg.Proxy?.KnownProxies.Distinct() ?? [])
         {
             var altTarget = ipAddressValueMapping
                 .Where(e => e.Item1.Equals(addr, StringComparison.InvariantCultureIgnoreCase))
@@ -250,13 +262,27 @@ public class Startup
         }
         services.Configure<ForwardedHeadersOptions>(opts =>
         {
+            if (cfg.Proxy == null) return;
             foreach (var a in parsedProxyAddresses) opts.KnownProxies.Add(a);
             if (cfg.Proxy.ForwardedHeaders.HasValue)
             {
                 opts.ForwardedHeaders = cfg.Proxy.ForwardedHeaders.Value;
             }
+            if (cfg.Proxy.ForwardLimit.HasValue)
+            {
+                opts.ForwardLimit = cfg.Proxy.ForwardLimit.Value;
+            }
+            if (cfg.Proxy.ForwardedForHeaderName != null)
+            {
+                opts.ForwardedForHeaderName = cfg.Proxy.ForwardedForHeaderName;
+            }
+            if (cfg.Proxy.ForwardedProtoHeaderName != null)
+            {
+                opts.ForwardedProtoHeaderName = cfg.Proxy.ForwardedProtoHeaderName;
+            }
         });
     }
+    
     private void ConfigureDatabaseServices(IServiceCollection services)
     {
         // Add services to the container.
@@ -291,7 +317,9 @@ public class Startup
                 .AddUserManager<CustomUserManager<UserModel>>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
     }
-    private void ConfigureAuthenticationServices(IServiceCollection services)
+    
+    #region Authentication
+    private static void ConfigureAuthenticationServices(IServiceCollection services)
     {
         var cfg = KastaConfig.Instance;
         if (cfg.Auth?.OAuth.Count < 1) return;
@@ -305,62 +333,71 @@ public class Startup
                 item.DisplayName,
                 options =>
                 {
-                    options.RequireHttpsMetadata = false;
-                    options.ClientId = item.ClientId;
-                    options.ClientSecret = item.ClientSecret;
-                    options.Authority = item.Endpoint;
-                    options.ResponseType = OpenIdConnectResponseType.Code;
-                    options.ResponseMode = "query";
-                    options.Scope.Clear();
-                    foreach (var x in item.Scopes)
-                    {
-                        options.Scope.Add(x);
-                    }
-                    options.SaveTokens = true;
-                    // options.GetClaimsFromUserInfoEndpoint = true;
-                    options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
-                    options.TokenValidationParameters.RoleClaimType = "roles";
-                    if (item.UseTokenLifetime.HasValue)
-                    {
-                        options.UseTokenLifetime = item.UseTokenLifetime.Value;
-                    }
-                    foreach (var inner in item.Jwt?.Items ?? [])
-                    {
-                        switch (inner.InternalName)
-                        {
-                            case "name":
-                                options.TokenValidationParameters.NameClaimType = inner.JwtValue;
-                                break;
-                            case "role":
-                                options.TokenValidationParameters.RoleClaimType = inner.JwtValue;
-                                break;
-                        }
-                    }
-                    if (item.ValidateIssuer == false)
-                    {
-                        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
-                        options.TokenValidationParameters.SignatureValidator
-                            = (a, _) => new JsonWebToken(a);
-                    }
-
-                    // added in v0.9.2
-                    Task EnsureHttpsRedirect(RedirectContext ctx)
-                    {
-                        if (KastaConfig.Instance.Endpoint.StartsWith("https://") &&
-                            ctx.ProtocolMessage.RedirectUri.StartsWith("http://"))
-                        {
-                            ctx.ProtocolMessage.RedirectUri = "https://" + ctx.ProtocolMessage.RedirectUri[7..];
-                        }
-                        return Task.CompletedTask;
-                    }
-                    options.Events.OnRedirectToIdentityProvider += EnsureHttpsRedirect;
-                    options.Events.OnRedirectToIdentityProviderForSignOut += EnsureHttpsRedirect;
+                    ConfigureGenericOpenIdConnect(item, options);
                 });
         }
     }
-    private void ConfigureCacheServices(IServiceCollection services)
+    private static void ConfigureGenericOpenIdConnect(
+        GenericOAuthConfig config,
+        OpenIdConnectOptions options)
     {
-        var logger = NLog.LogManager.GetLogger(nameof(ConfigureCacheServices));
+        options.RequireHttpsMetadata = false;
+        options.ClientId = config.ClientId;
+        options.ClientSecret = config.ClientSecret;
+        options.Authority = config.Endpoint;
+        options.ResponseType = OpenIdConnectResponseType.Code;
+        options.ResponseMode = "query";
+        options.Scope.Clear();
+        foreach (var x in config.Scopes)
+        {
+            options.Scope.Add(x);
+        }
+        options.SaveTokens = true;
+        // options.GetClaimsFromUserInfoEndpoint = true;
+        options.TokenValidationParameters.NameClaimType = JwtRegisteredClaimNames.Name;
+        options.TokenValidationParameters.RoleClaimType = "roles";
+        if (config.UseTokenLifetime.HasValue)
+        {
+            options.UseTokenLifetime = config.UseTokenLifetime.Value;
+        }
+        foreach (var inner in config.Jwt?.Items ?? [])
+        {
+            switch (inner.InternalName)
+            {
+                case "name":
+                    options.TokenValidationParameters.NameClaimType = inner.JwtValue;
+                    break;
+                case "role":
+                    options.TokenValidationParameters.RoleClaimType = inner.JwtValue;
+                    break;
+            }
+        }
+        if (!config.ValidateIssuer)
+        {
+            options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+            options.TokenValidationParameters.SignatureValidator
+                = (a, _) => new JsonWebToken(a);
+        }
+
+        // added in v0.9.2
+        Task EnsureHttpsRedirect(RedirectContext ctx)
+        {
+            if (KastaConfig.Instance.Endpoint.StartsWith("https://") &&
+                ctx.ProtocolMessage.RedirectUri.StartsWith("http://"))
+            {
+                ctx.ProtocolMessage.RedirectUri = "https://" + ctx.ProtocolMessage.RedirectUri[7..];
+            }
+            return Task.CompletedTask;
+        }
+        options.Events.OnRedirectToIdentityProvider += EnsureHttpsRedirect;
+        options.Events.OnRedirectToIdentityProviderForSignOut += EnsureHttpsRedirect;
+    }
+    #endregion
+    
+    #region Cache
+    private static void ConfigureCacheServices(IServiceCollection services)
+    {
+        var logger = LogManager.GetLogger(nameof(ConfigureCacheServices));
         var cfg = KastaConfig.Instance;
 
         if (cfg.Cache.InMemory == null && cfg.Cache.Redis == null)
@@ -391,48 +428,7 @@ public class Startup
             }
             if (enableRedis)
             {
-                var redisConfig = cfg.Cache.Redis!;
-                options.UseRedis(config =>
-                {
-                    config.DBConfig = new()
-                    {
-                        Database = redisConfig.DbConfig.Database,
-                        AsyncTimeout = redisConfig.DbConfig.AsyncTimeout,
-                        SyncTimeout = redisConfig.DbConfig.SyncTimeout,
-                        KeyPrefix = cfg.Cache.CachePrefix,
-
-                        Username = string.IsNullOrEmpty(redisConfig.DbConfig.Username) ? "" : redisConfig.DbConfig.Username,
-                        Password = string.IsNullOrEmpty(redisConfig.DbConfig.Password) ? "" : redisConfig.DbConfig.Password,
-                        IsSsl = redisConfig.DbConfig.SslEnabled,
-                        SslHost = redisConfig.DbConfig.SslHost,
-                        ConnectionTimeout = redisConfig.DbConfig.ConnectionTimeout,
-                        AllowAdmin = redisConfig.DbConfig.AllowAdmin,
-                        AbortOnConnectFail = redisConfig.DbConfig.AbortOnConnectFail,
-                    };
-                    config.DBConfig.Endpoints.Clear();
-                    foreach (var endpoint in redisConfig.DbConfig.Endpoints)
-                    {
-                        config.DBConfig.Endpoints.Add(new(endpoint.Host, endpoint.Port));
-                    }
-                    config.EnableLogging = redisConfig.EnableLogging;
-                    config.SerializerName = "Pack";
-
-                }, "Redis")
-                .WithMessagePack(so =>
-                {
-                    so.EnableCustomResolver = true;
-                    var formatters = new IMessagePackFormatter[]
-                    {
-                        DBNullFormatter.Instance, // This is necessary for the null values
-                    };
-                    var formatterResolvers = new IFormatterResolver[]
-                    {
-                        NativeDateTimeResolver.Instance,
-                        ContractlessStandardResolver.Instance,
-                        StandardResolverAllowPrivate.Instance,
-                    };
-                    so.CustomResolvers = CompositeResolver.Create(formatters, formatterResolvers);
-                }, "Pack");
+                ConfigureRedisCache(cfg, options);
             }
             else
             {
@@ -455,4 +451,50 @@ public class Startup
             }
         });
     }
+    private static void ConfigureRedisCache(KastaConfig cfg, EasyCachingOptions options)
+    {
+        var redisConfig = cfg.Cache.Redis!;
+        options.UseRedis(config =>
+        {
+            config.DBConfig = new()
+            {
+                Database = redisConfig.DbConfig.Database,
+                AsyncTimeout = redisConfig.DbConfig.AsyncTimeout,
+                SyncTimeout = redisConfig.DbConfig.SyncTimeout,
+                KeyPrefix = cfg.Cache.CachePrefix,
+
+                Username = string.IsNullOrEmpty(redisConfig.DbConfig.Username) ? "" : redisConfig.DbConfig.Username,
+                Password = string.IsNullOrEmpty(redisConfig.DbConfig.Password) ? "" : redisConfig.DbConfig.Password,
+                IsSsl = redisConfig.DbConfig.SslEnabled,
+                SslHost = redisConfig.DbConfig.SslHost,
+                ConnectionTimeout = redisConfig.DbConfig.ConnectionTimeout,
+                AllowAdmin = redisConfig.DbConfig.AllowAdmin,
+                AbortOnConnectFail = redisConfig.DbConfig.AbortOnConnectFail,
+            };
+            config.DBConfig.Endpoints.Clear();
+            foreach (var endpoint in redisConfig.DbConfig.Endpoints)
+            {
+                config.DBConfig.Endpoints.Add(new(endpoint.Host, endpoint.Port));
+            }
+            config.EnableLogging = redisConfig.EnableLogging;
+            config.SerializerName = "Pack";
+
+        }, "Redis")
+        .WithMessagePack(so =>
+        {
+            so.EnableCustomResolver = true;
+            var formatters = new IMessagePackFormatter[]
+            {
+                DBNullFormatter.Instance, // This is necessary for the null values
+            };
+            var formatterResolvers = new IFormatterResolver[]
+            {
+                NativeDateTimeResolver.Instance,
+                ContractlessStandardResolver.Instance,
+                StandardResolverAllowPrivate.Instance,
+            };
+            so.CustomResolvers = CompositeResolver.Create(formatters, formatterResolvers);
+        }, "Pack");
+    }
+    #endregion
 }
