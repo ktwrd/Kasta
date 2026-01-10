@@ -1,0 +1,65 @@
+@using Kasta.Web.Areas.Identity.Models.AccountManage
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
+@inject IHttpContextAccessor ContextAccessor
+@model ApiKeysViewModel
+@{
+    TimeZoneInfo targetTimezone = TimeZoneInfo.Utc;
+    if (ViewData.ContainsKey("TargetTimezone"))
+    {
+        targetTimezone = (TimeZoneInfo)ViewData["TargetTimezone"]!;
+    }
+    else if (ContextAccessor.HttpContext != null)
+    {
+        var tz = ContextAccessor.HttpContext.GetUserTimeZone();
+        if (tz != null)
+        {
+            targetTimezone = tz;
+        }
+    }
+}
+@if (Model.Alert != null)
+{
+    @await Component.InvokeAsync("Alert", Model.Alert)
+}
+<table class="table">
+    <thead>
+    <tr>
+        <th>Purpose</th>
+        <th>Created At</th>
+        <th>Created By</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var apiKey in Model.ApiKeys)
+    {
+        <tr id="apikey-@apiKey.Id">
+            <td>@apiKey.Purpose</td>
+            <td>@TimeZoneInfo.ConvertTimeFromUtc(apiKey.CreatedAt.UtcDateTime, targetTimezone)</td>
+            <td>
+                @(apiKey.CreatedByUser?.Email ?? apiKey.CreatedByUser?.UserName ?? apiKey.CreatedByUser?.Id)
+            </td>
+            <td>
+                @{
+                    var url = Url.Action("DeleteApiKeysComponent", "AccountManage", new
+                    {
+                        area = "Identity",
+                        apiKeyId = apiKey.Id,
+                    });
+                }
+                <a hx-post="@url"
+                   hx-target="#accountManageApiKeysContent"
+                   hx-swap="innerHTML"
+                   hx-indicator="#accountManageApiKeysTable #apikey-@apiKey.Id a#deleteBtn .htmx-indicator"
+                   method="post"
+                   enctype="multipart/form-data"
+                   class="btn btn-danger"
+                   id="deleteBtn">
+                    <span class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Delete
+                </a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

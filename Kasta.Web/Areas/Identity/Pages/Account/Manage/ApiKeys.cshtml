@@ -1,0 +1,15 @@
+@page
+@model Kasta.Web.Areas.Identity.Pages.Account.Manage.ApiKeys
+@{
+    ViewData["Title"] = "API Keys";
+}
+
+<h3>@ViewData["Title"]</h3>
+<div id="accountManageApiKeysContent"
+     hx-get="@Url.Action("GetApiKeysComponent", "AccountManage", new { area = "Identity" })"
+     hx-target="this"
+     hx-swap="innerHTML"
+     hx-trigger="load"
+     hx-indicator="#accountManageApiKeysContent .htmx-indicator">
+    <span class="spinner-border htmx-indicator spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
+</div>
