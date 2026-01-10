@@ -3,6 +3,7 @@ using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Helpers;
+using Kasta.Web.Models;
 using Kasta.Web.Models.Api.Request;
 using Kasta.Web.Models.Api.Response;
 using Kasta.Web.Services;
@@ -38,15 +39,31 @@ public class ApiShortLinkController : Controller
 
     [HttpGet("~/api/v1/Link/{value}")]
     [HttpGet("~/l/{value}")]
+    [Produces("text/html", "application/json", "text/plain")]
+    [ProducesResponseType(StatusCodes.Status307TemporaryRedirect)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> RedirectToLinkDestination(string value)
     {
         if (!_systemSettingsProxy.EnableLinkShortener)
         {
             HttpContext.Response.StatusCode = 403;
-            return new ViewResult()
+            var message = "\"Link Shortener\" feature is unavailable.";
+            if (HttpContext.Request.Headers.Accept.Contains("application/json"))
             {
-                ViewName = "NotAuthorized"
-            };
+                return Json(new JsonErrorResponseModel()
+                {
+                    Message = message
+                }, new JsonSerializerOptions { WriteIndented = true });
+            }
+            else if (HttpContext.Request.Headers.Accept.Contains("text/plain"))
+            {
+                return Content($"{HttpContext.Response.StatusCode}: {message}", "text/plain");
+            }
+            return View("NotAuthorized", new NotAuthorizedViewModel()
+            {
+                Message = message
+            });
         }
 
         var model = await _db.ShortLinks
@@ -65,7 +82,7 @@ public class ApiShortLinkController : Controller
             };
         }
 
-        if (!string.IsNullOrEmpty(model.Destination)) return new RedirectResult(model.Destination);
+        if (!string.IsNullOrEmpty(model.Destination)) return new RedirectResult(model.Destination, false);
         
         _logger.LogError("Blank destination for model {ModelId} (type: {ModelType})",
             model.Id,
@@ -75,10 +92,16 @@ public class ApiShortLinkController : Controller
         {
             ViewName = "NotFound"
         };
-
     }
 
+    [AuthRequired]
     [HttpPost("~/api/v1/Link/Create")]
+    [Produces("application/json")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create(
         [FromForm] CreateShortLinkRequest contract,
         [FromQuery] string? token = null)
@@ -109,7 +132,7 @@ public class ApiShortLinkController : Controller
             ShortLink = _shortUrlService.Generate(),
             IsVanity = false
         };
-        if (!string.IsNullOrEmpty(contract.Vanity))
+        if (!string.IsNullOrEmpty(contract.Vanity?.Trim()))
         {
             var exists = await _db.ShortLinks
                 .AnyAsync(e => e.ShortLink == contract.Vanity || e.Id == contract.Vanity);
@@ -118,7 +141,7 @@ public class ApiShortLinkController : Controller
                 HttpContext.Response.StatusCode = 400;
                 return Json(new JsonErrorResponseModel()
                 {
-                    Message = "Link already exists"
+                    Message = $"Vanity Link already exists: {contract.Vanity}"
                 }, new JsonSerializerOptions { WriteIndented = true });
             }
 
@@ -137,9 +160,18 @@ public class ApiShortLinkController : Controller
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to create shortlink to \"{ShortLinkDestination}\" for user {User} ({UserId})",
+                    contract.Destination,
+                    user,
+                    user.Id);
                 await trans.RollbackAsync();
-                _logger.LogError(ex, "Failed to insert model");
-                throw;
+
+                HttpContext.Response.StatusCode = 500;
+                return Json(new JsonErrorResponseModel()
+                {
+                    Message = "Failed to create link",
+                    Exception = ex.ToString()
+                }, new JsonSerializerOptions { WriteIndented = true });
             }
         }
 
@@ -154,8 +186,14 @@ public class ApiShortLinkController : Controller
         }, new JsonSerializerOptions() { WriteIndented = true });
     }
     
+    [AuthRequired]
     [HttpGet("~/api/v1/Link/{value}/Delete")]
     [HttpPost("~/api/v1/Link/{value}/Delete")]
+    [HttpDelete("~/api/v1/Link/{value}")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(
         string value,
         [FromQuery] string? token = null)
@@ -164,7 +202,7 @@ public class ApiShortLinkController : Controller
         switch (result)
         {
             case DeleteShortenedLinkResult.Success:
-                HttpContext.Response.StatusCode = 201;
+                HttpContext.Response.StatusCode = 204;
                 return new EmptyResult();
             case DeleteShortenedLinkResult.NotAuthorized:
                 HttpContext.Response.StatusCode = 403;
