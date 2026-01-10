@@ -35,6 +35,7 @@
         codeBlockClass = $"language-{fileExtension}";
         ViewData["Highlight"] = true;
     }
+
 }
 
 <div class="row">
@@ -66,7 +67,7 @@
                 }
                 else if (Model.File.MimeType?.StartsWith("video/") ?? false)
                 {
-                    <video width="320" height="240" controls class="rounded mx-auto d-block">
+                    <video width="640" height="480" controls class="rounded mx-auto d-block">
                         <source src="@downloadUrl" type="@Model.File.MimeType" />
                     </video>
                 }
@@ -81,26 +82,16 @@
                     <div class="mx-auto d-block rounded text-preview hljs">
                         <pre><code class="@codeBlockClass">@Model.PreviewContent</code></pre>
                     </div>
-                    <br/>
-                    <div class="mx-auto d-block">
-                        <a class="btn btn-lg btn-primary" href="@downloadUrl">
-                            <i class="bi bi-cloud-download"></i>
-                            Download
-                        </a>
-                    </div>
                 }
-                else
-                {
-                    <div class="mx-auto d-block">
-                        <a class="btn btn-lg btn-primary" href="@downloadUrl">
-                            <i class="bi bi-cloud-download"></i>
-                            Download
-                        </a>
-                    </div>
-                }
+                <div class="mx-auto d-block mt-2">
+                    <a class="btn btn-lg btn-primary" href="@downloadUrl">
+                        <i class="bi bi-cloud-download"></i>
+                        Download
+                    </a>
+                </div>
             </div>
         </div>
-        <div class="row mt-1">
+        <div class="row mt-2">
             <div class="col-md-12 text-center">
                 <i class="bi bi-stack"></i>
                 @PrettySize.Bytes(Model.File.Size)
