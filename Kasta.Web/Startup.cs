@@ -85,7 +85,34 @@ public class Startup
         app.UseRequestTimeZone();
 
         app.UseStaticFiles();
+        if (KastaConfig.Instance.Proxy != null
+            && (KastaConfig.Instance.Proxy.PathBase?.StartsWith('/') ?? false))
+        {
+            if (KastaConfig.Instance.Proxy.IsProxyTrimmingPathBase)
+            {
+                app.Use((context, next) =>
+                {
+                    context.Request.PathBase = new PathString(KastaConfig.Instance.Proxy.PathBase);
+                    return next(context);
+                });
+            }
+            else if (KastaConfig.Instance.Proxy.IsProxyPrependingPathBase)
+            {
+                app.Use((context, next) =>
+                {
+                    if (context.Request.Path.StartsWithSegments(KastaConfig.Instance.Proxy.PathBase, out var remainder))
+                    {
+                        context.Request.Path = remainder;
+                    }
 
+                    return next(context);
+                });
+            }
+            else
+            {
+                app.UsePathBase(KastaConfig.Instance.Proxy.PathBase);
+            }
+        }
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
