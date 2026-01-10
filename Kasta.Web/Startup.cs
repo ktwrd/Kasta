@@ -142,7 +142,8 @@ public class Startup
         ConfigureCacheServices(services);
         ConfigureCompression(services);
         services.AddMvc();
-        services.AddScoped<GenericFileService>()
+        services.AddScoped<UserService>()
+                .AddScoped<GenericFileService>()
                 .AddScoped<SystemSettingsProxy>()
                 .AddScoped<S3Service>()
                 .AddScoped<UploadService>()
