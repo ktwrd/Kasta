@@ -64,7 +64,10 @@ public class FileWebService
             };
         }
     }
-    public async Task<IActionResult> DownloadFile(Controller context, string id, bool preview, bool downloadOnly)
+    public async Task<IActionResult> DownloadFile(
+        Controller context,
+        string id, bool preview, bool downloadOnly,
+        string? renameToFile = null)
     {
         var model = await _db.GetFileAsync(id);
         if (model == null)
@@ -96,14 +99,14 @@ public class FileWebService
             }
 
             if (!requestorIsAuthor)
+            {
+                context.Response.StatusCode = 404;
+                return new ViewResult()
                 {
-                    context.Response.StatusCode = 404;
-                    return new ViewResult()
-                    {
-                        ViewName = "NotFound"
-                    };
-                }
+                    ViewName = "NotFound"
+                };
             }
+        }
         
         
         string relativeLocation = model.RelativeLocation;
@@ -117,6 +120,20 @@ public class FileWebService
             relativeLocation = filePreview.RelativeLocation;
             filename = filePreview.Filename;
             mimeType = filePreview.MimeType;
+        }
+
+        if (renameToFile?.Equals(filePreview?.Filename, StringComparison.OrdinalIgnoreCase) == true
+            || renameToFile?.Equals(model.Filename, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            filename = renameToFile.Trim();
+        }
+        else if (!string.IsNullOrEmpty(renameToFile))
+        {
+            context.Response.StatusCode = 404;
+            return new ViewResult()
+            {
+                ViewName = "NotFound"
+            };
         }
 
         if (_systemSettingsProxy.S3UsePresignedUrl)
