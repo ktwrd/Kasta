@@ -41,11 +41,14 @@ public class ApiFileController : Controller
 
     [HttpGet("~/f/{value}")]
     [HttpGet("~/f/{value}/{filename}")]
+    [HttpHead("~/f/{value}")]
+    [HttpHead("~/f/{value}/{filename}")]
     public Task<IActionResult> GetFileShort(string value, string? filename = null, [FromQuery] bool preview = false, [FromQuery] bool download = false)
     {
         return _fileWebService.DownloadFile(this, value, preview, download, renameToFile: filename);
     }
     [HttpGet("~/api/v1/File/{value}/Download")]
+    [HttpHead("~/api/v1/File/{value}/Download")]
     public Task<IActionResult> GetFile(string value, [FromQuery] bool preview = false)
     {
         return _fileWebService.DownloadFile(this, value, preview, true);

@@ -57,7 +57,6 @@ public class UploadService
             await using (var fileStream = File.Open(tmpFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 await _genericFileService.UploadAsync(fileStream, fileModel.RelativeLocation);
-                await fileStream.FlushAsync();
                 fileModel.Size = (await _genericFileService.GetAsync(fileModel.RelativeLocation))?.Length ?? 0;
             }
             await ctx.Files.AddAsync(fileModel);
@@ -91,7 +90,7 @@ public class UploadService
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            _log.Error($"Failed to upload file for user {user.UserName} ({user.Id})\n{ex}");
+            _log.Error(ex, $"Failed to upload file for user {user.UserName} ({user.Id})");
             throw;
         }
 

@@ -180,7 +180,7 @@ public class FileWebService
         {
             context.Response.Headers["Kasta-AuthorId"] = model.CreatedByUserId;
         }
-        if (context.Request.Method != "OPTIONS" || context.Request.Method != "HEAD")
+        if (context.Request.Method != "OPTIONS" && context.Request.Method != "HEAD")
         {
             var responseFeature = context.HttpContext.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpResponseBodyFeature>();
             responseFeature?.DisableBuffering();
