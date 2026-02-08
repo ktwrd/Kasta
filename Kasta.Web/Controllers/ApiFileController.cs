@@ -8,6 +8,7 @@ using Kasta.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NeoSmart.PrettySize;
 
 namespace Kasta.Web.Controllers;
 
@@ -90,23 +91,27 @@ public class ApiFileController : Controller
         if (_systemSettings.EnableQuota)
         {
             var spaceUsed = userLimit?.SpaceUsed ?? 0;
-            if ((spaceUsed + file.Length) > (userLimit?.MaxStorage ?? _systemSettings.DefaultStorageQuota ?? 0))
+            var freeSpace = (userLimit?.MaxStorage ?? _systemSettings.DefaultStorageQuota ?? 0) - spaceUsed;
+            if (freeSpace - file.Length <= 0)
             {
                 HttpContext.Response.StatusCode = 401;
                 return Json(
                     new JsonErrorResponseModel
                     {
-                        Message = "Not enough storage to upload file."
+                        Message = $"Not enough storage to upload file. You're short by: {PrettySize.Bytes(file.Length - freeSpace)}"
                     });
             }
 
-            if (file.Length > (userLimit?.MaxFileSize ?? _systemSettings.DefaultUploadQuota ?? long.MaxValue))
+            var maxUploadSize = userLimit?.MaxFileSize ?? _systemSettings.DefaultUploadQuota ?? long.MaxValue;
+
+            if (file.Length > maxUploadSize)
             {
+                var maxUploadSizeFormatted = maxUploadSize.ToString("n0");
                 HttpContext.Response.StatusCode = 400;
                 return Json(
                     new JsonErrorResponseModel
                     {
-                        Message = $"Provided file exceeds maximum file size"
+                        Message = $"Provided file exceeds maximum file size: {PrettySize.Bytes(maxUploadSize)} ({maxUploadSizeFormatted})"
                     });
             }
         }
@@ -121,6 +126,12 @@ public class ApiFileController : Controller
             }
             data = await _uploadService.UploadBasicAsync(user, stream, fn, file.Length);
         }
+
+        _logger.LogInformation("User {AuthorEmail} ({AuthorId}) uploaded {SizeFormatted} file {FileId}",
+            user.Email,
+            user.Id,
+            PrettySize.Bytes(data.Size),
+            data.Id);
 
         return Json(new FileJsonResponseModel()
         {
@@ -142,6 +153,7 @@ public class ApiFileController : Controller
         var user = await GetUserOrFromToken(token);
         if (user == null)
         {
+            Response.StatusCode = 403;
             return new JsonResult(new JsonErrorResponseModel()
             {
                 Message = "Not Authorized"
@@ -165,6 +177,17 @@ public class ApiFileController : Controller
             });
         }
         await _fileService.DeleteFile(user, file);
+        _logger.LogInformation("User {DeletedByUserEmail} {DeletedByUserId} deleted file \"{FileName}\" {FileId} (author: {FileAuthorEmail} {FileAuthorId}, created at: {FileCreatedAt}, size: {SizeFormatted}/{SizeRaw})",
+            user.Email,
+            user.Id,
+            file.Filename,
+            file.Id,
+            file.CreatedByUser?.Email,
+            file.CreatedByUser?.Id,
+            file.CreatedAt,
+            PrettySize.Bytes(file.Size),
+            file.Size);
+        Response.StatusCode = 204;
         return new EmptyResult();
     }
     
