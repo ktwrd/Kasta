@@ -130,11 +130,12 @@ public class FileWebService
                 return new EmptyResult();
             }
         }
+
         var file = await _genericFileService.GetAsync(relativeLocation);
         var stream = await _genericFileService.GetStreamAsync(relativeLocation);
         if (file == null || stream == null)
         {
-            stream?.Dispose();
+            if (stream != null) await stream.DisposeAsync();
             context.Response.StatusCode = 404;
             return new ViewResult()
             {
