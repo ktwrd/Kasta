@@ -2,7 +2,7 @@ using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
-public class SentryConfigElement
+public class SentryConfig
 {
     /// <summary>
     /// The rate to sample error and crash events.

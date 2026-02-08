@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
-public class PostgreSQLConfigElement
+public class PostgresDatabaseConfig
 {
     [DefaultValue("postgres")]
     [XmlAttribute("Host")]

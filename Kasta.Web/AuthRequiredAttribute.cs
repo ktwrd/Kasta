@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Reflection;
 using Kasta.Web.Models;
 using Kasta.Web.Models.Api.Response;
+using Kasta.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -14,6 +15,10 @@ public class AuthRequiredAttribute : ActionFilterAttribute
 {
     [DefaultValue(false)]
     public bool UseJsonResult { get; set; } = false;
+
+    [DefaultValue(true)]
+    public bool AllowApiKeyAuth { get; set; } = true;
+
     public override void OnActionExecuting(ActionExecutingContext context)
     {
         context.HttpContext.Request.EnableBuffering();
@@ -22,7 +27,15 @@ public class AuthRequiredAttribute : ActionFilterAttribute
             UseJsonResult = true;
         }
 
-        if (!(context.HttpContext.User.Identity?.IsAuthenticated ?? false))
+        var isAuthenticated = context.HttpContext.User.Identity?.IsAuthenticated ?? false;
+        var userService = context.HttpContext.RequestServices.GetRequiredService<UserService>();
+        if (!isAuthenticated)
+        {
+            isAuthenticated = userService.IsAuthorized(context.HttpContext, allowApiKey: AllowApiKeyAuth)
+                .GetAwaiter().GetResult();
+        }
+
+        if (!isAuthenticated)
         {
             context.HttpContext.Response.StatusCode = 401;
             if (UseJsonResult)

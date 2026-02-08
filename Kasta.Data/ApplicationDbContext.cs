@@ -349,6 +349,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)
                 .IsRequired(false);
+            b.HasOne(e => e.DeletedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.DeletedByUserId)
+                .IsRequired(false);
         });
         builder.Entity<S3FileInformationModel>(
             b =>

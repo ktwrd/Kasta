@@ -1,27 +1,34 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Models;
+using Kasta.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using CreateUserApiKeyErrorKind = Kasta.Web.Services.UserService.CreateUserApiKeyErrorKind;
+
 namespace Kasta.Web.Controllers;
 
+[Authorize]
+[AuthRequired(AllowApiKeyAuth = false)]
 public class ProfileController : Controller
 {
     private readonly ApplicationDbContext _db;
     private readonly UserManager<UserModel> _userManager;
+    private readonly UserService _userService;
 
     public ProfileController(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
+        _userService = services.GetRequiredService<UserService>();
     }
     
-    [AuthRequired]
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -32,7 +39,7 @@ public class ProfileController : Controller
         var settings = await _db.GetUserSettingsAsync(user);
         var keys = await _db.UserApiKeys
             .AsNoTracking()
-            .Where(e => e.UserId == user.Id)
+            .Where(e => e.UserId == user.Id && !e.IsDeleted)
             .ToListAsync();
         var vm = new ProfileViewModel()
         {
@@ -43,7 +50,7 @@ public class ProfileController : Controller
         return View("Index", vm);
     }
 
-    [AuthRequired]
+    [HttpPost]
     public async Task<IActionResult> Save(
         [FromForm] UserProfileSaveParams data)
     {
@@ -76,7 +83,6 @@ public class ProfileController : Controller
         return new RedirectToActionResult(nameof(Index), "Profile", null);
     }
 
-    [AuthRequired]
     [HttpGet]
     public async Task<IActionResult> GenerateShareXConfig()
     {
@@ -87,12 +93,37 @@ public class ProfileController : Controller
                 $"User returned null from {typeof(UserManager<UserModel>)} (method: {nameof(_userManager.GetUserAsync)})");
         }
 
-        var apiKey = new UserApiKeyModel()
+        var apiKeyResult = await _userService.CreateApiKeyAsync(new()
         {
             UserId = currentUser.Id,
-            CreatedByUserId = currentUser.Id,
-            Purpose = "Generate ShareX Config (from Profile)"
-        };
+            Purpose = "ShareX Config (generated via profile)"
+        });
+
+        if (apiKeyResult.IsFailure)
+        {
+            switch (apiKeyResult.Error)
+            {
+                case CreateUserApiKeyErrorKind.NotLoggedIn:
+                    Response.StatusCode = 403;
+                    return View("NotAuthorized");
+                case CreateUserApiKeyErrorKind.CannotCreateTokenForOtherUsers:
+                    Response.StatusCode = 403;
+                    return View("NotAuthorized", new NotAuthorizedViewModel()
+                    {
+                        Message = "You do not have permission to create Api Keys for other users."
+                    });
+                case CreateUserApiKeyErrorKind.UserNotFound:
+                    Response.StatusCode = 404;
+                    return View("NotFound", new NotFoundViewModel()
+                    {
+                        Message = "Could not find User: " + currentUser.Id
+                    });
+                default:
+                    throw new NotImplementedException($"{apiKeyResult.Error}");
+            }
+        }
+
+        var apiKey = apiKeyResult.Value;
 
         var data = new ShareXConfigModel()
         {
@@ -110,20 +141,8 @@ public class ProfileController : Controller
         };
 
         var ms = new MemoryStream();
-        JsonSerializer.Serialize(ms, data, JsonSerializerOptions);
-        await using var ctx = _db.CreateSession();
-        await using var trans = await ctx.Database.BeginTransactionAsync();
-        try
-        {
-            await ctx.UserApiKeys.AddAsync(apiKey);
-            await ctx.SaveChangesAsync();
-            await trans.CommitAsync();
-        }
-        catch
-        {
-            await trans.RollbackAsync();
-            throw;
-        }
+        await JsonSerializer.SerializeAsync(ms, data, JsonSerializerOptions);
+        ms.Seek(0, SeekOrigin.Begin);
         return new FileStreamResult(ms, "application/json")
         {
             FileDownloadName = $"{currentUser.UserName}-ShareX.sxcu"
@@ -136,7 +155,6 @@ public class ProfileController : Controller
         WriteIndented = true
     };
 
-    [AuthRequired]
     [HttpGet]
     public async Task<IActionResult> GenerateRustGrabConfig()
     {
@@ -147,12 +165,38 @@ public class ProfileController : Controller
                 $"User returned null from {typeof(UserManager<UserModel>)} (method: {nameof(_userManager.GetUserAsync)})");
         }
 
-        var apiKey = new UserApiKeyModel()
+        
+        var apiKeyResult = await _userService.CreateApiKeyAsync(new()
         {
             UserId = currentUser.Id,
-            CreatedByUserId = currentUser.Id,
-            Purpose = "Generate rustgrab Config (from Profile)"
-        };
+            Purpose = "rustgrab Config (generated via profile)"
+        });
+
+        if (apiKeyResult.IsFailure)
+        {
+            switch (apiKeyResult.Error)
+            {
+                case CreateUserApiKeyErrorKind.NotLoggedIn:
+                    Response.StatusCode = 403;
+                    return View("NotAuthorized");
+                case CreateUserApiKeyErrorKind.CannotCreateTokenForOtherUsers:
+                    Response.StatusCode = 403;
+                    return View("NotAuthorized", new NotAuthorizedViewModel()
+                    {
+                        Message = "You do not have permission to create Api Keys for other users."
+                    });
+                case CreateUserApiKeyErrorKind.UserNotFound:
+                    Response.StatusCode = 404;
+                    return View("NotFound", new NotFoundViewModel()
+                    {
+                        Message = "Could not find User: " + currentUser.Id
+                    });
+                default:
+                    throw new NotImplementedException($"{apiKeyResult.Error}");
+            }
+        }
+
+        var apiKey = apiKeyResult.Value;
         
         // TODO create a new class instead of raw-dogging it with a dict
         var data = new Dictionary<string, object>()
@@ -164,27 +208,13 @@ public class ProfileController : Controller
             }}
         };
         var ms = new MemoryStream();
-        JsonSerializer.Serialize(ms, data, JsonSerializerOptions);
-        await using var ctx = _db.CreateSession();
-        await using var trans = await ctx.Database.BeginTransactionAsync();
-        try
-        {
-            await ctx.UserApiKeys.AddAsync(apiKey);
-            await ctx.SaveChangesAsync();
-            await trans.CommitAsync();
-        }
-        catch
-        {
-            await trans.RollbackAsync();
-            throw;
-        }
+        await JsonSerializer.SerializeAsync(ms, data, JsonSerializerOptions);
         return new FileStreamResult(ms, "application/json")
         {
             FileDownloadName = $"{currentUser.UserName}-rustgrab-partial.json"
         };
     }
 
-    [AuthRequired]
     [HttpGet]
     public async Task<IActionResult> DeleteAllApiKeys()
     {

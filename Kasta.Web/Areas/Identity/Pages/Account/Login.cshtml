@@ -1,11 +1,9 @@
 ﻿@page
-@using Kasta.Data
+@using Kasta.Shared
 @using Kasta.Web
-@using Kasta.Web.Helpers
-@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model LoginModel
-@inject ApplicationDbContext Database
 @inject SystemSettingsProxy SystemSettings
+@inject KastaConfig KastaConfig
 
 @{
     ViewData["Title"] = "Log in";
@@ -60,14 +58,35 @@
                 }
             </div>
         </form>
-        @if (Model.ExternalLogins != null && Model.ExternalLogins.Count > 0)
+        @if (Model.ExternalLogins.Count > 0)
         {
             <div class="row mt-4 text-center">
                 <strong>Login with external service</strong>
                 <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
                     @foreach (var provider in Model.ExternalLogins)
                     {
-                        <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
+                        var btnClass = "btn";
+                        var styleContent = "";
+                        var styleCfg = KastaConfig.Auth?.GetStyleForAuthId(provider.Name);
+                        if (string.IsNullOrEmpty(styleCfg?.Class?.Trim()))
+                        {
+                            btnClass += " btn-primary";
+                        }
+                        else
+                        {
+                            btnClass += " " + styleCfg.Class.Trim();
+                        }
+
+                        if (!string.IsNullOrEmpty(styleCfg?.BackgroundColor?.Trim()))
+                        {
+                            styleContent += $"background: {styleCfg.BackgroundColor.Trim()};";
+                        }
+                        if (!string.IsNullOrEmpty(styleCfg?.TextColor?.Trim()))
+                        {
+                            styleContent += $"color: {styleCfg.TextColor.Trim()};";
+                        }
+                        
+                        <button type="submit" class="@btnClass" style="@styleContent" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
                         <br/>
                     }
                 </form>
@@ -75,38 +94,6 @@
         }
     </div>
 </div>
-@*<div class="row">
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
-    </div>
-</div>*@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

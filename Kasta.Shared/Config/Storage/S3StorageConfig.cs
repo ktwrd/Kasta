@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
-public class S3ConfigElement
+public class S3StorageConfig
 {
     /// <summary>
     /// S3 Service URL (e.g; <c>http://s3.ap-southeast-2.amazonaws.com</c>)

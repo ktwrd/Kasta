@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
-public class LocalFileStorageConfigElement
+public class LocalStorageConfig
 {
     [XmlAttribute("Enabled")]
     [DefaultValue(true)]

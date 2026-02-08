@@ -20,6 +20,8 @@ public class ApiFileController : Controller
     private readonly FileService _fileService;
     private readonly FileWebService _fileWebService;
     private readonly SystemSettingsProxy _systemSettings;
+    private readonly UserService _userService;
+
     private readonly ILogger<ApiFileController> _logger;
     
     public ApiFileController(
@@ -32,27 +34,9 @@ public class ApiFileController : Controller
         _fileService = services.GetRequiredService<FileService>();
         _fileWebService = services.GetRequiredService<FileWebService>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
+        _userService = services.GetRequiredService<UserService>();
         
         _logger = logger;
-    }
-
-    private async Task<UserModel?> GetUserOrFromToken(string? token)
-    {
-        var user = await _userManager.GetUserAsync(HttpContext.User);
-        if (user == null && !string.IsNullOrEmpty(token))
-        {
-            var u = await _db.UserApiKeys
-                .AsNoTracking()
-                .Where(e => e.Token == token)
-                .Include(e => e.User)
-                .FirstOrDefaultAsync();
-            if (u != null)
-            {
-                user = u.User;
-            }
-        }
-
-        return user;
     }
 
     [HttpGet("~/f/{value}")]
@@ -67,10 +51,11 @@ public class ApiFileController : Controller
         return _fileWebService.DownloadFile(this, value, preview, true);
     }
     
+    [AuthRequired]
     [HttpPost("~/api/v1/File/Upload/Form")]
-    public async Task<IActionResult> UploadBasic(IFormFile file, [FromForm] string? filename = null, [FromForm] string? token = null)
+    public async Task<IActionResult> UploadBasic(IFormFile file, [FromForm] string? filename = null)
     {
-        var user = await GetUserOrFromToken(token);
+        var user = await _userService.GetCurrentUser();
         if (user == null)
         {
             return new JsonResult(new JsonErrorResponseModel()
@@ -142,9 +127,9 @@ public class ApiFileController : Controller
     [HttpGet("~/api/v1/File/{id}/Delete")]
     [HttpDelete("~/api/v1/File/{id}/Delete")]
     [HttpPost("~/api/v1/File/{id}/Delete")]
-    public async Task<IActionResult> Delete(string id, [FromQuery] string? token = null)
+    public async Task<IActionResult> Delete(string id)
     {
-        var user = await GetUserOrFromToken(token);
+        var user = await _userService.GetCurrentUser();
         if (user == null)
         {
             Response.StatusCode = 403;
