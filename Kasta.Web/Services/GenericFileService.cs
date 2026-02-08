@@ -151,7 +151,12 @@ public class GenericFileService
         }
         public GenericFileInfo(GetObjectResponse response)
         {
+            DirectoryName = Path.GetDirectoryName(response.Key);
             ModifiedAt = response.LastModified.HasValue ? new DateTimeOffset(response.LastModified.Value.ToUniversalTime()) : null;
+            Exists = (int)response.HttpStatusCode < 400;
+            IsReadOnly = true;
+            Length = response.ContentLength;
+            Name = Path.GetFileName(response.Key)!;
         }
         public string? DirectoryName { get; }
         public GenericDirectoryInfo? Directory { get; }
