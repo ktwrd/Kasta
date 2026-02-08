@@ -36,12 +36,13 @@ public class FileController : Controller
     [HttpGet("~/File/Details/{id}")]
     public async Task<IActionResult> Details(string id)
     {
+        id = id?.Trim();
         if (string.IsNullOrEmpty(id))
         {
             Response.StatusCode = 404;
             return View("NotFound");
         }
-        _log.LogDebug($"Fetching file with requested ID \"{id}\"");
+        _log.LogDebug("Fetching file with requested ID: {RequestedId}", id);
         var file = await _db.GetFileAsync(id, includeAuthor: true, includePreview: true, includeImageInfo: true);
         if (file == null)
         {
@@ -57,13 +58,12 @@ public class FileController : Controller
             }
             var userModel = await _userManager.GetUserAsync(User);
 
-            if ((userModel?.Id ?? "invalid") != file.CreatedByUserId)
+            if ((userModel?.Id ?? "invalid") != file.CreatedByUserId &&
+                userModel == null ||
+                (userModel != null && !userModel.IsAdmin && !await _userManager.IsInRoleAsync(userModel, RoleKind.FileAdmin)))
             {
-                if (!(userModel?.IsAdmin ?? false))
-                {
-                    Response.StatusCode = 404;
-                    return View("NotFound");
-                }
+                Response.StatusCode = 404;
+                return View("NotFound");
             }
         }
 

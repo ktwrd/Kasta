@@ -1,12 +1,7 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using Amazon.S3.Model;
 using Kasta.Data;
 using Kasta.Data.Models;
-using Kasta.Web.Helpers;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -93,9 +88,14 @@ public class FileWebService
             }
 
             var userModel = await _userManager.GetUserAsync(context.User);
-            if ((userModel?.Id ?? "invalid") != model.CreatedByUserId)
+            var requestorIsAuthor = !string.IsNullOrEmpty(model.CreatedByUserId?.Trim()) && userModel?.Id == model.CreatedByUserId;
+            if (!requestorIsAuthor)
             {
-                if (!(userModel?.IsAdmin ?? false))
+                requestorIsAuthor = userModel?.IsAdmin == true
+                    || (userModel != null && await _userManager.IsInRoleAsync(userModel, RoleKind.FileAdmin));
+            }
+
+            if (!requestorIsAuthor)
                 {
                     context.Response.StatusCode = 404;
                     return new ViewResult()
@@ -104,7 +104,6 @@ public class FileWebService
                     };
                 }
             }
-        }
         
         
         string relativeLocation = model.RelativeLocation;

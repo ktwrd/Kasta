@@ -1,7 +1,6 @@
 ﻿using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
-using Kasta.Web.Helpers;
 using Kasta.Web.Models.Api.Request;
 using Kasta.Web.Models.Api.Response;
 using Kasta.Web.Services;
@@ -15,26 +14,21 @@ namespace Kasta.Web.Controllers;
 [ApiController]
 public class ApiFileController : Controller
 {
-    private readonly S3Service _s3;
     private readonly UploadService _uploadService;
     private readonly ApplicationDbContext _db;
     private readonly UserManager<UserModel> _userManager;
-    private readonly SignInManager<UserModel> _signInManager;
     private readonly FileService _fileService;
     private readonly FileWebService _fileWebService;
     private readonly SystemSettingsProxy _systemSettings;
-
     private readonly ILogger<ApiFileController> _logger;
     
     public ApiFileController(
         IServiceProvider services,
         ILogger<ApiFileController> logger)
     {
-        _s3 = services.GetRequiredService<S3Service>();
         _uploadService = services.GetRequiredService<UploadService>();
         _db = services.GetRequiredService<ApplicationDbContext>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
-        _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _fileService = services.GetRequiredService<FileService>();
         _fileWebService = services.GetRequiredService<FileWebService>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
@@ -168,7 +162,9 @@ public class ApiFileController : Controller
                 Message = "File Not Found"
             });
         }
-        if (file.CreatedByUserId != user.Id && !user.IsAdmin)
+        // when requestor isn't author, or admin, or FileAdmin
+        if (file.CreatedByUserId != user.Id
+            && (!user.IsAdmin || !await _userManager.IsInRoleAsync(user, RoleKind.FileAdmin)))
         {
             Response.StatusCode = 403;
             return Json(new JsonErrorResponseModel()
