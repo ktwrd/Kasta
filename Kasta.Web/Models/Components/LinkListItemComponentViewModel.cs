@@ -9,7 +9,7 @@ public class LinkListItemComponentViewModel
 
     public virtual string DeleteUrl(IUrlHelper url, ShortLinkModel link, string targetReturnUrl)
     {
-        return GenerateAction(url, "DeleteShortenedLink", "Home", new()
+        return GenerateAction(url, "Delete", "LinkShortener", new()
         {
             {"value", link.Id},
             {"returnUrl", targetReturnUrl}
@@ -19,7 +19,7 @@ public class LinkListItemComponentViewModel
     {
         return $"/l/" + (string.IsNullOrEmpty(link.ShortLink) ? link.Id : link.ShortLink);
     }
-    public string GenerateAction(IUrlHelper url, string action, string controller, Dictionary<string, object> parameters)
+    public static string GenerateAction(IUrlHelper url, string action, string controller, Dictionary<string, object> parameters)
     {
         var u = url.Action(action, controller, parameters);
         if (!string.IsNullOrEmpty(u)) return u;
