@@ -120,10 +120,11 @@ public class LinkShortenerController : Controller
     }
 
     [HttpPost("Create")]
-    public async Task<IActionResult> CreateLink(string link, string? vanity = null)
+    public async Task<IActionResult> CreateLink(string link, string? vanity = null,
+        bool useVanity = false)
     {
         if (!ModelState.IsValid) throw new InvalidOperationException("Model state is not valid");
-        if (string.IsNullOrEmpty(vanity?.Trim())) vanity = null;
+        if (string.IsNullOrEmpty(vanity?.Trim()) || !useVanity) vanity = null;
         if (!_systemSettings.EnableLinkShortener)
         {
             return View("NotAuthorized", new NotAuthorizedViewModel()

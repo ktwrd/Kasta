@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Web.Helpers;
@@ -10,12 +11,14 @@ namespace Kasta.Web.Services;
 public class LinkShortenerWebService
 {
     private readonly ApplicationDbContext _db;
+    private readonly UserService _userService;
     private readonly UserManager<UserModel> _userManager;
     private readonly SystemSettingsProxy _systemSettings;
 
     public LinkShortenerWebService(IServiceProvider services)
     {
         _db = services.GetRequiredService<ApplicationDbContext>();
+        _userService = services.GetRequiredService<UserService>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
     }
@@ -94,5 +97,77 @@ public class LinkShortenerWebService
         Success,
         NotFound,
         NotAuthorized
+    }
+
+    public async Task<CreateShortenedLinkResult> Create<TController>(
+        ILogger<TController> logger,
+        TController controller,
+        string url,
+        string? vanity = null)
+    where TController : Controller
+    {
+        var user = await _userService.GetCurrentUser(controller.HttpContext);
+        if (user == null)
+        {
+            return CreateShortenedLinkResult.NotAuthorizedNotLoggedIn;
+        }
+
+        if (!_systemSettings.EnableLinkShortener)
+        {
+            return CreateShortenedLinkResult.NotAuthorizedFeatureDisabled;
+        }
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out _))
+        {
+            return  CreateShortenedLinkResult.InvalidUri;
+        }
+
+        vanity = vanity?.Trim().ToLower();
+        if (!string.IsNullOrEmpty(vanity))
+        {
+            if (!await _userManager.IsInRoleAsync(user, RoleKind.LinkShortenerCreateVanity))
+            {
+                return CreateShortenedLinkResult.NotAuthorizedMissingVanityCreatorRole;
+            }
+            if (await _db.ShortLinks.AnyAsync(e => e.ShortLink == vanity))
+            {
+                return CreateShortenedLinkResult.VanityAlreadyExists;
+            }
+        }
+
+        ShortLinkModel result;
+        using var trans = await _db.Database.BeginTransactionAsync();
+        try
+        {
+
+            await _db.SaveChangesAsync();
+            await trans.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            await trans.RollbackAsync();
+            logger.LogError(ex, "Failed to create shortened link {Url} for user {UserEmail} ({UserId})",
+                url,
+                user.Email,
+                user.Id);
+            throw;
+        }
+
+        throw new NotImplementedException();
+    }
+
+    public enum CreateShortenedLinkResult
+    {
+        [Description("Successfully created link!")]
+        Success,
+        [Description("Vanity URL already exists")]
+        VanityAlreadyExists,
+        [Description("Not Authorized - Please login")]
+        NotAuthorizedNotLoggedIn,
+        [Description("Not Authorized - You cannot create vanity URLs")]
+        NotAuthorizedMissingVanityCreatorRole,
+        [Description("Not Authorized - Link Shortener is disabled")]
+        NotAuthorizedFeatureDisabled,
+        InvalidUri
     }
 }
