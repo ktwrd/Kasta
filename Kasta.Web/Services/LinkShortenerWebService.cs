@@ -14,6 +14,7 @@ public class LinkShortenerWebService
     private readonly UserService _userService;
     private readonly UserManager<UserModel> _userManager;
     private readonly SystemSettingsProxy _systemSettings;
+    private readonly ShortUrlService _shortUrlService;
 
     public LinkShortenerWebService(IServiceProvider services)
     {
@@ -21,6 +22,7 @@ public class LinkShortenerWebService
         _userService = services.GetRequiredService<UserService>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
+        _shortUrlService = services.GetRequiredService<ShortUrlService>();
     }
 
     public async Task<DeleteShortenedLinkResult> Delete<T>(ILogger<T> logger, string value, T controller, string? token = null)
@@ -133,13 +135,30 @@ public class LinkShortenerWebService
             {
                 return CreateShortenedLinkResult.VanityAlreadyExists;
             }
+
+            if (vanity.Length > 100)
+            {
+                return CreateShortenedLinkResult.VanityTooLong;
+            }
         }
 
         ShortLinkModel result;
         using var trans = await _db.Database.BeginTransactionAsync();
         try
         {
+            var shortLink = string.IsNullOrEmpty(vanity)
+                ? _shortUrlService.GenerateForLinkShortener()
+                : vanity;
+            result = new ShortLinkModel
+            {
+                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedByUserId = user.Id,
+                Destination = url,
+                ShortLink = shortLink,
+                IsVanity = !string.IsNullOrEmpty(vanity)
+            };
 
+            await _db.ShortLinks.AddAsync(result);
             await _db.SaveChangesAsync();
             await trans.CommitAsync();
         }
@@ -153,7 +172,15 @@ public class LinkShortenerWebService
             throw;
         }
 
-        throw new NotImplementedException();
+        logger.LogInformation(
+            "User {UserEmail} ({UserId}) created shortened link to \"{Destination}\" with code of {ShortLink} (IsVanity={IsVanity})",
+            user.Email,
+            user.Id,
+            result.Destination,
+            result.ShortLink,
+            result.IsVanity);
+
+        return CreateShortenedLinkResult.Success;
     }
 
     public enum CreateShortenedLinkResult
@@ -162,6 +189,7 @@ public class LinkShortenerWebService
         Success,
         [Description("Vanity URL already exists")]
         VanityAlreadyExists,
+        VanityTooLong,
         [Description("Not Authorized - Please login")]
         NotAuthorizedNotLoggedIn,
         [Description("Not Authorized - You cannot create vanity URLs")]

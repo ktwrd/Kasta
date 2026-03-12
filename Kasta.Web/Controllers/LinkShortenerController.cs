@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CreateShortenedLinkResult = Kasta.Web.Services.LinkShortenerWebService.CreateShortenedLinkResult;
 
 namespace Kasta.Web.Controllers;
 
@@ -120,16 +121,19 @@ public class LinkShortenerController : Controller
     }
 
     [HttpPost("Create")]
-    public async Task<IActionResult> CreateLink(string link, string? vanity = null,
+    public async Task<IActionResult> CreateLink(
+        string link,
+        string? vanity = null,
         bool useVanity = false)
     {
         if (!ModelState.IsValid) throw new InvalidOperationException("Model state is not valid");
         if (string.IsNullOrEmpty(vanity?.Trim()) || !useVanity) vanity = null;
         if (!_systemSettings.EnableLinkShortener)
         {
+            HttpContext.Response.StatusCode = 403;
             return View("NotAuthorized", new NotAuthorizedViewModel()
             {
-                Message = "Link Shortener is disabled"
+                Message = "Link Shortener is disabled."
             });
         }
         
@@ -137,9 +141,41 @@ public class LinkShortenerController : Controller
         if (user == null)
         {
             HttpContext.Response.StatusCode = 403;
-            return View("NotAuthorized");
+            return View("NotAuthorized", new NotAuthorizedViewModel()
+            {
+                RequireLogin = true
+            });
         }
 
+        var serviceResult = await _linkShortenerWebService.Create(
+            _logger,
+            this,
+            link, vanity);
+        switch (serviceResult)
+        {
+            case CreateShortenedLinkResult.NotAuthorizedFeatureDisabled:
+                HttpContext.Response.StatusCode = 403;
+                return View("NotAuthorized", new NotAuthorizedViewModel()
+                {
+                    Message = "Link Shortener is disabled."
+                });
+            case CreateShortenedLinkResult.NotAuthorizedMissingVanityCreatorRole:
+                HttpContext.Response.StatusCode = 403;
+                return View("NotAuthorized", new NotAuthorizedViewModel()
+                {
+                    Message = "You do not have permission to create Vanity Links."
+                });
+            case CreateShortenedLinkResult.NotAuthorizedNotLoggedIn:
+                HttpContext.Response.StatusCode = 403;
+                return View("NotAuthorized", new NotAuthorizedViewModel()
+                {
+                    RequireLogin = true
+                });
+            default:
+                throw new NotImplementedException($"Where {nameof(CreateShortenedLinkResult)}={serviceResult}");
+        }
+        // TODO implement result handling. return partial (htmx) view of Index and set an alert with what the result is (e.g: success for success,failure for anything else)
+        // TODO pre-fill create dialog values with provided values when serviceResult isn't success
         throw new NotImplementedException();
     }
 }
