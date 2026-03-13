@@ -103,8 +103,7 @@ public class ApiShortLinkController : Controller
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create(
-        [FromForm] CreateShortLinkRequest contract,
-        [FromQuery] string? token = null)
+        [FromForm] CreateShortLinkRequest contract)
     {
         var user = await _userService.GetCurrentUser();
         if (user == null)
@@ -194,16 +193,21 @@ public class ApiShortLinkController : Controller
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(
-        string value,
-        [FromQuery] string? token = null)
+    public async Task<IActionResult> Delete(string value)
     {
-        var result = await _linkShortenerWebService.Delete(_logger, value, this, token);
+        var result = await _linkShortenerWebService.Delete(_logger, value, this);
         switch (result)
         {
             case DeleteShortenedLinkResult.Success:
                 HttpContext.Response.StatusCode = 204;
                 return new EmptyResult();
+            case DeleteShortenedLinkResult.NotAuthorizedFeatureDisabled:
+                HttpContext.Response.StatusCode = 403;
+                return Json(new JsonErrorResponseModel
+                {
+                    Message = "Link Shortener is disabled."
+                });
+            case DeleteShortenedLinkResult.NotAuthorizedNotLoggedIn:
             case DeleteShortenedLinkResult.NotAuthorized:
                 HttpContext.Response.StatusCode = 403;
                 return Json(new JsonErrorResponseModel

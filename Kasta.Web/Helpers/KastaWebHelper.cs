@@ -1,4 +1,5 @@
-using System.Collections.ObjectModel;
+using System.Collections.Frozen;
+using Ganss.Xss;
 using Markdig;
 using Markdig.Parsers;
 using Markdig.Parsers.Inlines;
@@ -48,18 +49,30 @@ public static class KastaWebHelper
         return result;
     }
 
-    public static bool EmbedMedia(string userAgent)
-    {
-        var robot = EmbedMediaUserAgent.Select(e => e.ToLower()).ToList();
 
-        return robot.Contains(userAgent.ToLower());
+    public static string HtmlSanitizeStrict(string content)
+    {
+        var sanitizer = new HtmlSanitizer();
+        sanitizer.AllowedTags.Clear();
+        sanitizer.AllowedAttributes.Clear();
+        sanitizer.AllowedCssProperties.Clear();
+        sanitizer.AllowedAtRules.Clear();
+        sanitizer.AllowedSchemes.Clear();
+        return sanitizer.Sanitize(content);
     }
 
-    public static bool EmbedLink(string userAgent)
+    public static bool EmbedMedia(string? userAgent)
     {
-        var robot = EmbedLinkUserAgent.Select(e => e.ToLower()).ToList();
+        userAgent = userAgent?.Trim();
+        if (string.IsNullOrEmpty(userAgent)) return false;
+        return EmbedMediaUserAgent.Contains(userAgent.ToLower());
+    }
 
-        return robot.Contains(userAgent.ToLower());
+    public static bool EmbedLink(string? userAgent)
+    {
+        userAgent = userAgent?.Trim();
+        if (string.IsNullOrEmpty(userAgent)) return false;
+        return EmbedLinkUserAgent.Contains(userAgent.ToLower());
     }
 
     public static BotFeature GetBotFeatures(string userAgent)
@@ -71,14 +84,14 @@ public static class KastaWebHelper
         return BotFeature.None;
     }
 
-    public static ReadOnlyCollection<string> EmbedLinkUserAgent => new List<string>()
+    public static FrozenSet<string> EmbedLinkUserAgent => new List<string>()
     {
             "discord",
             // discord image bot
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 11.6; rv:92.0) Gecko/20100101 Firefox/92.0",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:38.0) Gecko/20100101 Firefox/38.0"
-    }.AsReadOnly();
-    public static ReadOnlyCollection<string> EmbedMediaUserAgent => EmbedLinkUserAgent.Concat([
+    }.Select(e => e.ToLower()).ToFrozenSet();
+    public static readonly FrozenSet<string> EmbedMediaUserAgent = EmbedLinkUserAgent.Concat([
         "TelegramBot",
         "facebookexternalhit/",
         "Facebot",
@@ -86,7 +99,7 @@ public static class KastaWebHelper
         "WhatsApp/",
         "Slack",
         "Twitterbot",
-    ]).Select(e => e.ToLower()).ToList().AsReadOnly();
+    ]).Select(e => e.ToLower()).ToFrozenSet();
 }
 
 public enum BotFeature

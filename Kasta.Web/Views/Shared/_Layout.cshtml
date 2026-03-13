@@ -206,15 +206,15 @@
     </header>
 }
 <div class="container-xl">
-    <main role="main" class="pb-3">
-        @if (enableNavbar)
+    @if (enableNavbar && isAdmin)
+    {
+        var pendingMigrations = await _db.Database.GetPendingMigrationsAsync();
+        @if (pendingMigrations.Any())
         {
-            var pendingMigrations = await _db.Database.GetPendingMigrationsAsync();
-            @if (isAdmin && pendingMigrations.Any())
-            {
-                <partial name="_PendingMigrationsPartial"/>
-            }
+            <partial name="_PendingMigrationsPartial" />
         }
+    }
+    <main role="main" class="pb-3">
         @RenderBody()
     </main>
 </div>
