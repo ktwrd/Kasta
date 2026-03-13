@@ -1,0 +1,69 @@
+name: Build & Test Application
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10'
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Pre-build
+      run: dotnet build Kasta.Web --configuration Debug
+
+    - name: Install and run "nuget-license" dotnet tool
+      run: |
+        dotnet tool install --global nuget-license
+        nuget-license -i Kasta.Web/Kasta.Web.csproj -o Json -fo Kasta.Web/app-licenses.json
+
+    - name: Build
+      run: dotnet build Kasta.Web --no-incremental --nologo --configuration Release
+
+    - name: Run Trivy vulnerability scanner in fs mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        trivy-config: trivy.yaml

@@ -3,7 +3,7 @@ name: Build Application
 on:
   push:
     branches: [ main ]
-    tags: "v[0-9]+.[0-9]+.[0-9]+"
+    tags: "v[0-9]+.[0-9]+.[0-9]+(\.[0-9]+)"
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -12,7 +12,6 @@ env:
   DOTNET_VERSION: '10'
 
 jobs:
-
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -54,12 +53,21 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Pre-build
         run: dotnet build Kasta.Web --configuration Debug
+
       - name: Install and run "nuget-license" dotnet tool
         run: |
           dotnet tool install --global nuget-license
           nuget-license -i Kasta.Web/Kasta.Web.csproj -o Json -fo Kasta.Web/app-licenses.json
+
       - name: Build
         run: dotnet build Kasta.Web --no-incremental --nologo --configuration Release
+        
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          trivy-config: trivy.yaml
 
   publish:
     name: Publish
@@ -165,8 +173,20 @@ jobs:
           tags: |
             ktwrd/kasta:dev
             ktwrd/kasta:dev-${{ env.CONTAINER_VERSION }}
+            ktwrd/kasta:${{ github.sha }}
             ghcr.io/ktwrd/kasta:dev
             ghcr.io/ktwrd/kasta:dev-${{ env.CONTAINER_VERSION }}
+            ghcr.io/ktwrd/kasta:${{ github.sha }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ghcr.io/ktwrd/kasta:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - name: Build & Publish LATEST Image
         if: startsWith(github.ref, 'refs/tags/')
@@ -223,6 +243,7 @@ jobs:
         with:
           name: Kasta-${{ matrix.runtime }}
           path: dist/${{ matrix.runtime }}
+
       - name: Zip ${{ matrix.runtime }} Binaries
         run: |
           cd dist/${{ matrix.runtime }}
@@ -230,6 +251,7 @@ jobs:
             chmod +x Kasta.Web
           fi
           zip -r ../../Kasta-${{ env.TAG }}-${{ matrix.runtime }}.zip .
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
