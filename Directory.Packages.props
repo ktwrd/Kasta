@@ -51,14 +51,15 @@
     <PackageVersion Include="Sentry.NLog" Version="6.0.0" />
 
     <!-- Unit Testing -->
-    <PackageVersion Include="coverlet.collector" Version="6.0.4"/>
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1"/>
-    <PackageVersion Include="NUnit" Version="4.4.0"/>
-    <PackageVersion Include="NUnit.Analyzers" Version="4.11.2"/>
-    <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0"/>
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="NUnit" Version="4.4.0" />
+    <PackageVersion Include="NUnit.Analyzers" Version="4.11.2" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
 
     <!-- Misc -->
     <PackageVersion Include="CSharpFunctionalExtensions" Version="3.6.0" />
+    <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
     <PackageVersion Include="NeoSmart.PrettySize" Version="3.1.1" />
   </ItemGroup>
 </Project>

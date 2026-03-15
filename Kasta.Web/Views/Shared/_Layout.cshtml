@@ -165,7 +165,7 @@
                         @if (SystemSettings.EnableLinkShortener)
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="LinkList">
+                                <a class="nav-link" asp-area="" asp-controller="LinkShortener" asp-action="Index">
                                     <i class="bi bi-link-45deg"></i>
                                     Link Shortener
                                 </a>
@@ -206,15 +206,15 @@
     </header>
 }
 <div class="container-xl">
-    <main role="main" class="pb-3">
-        @if (enableNavbar)
+    @if (enableNavbar && isAdmin)
+    {
+        var pendingMigrations = await _db.Database.GetPendingMigrationsAsync();
+        @if (pendingMigrations.Any())
         {
-            var pendingMigrations = await _db.Database.GetPendingMigrationsAsync();
-            @if (isAdmin && pendingMigrations.Any())
-            {
-                <partial name="_PendingMigrationsPartial"/>
-            }
+            <partial name="_PendingMigrationsPartial" />
         }
+    }
+    <main role="main" class="pb-3">
         @RenderBody()
     </main>
 </div>

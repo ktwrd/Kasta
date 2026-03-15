@@ -23,6 +23,7 @@
         <PackageReference Include="EasyCaching.Serialization.MessagePack" />
         <PackageReference Include="EFCoreSecondLevelCacheInterceptor" />
         <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" />
+        <PackageReference Include="HtmlSanitizer" />
         <PackageReference Include="MessagePack" />
         <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" />
         <PackageReference Include="Markdig" />

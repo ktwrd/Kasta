@@ -1,0 +1,72 @@
+﻿@using Kasta.Web.Models
+@using Kasta.Web.Helpers
+@inject IHttpContextAccessor HttpContextAccessor
+@model NotAuthorizedViewModel?
+@{
+    bool isAlert = false;
+    if (HttpContextAccessor.HttpContext != null)
+    {
+        Model?.Update(HttpContextAccessor.HttpContext);
+        isAlert = (Model?.IsAlert ?? false)
+            || HttpContextAccessor.HttpContext.IsHtmxRequest();
+    }
+}
+
+@if (isAlert)
+{
+    <div class="alert alert-danger">
+        <h4 class="alert-heading">Unauthorized</h4>
+        @if (string.IsNullOrEmpty(Model?.Message?.Trim()))
+        {
+            <text>You are not authorized to perform this action. This may happen due to one of the following reasons:</text>
+            <ul>
+                <li>Storage Quota Reached</li>
+                <li>Not Authenticated (logged in)</li>
+                <li>Missing Permissions</li>
+                <li>Feature Disabled</li>
+            </ul>
+        }
+        else if (Model.MessageMarkdown)
+        {
+            @Html.Raw(KastaWebHelper.MarkdownToHtmlBasic(Model.Message))
+        }
+        else
+        {
+            <text>@Model.Message</text>
+        }
+
+        @if (Model?.RequireLogin ?? false)
+        {
+            <hr />
+            <a href="~/Identity/Account/Login" class="alert-link">Login</a>
+        }
+    </div>
+}
+else
+{
+    @if (Model?.ShowHeader != false)
+    {
+        <h1>Unauthorized</h1>
+    }
+    <div class="mb-3">
+        @if (string.IsNullOrEmpty(Model?.Message?.Trim()))
+        {
+            <text>You are not authorized to perform this action. This may happen due to one of the following reasons:</text>
+            <ul>
+                <li>Storage Quota Reached</li>
+                <li>Not Authenticated (logged in)</li>
+                <li>Missing Permissions</li>
+                <li>Feature Disabled</li>
+            </ul>
+        }
+        else
+        {
+            <text>@Model.Message</text>
+        }
+    </div>
+    @if (Model?.RequireLogin ?? false)
+    {
+        <hr/>
+        <a href="~/Identity/Account/Login" class="btn btn-primary">Login</a>
+    }
+}

@@ -1,0 +1,138 @@
+@using Kasta.Web.Helpers
+@using Kasta.Web.Models.Components
+@using Vivet.AspNetCore.RequestTimeZone.Extensions
+@inject IHttpContextAccessor HttpContextAccessor
+@model LinkListViewModel
+@{
+    if (HttpContextAccessor.HttpContext?.IsHtmxRequest() != true)
+    {
+        ViewData["Title"] = "Link Shortener";
+        Layout = "_Layout";
+    }
+    var targetTimezone = TimeZoneInfo.Utc;
+    if (ViewData.ContainsKey("TargetTimezone"))
+    {
+        targetTimezone = (TimeZoneInfo)ViewData["TargetTimezone"]!;
+    }
+    else
+    {
+        targetTimezone = HttpContextAccessor.HttpContext?.GetUserTimeZone() ?? targetTimezone;
+    }
+}
+
+@{
+    await Html.RenderPartialAsync("CreateModal", Model);
+}
+
+@if (Model.Alert != null)
+{
+    @await Component.InvokeAsync("Alert", Model.Alert)
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3 d-flex justify-content-between justify-content-md-start">
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createLinkModal" id="createModalBtn">
+                    Create
+                </button>
+            </div>
+            <div class="col-md-4 d-flex justify-content-center">
+                <nav>
+                    <ul class="pagination">
+                        @if (Model.Page > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="LinkShortener" asp-action="Index" asp-route-page="@(Model.Page - 1)" aria-label="Previous">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        @if (!Model.IsLastPage)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="LinkShortener" asp-action="Index" asp-route-page="@(Model.Page + 1)" aria-label="Next">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-md-4 mb-3 d-flex justify-content-md-end justify-content-between">
+                
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Destination</th>
+                <th>Created At</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var link in Model.Links)
+            {
+                <tr data-link-id="@link.Id">
+                    <td>
+                        <a href="@link.GetUrl()" target="_blank">
+                            <code>
+                                @if (string.IsNullOrEmpty(link.ShortLink?.Trim()))
+                                {
+                                    <text>@link.Id</text>
+                                }
+                                else
+                                {
+                                    @KastaWebHelper.HtmlSanitizeStrict(link.ShortLink)
+                                }
+                            </code>
+                        </a>
+                    </td>
+                    <td>
+                        <code>@KastaWebHelper.HtmlSanitizeStrict(link.Destination)</code>
+                    </td>
+                    <td>
+                        @TimeZoneInfo.ConvertTimeFromUtc(link.CreatedAt.UtcDateTime, targetTimezone)
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a class="btn btn-sm btn-secondary"
+                               href="javascript:void(0)"
+                               title="Copy Link"
+                               data-clipboard-text="@link.GetUrl()">
+                                <i class="bi bi-link-45deg"></i>
+                            </a>
+                            <form hx-post="@Url.Action("Delete", "LinkShortener", new { Area = "" })"
+                                  hx-target="main[role=main]"
+                                  hx-swap="innerHTML"
+                                  enctype="multipart/form-data">
+                                <input type="hidden" name="value" value="@link.Id" />
+                                <input type="hidden" name="page" value="@Model.Page" />
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>  
+                            </form>
+                        </div>
+                    </td>
+
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script type="text/javascript">
+        // fileshare.createLinkPage();
+        @if (Model.OpenCreateModal)
+        {
+            <text>document.getElementById("createModalBtn").click();</text>
+        }
+    </script>
+}
