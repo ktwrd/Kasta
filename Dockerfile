@@ -8,6 +8,7 @@ RUN apt-get update \
     apt-transport-https \
     ca-certificates \
     adduser \
+    curl wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Creates a non-root user with an explicit UID and adds permission to access the /app folder
