@@ -187,6 +187,16 @@ public static class ConfigExtensions
         {
             opts.EnableLogs = cfg.Sentry.EnableMetrics.Value;
         }
+
+        if (!string.IsNullOrWhiteSpace(cfg.Sentry.CacheDirectoryPath))
+        {
+            opts.CacheDirectoryPath = cfg.Sentry.CacheDirectoryPath;
+        }
+
+        if (cfg.Sentry.DisableFileWrite.HasValue)
+        {
+            opts.DisableFileWrite = cfg.Sentry.DisableFileWrite.Value;
+        }
     }
 
     public static void FromConfiguration(this SentryNLogOptions opts) => opts.FromConfiguration(KastaConfig.Instance);

@@ -56,6 +56,12 @@ public class SentryConfig
     [XmlElement("EnableMetrics")]
     public bool? EnableMetrics { get; set; }
     
+    [XmlElement("CacheDirectoryPath")]
+    public string? CacheDirectoryPath { get; set; }
+    
+    [XmlElement("DisableFileWrite")]
+    public bool? DisableFileWrite { get; set; }
+    
     /// <summary>
     /// The level of the event sent to Sentry.
     /// </summary>
