@@ -8,7 +8,7 @@ public class CustomUserManager<TUser>
     : UserManager<TUser>
     where TUser : IdentityUser<string>
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
     public CustomUserManager(IUserStore<TUser> store,
         IOptions<IdentityOptions> optionsAccessor,
         IPasswordHasher<TUser> passwordHasher,
@@ -18,10 +18,10 @@ public class CustomUserManager<TUser>
         IdentityErrorDescriber errors,
         IServiceProvider services,
         ILogger<CustomUserManager<TUser>> logger,
-        ApplicationDbContext db)
+        IDbContextFactory<KastaDbContext> dbContextFactory)
         : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
     {
-        _db = db;
+        _dbFactory = dbContextFactory;
     }
     
     public class UserCreatedEventArgs(string userId, IdentityResult result)
@@ -47,13 +47,14 @@ public class CustomUserManager<TUser>
     /// <param name="user"><inheritdoc cref="UserManager{TUser}.CreateAsync(TUser)" path="/param[@name='user']"/></param>
     /// <returns><inheritdoc cref="UserManager{TUser}.CreateAsync(TUser)" path="/returns"/></returns>
     /// <exception cref="InvalidDataException">
-    /// Thrown when this method failed to find the Administrator role, even though <see cref="ApplicationDbContext.EnsureInitialRoles"/> worked.
+    /// Thrown when this method failed to find the Administrator role, even though <see cref="KastaDbContext.EnsureInitialRoles"/> worked.
     /// </exception>
     public override async Task<IdentityResult> CreateAsync(TUser user)
     {
-        var previousCount = await _db.Users.CountAsync();
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var previousCount = await db.Users.CountAsync();
         var result = await base.CreateAsync(user);
-        var currentCount = await _db.Users.CountAsync();
+        var currentCount = await db.Users.CountAsync();
         if (!result.Succeeded)
         {
             
@@ -74,15 +75,14 @@ public class CustomUserManager<TUser>
         }
 
         // Add user to administrators role.
-        await using var ctx = _db.CreateSession();
-        ctx.EnsureInitialRoles();
+        db.EnsureInitialRoles();
 
-        await using var trans = await ctx.Database.BeginTransactionAsync();
+        await using var trans = await db.Database.BeginTransactionAsync();
         try
         {
             var targetNormalizedName = RoleKind.Administrator.ToUpper();
                 
-            var adminRole = await ctx.Roles
+            var adminRole = await db.Roles
                 .Where(e => e.NormalizedName == targetNormalizedName)
                 .FirstOrDefaultAsync();
 
@@ -95,14 +95,14 @@ public class CustomUserManager<TUser>
                     NormalizedName = RoleKind.Administrator.ToUpper(),
                     ConcurrencyStamp = null
                 };
-                await ctx.Roles.AddAsync(adminRole);
+                await db.AddAsync(adminRole);
                 Logger.LogInformation("Created Role: {RoleNormalizedName} ({RoleId})", adminRole.NormalizedName, adminRole.Id);
             }
 
-            if (!await ctx.UserRoles.AnyAsync(e => e.RoleId == adminRole.Id && e.UserId == user.Id))
+            if (!await db.UserRoles.AnyAsync(e => e.RoleId == adminRole.Id && e.UserId == user.Id))
             {
                 // Add the new user role
-                await ctx.UserRoles.AddAsync(new IdentityUserRole<string>()
+                await db.AddAsync(new IdentityUserRole<string>()
                 {
                     UserId = user.Id,
                     RoleId = adminRole.Id
@@ -117,7 +117,7 @@ public class CustomUserManager<TUser>
                     adminRole.Name,
                     adminRole.Id);
             }
-            await ctx.SaveChangesAsync();
+            await db.SaveChangesAsync();
             await trans.CommitAsync();
             Logger.LogInformation(
                 "Granted role {AdminRoleName} ({AdminRoleId}) to the first user who signed up, {UserName} ({UserId})",

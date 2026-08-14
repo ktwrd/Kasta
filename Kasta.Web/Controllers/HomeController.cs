@@ -17,17 +17,19 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
     private readonly UserManager<UserModel> _userManager;
     private readonly UploadService _uploadService;
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly FileService _fileService;
     private readonly SystemSettingsProxy _systemSettings;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
 
     public HomeController(
         ILogger<HomeController> logger,
         UserManager<UserModel> userManager,
         UploadService uploadService,
-        ApplicationDbContext db,
+        KastaDbContext db,
         FileService fileService,
-        SystemSettingsProxy proxy)
+        SystemSettingsProxy proxy,
+        IDbContextFactory<KastaDbContext> dbContextFactory)
     {
         _logger = logger;
         _userManager = userManager;
@@ -35,6 +37,7 @@ public class HomeController : Controller
         _db = db;
         _fileService = fileService;
         _systemSettings = proxy;
+        _dbFactory = dbContextFactory;
     }
 
     public async Task<IActionResult> Index([FromQuery] string? search = null, [FromQuery] int? page = 1)
@@ -211,9 +214,9 @@ public class HomeController : Controller
             });
         }
 
-        using (var ctx = _db.CreateSession())
+        await using (var ctx = await _dbFactory.CreateDbContextAsync())
         {
-            using var trans = await ctx.Database.BeginTransactionAsync();
+            await using var trans = await ctx.Database.BeginTransactionAsync();
             try
             {
                 await ctx.Files.Where(e => e.Id == file.Id)

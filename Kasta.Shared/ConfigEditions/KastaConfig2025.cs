@@ -12,6 +12,13 @@ public class KastaConfig2025
     [XmlElement("Database")]
     public PostgresDatabaseConfig Database { get; set; } = new();
 
+    [XmlElement("DatabaseSqlite")]
+    public SqliteDatabaseConfig SqliteDatabase { get; set; } = new();
+
+    [XmlElement("DatabaseProvider")]
+    [DefaultValue(DatabaseProviderKind.Postgres)]
+    public DatabaseProviderKind DatabaseProvider { get; set; } = DatabaseProviderKind.Postgres;
+    
     [XmlElement("S3")]
     public S3StorageConfig? S3 { get; set; } = new();
 
@@ -40,4 +47,12 @@ public class KastaConfig2025
 
     [XmlElement(nameof(Cache))]
     public CacheConfig Cache { get; set; } = new();
+
+    public enum DatabaseProviderKind
+    {
+        [XmlEnum("Postgres")]
+        Postgres,
+        [XmlEnum("Sqlite")]
+        Sqlite
+    }
 }

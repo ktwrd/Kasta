@@ -17,15 +17,17 @@ namespace Kasta.Web.Controllers;
 [AuthRequired(AllowApiKeyAuth = false)]
 public class ProfileController : Controller
 {
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly UserManager<UserModel> _userManager;
     private readonly UserService _userService;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
 
     public ProfileController(IServiceProvider services)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _userService = services.GetRequiredService<UserService>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
     }
     
     [HttpGet]
@@ -62,7 +64,7 @@ public class ProfileController : Controller
         }
 
 
-        await using var ctx = _db.CreateSession();
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {
@@ -225,7 +227,7 @@ public class ProfileController : Controller
                 $"User returned null from {typeof(UserManager<UserModel>)} (method: {nameof(_userManager.GetUserAsync)})");
         }
 
-        await using var ctx = _db.CreateSession();
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
         await using var trans = await ctx.Database.BeginTransactionAsync();
         try
         {

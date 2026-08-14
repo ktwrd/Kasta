@@ -15,7 +15,7 @@ namespace Kasta.Web.Controllers;
 public class ApiFileController : Controller
 {
     private readonly UploadService _uploadService;
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly UserManager<UserModel> _userManager;
     private readonly FileService _fileService;
     private readonly FileWebService _fileWebService;
@@ -29,7 +29,7 @@ public class ApiFileController : Controller
         ILogger<ApiFileController> logger)
     {
         _uploadService = services.GetRequiredService<UploadService>();
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _fileService = services.GetRequiredService<FileService>();
         _fileWebService = services.GetRequiredService<FileWebService>();

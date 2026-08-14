@@ -12,7 +12,7 @@ using NpgsqlTypes;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20250201094005_EnsureColumnMaxLength-20250201")]
     partial class EnsureColumnMaxLength20250201
     {

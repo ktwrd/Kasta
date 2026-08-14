@@ -23,6 +23,8 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/config.xml
+**/*.sqlite
+**/*.db
 dist
 private
 README.md

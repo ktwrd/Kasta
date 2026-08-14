@@ -11,7 +11,7 @@ namespace Kasta.Web.Services;
 public class UserService
 {
     private readonly UserManager<UserModel> _userManager;
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<UserService> _logger;
 
@@ -19,7 +19,7 @@ public class UserService
     {
         _logger = logger;
         _userManager =  services.GetRequiredService<UserManager<UserModel>>();
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _httpContextAccessor = services.GetRequiredService<IHttpContextAccessor>();
     }
 

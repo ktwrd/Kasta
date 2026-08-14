@@ -11,7 +11,7 @@ using Kasta.Data;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241124095826_InitialCreate")]
     partial class InitialCreate
     {

@@ -12,7 +12,7 @@ using NpgsqlTypes;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241229054155_RenameContextProp_SystemMailboxMessages")]
     partial class RenameContextProp_SystemMailboxMessages
     {

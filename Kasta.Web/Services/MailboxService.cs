@@ -1,18 +1,19 @@
 ﻿using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared.Helpers;
+using Microsoft.EntityFrameworkCore;
 using NLog;
 
 namespace Kasta.Web.Services;
 
 public class MailboxService
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
     private readonly Logger _log = LogManager.GetCurrentClassLogger();
 
     public MailboxService(IServiceProvider services)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
     }
 
     public SystemMailboxMessageModel CreateMessage(string subject, string[] body)
@@ -49,12 +50,12 @@ public class MailboxService
             _log.Warn($"Subject truncated to {SystemMailboxMessageModel.SubjectMaxLength} characters (Id: {model.Id})");
         }
 
-        await using (var ctx = _db.CreateSession())
+        await using (var ctx = await _dbFactory.CreateDbContextAsync())
         {
             var trans = await ctx.Database.BeginTransactionAsync();
             try
             {
-                await ctx.SystemMailboxMessages.AddAsync(model);
+                await ctx.AddAsync(model);
                 await ctx.SaveChangesAsync();
                 await trans.CommitAsync();
             }

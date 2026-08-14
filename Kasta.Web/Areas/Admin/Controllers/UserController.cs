@@ -15,12 +15,14 @@ namespace Kasta.Web.Areas.Admin.Controllers;
 [Authorize(Roles = $"{RoleKind.Administrator}, {RoleKind.UserAdmin}")]
 public class UserController : Controller
 {
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
     private readonly UserManager<UserModel> _userManager;
     private readonly SystemSettingsProxy _systemSettings;
     public UserController(IServiceProvider services)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
     }
@@ -125,7 +127,7 @@ public class UserController : Controller
             return Content($"<div class=\"alert alert-danger\" role=\"alert\">Could not find User with Id <code>{userIdSanitized}</code></div>");
         }
 
-        await using (var ctx = _db.CreateSession())
+        await using (var ctx = await _dbFactory.CreateDbContextAsync())
         {
             await using var trans = await ctx.Database.BeginTransactionAsync();
 
@@ -262,7 +264,7 @@ public class UserController : Controller
             return Content($"<div class=\"alert alert-danger\" role=\"alert\">Could not find User with Id <code>{userIdSanitized}</code></div>");
         }
 
-        await using (var ctx = _db.CreateSession())
+        await using (var ctx = await _dbFactory.CreateDbContextAsync())
         {
             await using var trans = await ctx.Database.BeginTransactionAsync();
 

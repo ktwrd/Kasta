@@ -13,7 +13,8 @@ namespace Kasta.Web.Controllers;
 
 public class FileController : Controller
 {
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
     private readonly UserManager<UserModel> _userManager;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly FileService _fileService;
@@ -23,7 +24,8 @@ public class FileController : Controller
 
     public FileController(ILogger<FileController> logger, IServiceProvider services)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _fileService = services.GetRequiredService<FileService>();
@@ -158,7 +160,7 @@ public class FileController : Controller
             throw new InvalidOperationException($"Action has {nameof(AuthorizeAttribute)}, but {nameof(_userManager.GetUserAsync)} returned null?!?!?!?!?!?!?");
         }
 
-        await using (var ctx = _db.CreateSession())
+        await using (var ctx = await _dbFactory.CreateDbContextAsync())
         {
             await using var trans = await ctx.Database.BeginTransactionAsync();
             try

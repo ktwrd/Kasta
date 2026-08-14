@@ -11,7 +11,7 @@ using Kasta.Data;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241126044247_FilePreview_Filename")]
     partial class FilePreview_Filename
     {

@@ -1,4 +1,5 @@
 using Kasta.Shared;
+using Microsoft.Data.Sqlite;
 using Npgsql;
 
 namespace Kasta.Data;
@@ -20,5 +21,18 @@ public static class DatabaseHelper
             ApplicationName = "Kasta"
         };
         return b.ToString();
+    }
+
+    public static string ToConnectionString(this SqliteDatabaseConfig element)
+    {
+        var b = new SqliteConnectionStringBuilder()
+        {
+            DataSource = element.GetLocation(),
+            Pooling = true
+        };
+        var s = b.ToString();
+        // if (!s.EndsWith(';')) s += ';';
+        // s += "Journal Mode=Wal";
+        return s;
     }
 }

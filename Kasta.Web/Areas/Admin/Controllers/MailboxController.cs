@@ -13,12 +13,14 @@ namespace Kasta.Web.Areas.Admin.Controllers;
 [Authorize(Roles = $"{RoleKind.Administrator}, {RoleKind.ViewSystemMailbox}")]
 public class MailboxController : Controller
 {
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
     private readonly ILogger<MailboxController> _logger;
     
     public MailboxController(IServiceProvider services, ILogger<MailboxController> logger)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
         _logger = logger;
     }
 
@@ -104,7 +106,7 @@ public class MailboxController : Controller
         {
             try
             {
-                await using var ctx = _db.CreateSession();
+                await using var ctx = await _dbFactory.CreateDbContextAsync();
                 await using var trans = await ctx.Database.BeginTransactionAsync();
                 try
                 {
@@ -161,7 +163,7 @@ public class MailboxController : Controller
         
         try
         {
-            await using var ctx = _db.CreateSession();
+            await using var ctx = await _dbFactory.CreateDbContextAsync();
             await using var trans = await ctx.Database.BeginTransactionAsync();
             try
             {

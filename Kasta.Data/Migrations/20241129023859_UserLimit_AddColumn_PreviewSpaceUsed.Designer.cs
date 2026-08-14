@@ -12,7 +12,7 @@ using NpgsqlTypes;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241129023859_UserLimit_AddColumn_PreviewSpaceUsed")]
     partial class UserLimit_AddColumn_PreviewSpaceUsed
     {

@@ -16,12 +16,12 @@ namespace Kasta.Web.Areas.Identity.Pages.Account.Manage
 {
     public class IndexModel : PageModel
     {
-        private readonly ApplicationDbContext _db;
+        private readonly KastaDbContext _db;
         private readonly UserManager<UserModel> _userManager;
         private readonly SignInManager<UserModel> _signInManager;
 
         public IndexModel(
-            ApplicationDbContext db,
+            KastaDbContext db,
             UserManager<UserModel> userManager,
             SignInManager<UserModel> signInManager)
         {

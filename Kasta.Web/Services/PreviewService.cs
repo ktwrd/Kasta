@@ -45,7 +45,7 @@ public class PreviewService
 
         return false;
     }
-    public async Task<FilePreviewModel?> Create(ApplicationDbContext db, FileModel file, Stream inputStream)
+    public async Task<FilePreviewModel?> Create(KastaDbContext db, FileModel file, Stream inputStream)
     {
         if (PreviewImageSupported(file))
         {
@@ -60,7 +60,7 @@ public class PreviewService
     }
 
     public async Task<FilePreviewModel?> RegisterPreviewAction(
-        ApplicationDbContext db,
+        KastaDbContext db,
         FileModel file,
         Stream inputStream,
         Func<FileModel, Stream, Task<FilePreviewModel?>> action)

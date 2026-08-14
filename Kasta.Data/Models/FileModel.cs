@@ -10,7 +10,7 @@ public class FileModel
     public FileModel()
     {
         Id = Guid.NewGuid().ToString();
-        CreatedAt = DateTimeOffset.UtcNow;
+        CreatedAt = DateTime.UtcNow;
     }
 
     [Required]
@@ -49,7 +49,7 @@ public class FileModel
     [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     
     [AuditIgnore]
     public FilePreviewModel? Preview { get; set; }

@@ -11,7 +11,7 @@ using Kasta.Data;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241125084208_PreferencesModel_ValueIsNullable")]
     partial class PreferencesModel_ValueIsNullable
     {

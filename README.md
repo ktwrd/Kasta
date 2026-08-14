@@ -81,7 +81,7 @@ server {
     access_log  /var/log/nginx/access.log;
     client_max_body_size 500M;
 
-    # Fix for 520 Cloudflare errorr (see section above)
+    # Fix for 520 Cloudflare error (see section above)
     large_client_header_buffers 4 32k;
 
     location / {

@@ -8,42 +8,33 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kasta.Data;
 
-public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyContext
+public class KastaDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyContext
 {
-    private readonly DbContextOptions<ApplicationDbContext> _ops;
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
+    public KastaDbContext(DbContextOptions options) : base(options)
     {
-        _ops = options;
     }
-
-    public ApplicationDbContext CreateSession()
+    public virtual bool IdentityRolesInitialised()
     {
-        return new(_ops);
+        return Database.SqlQuery<object>(FormattableStringFactory.Create("SELECT FROM information_schema.tables WHERE table_name = 'AspNetRoles'")).Any();
     }
 
     public void EnsureInitialRoles()
     {
-        var rolesExist = Database.SqlQuery<object>(FormattableStringFactory.Create("SELECT FROM information_schema.tables WHERE table_name = 'AspNetRoles'")).Any();
-        if (!rolesExist)
-        {
-            return;
-        }
-        var trans = Database.BeginTransaction();
+        // if (!IdentityRolesInitialised()) return;
+        using var trans = Database.BeginTransaction();
         try
         {
             foreach (var item in RoleKind.ToList())
             {
-                if (!Roles.Any(e => e.Name == item.Name))
+                if (Roles.Any(e => e.Name == item.Name))
+                    continue;
+                Roles.Add(new IdentityRole()
                 {
-                    Roles.Add(new IdentityRole()
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Name = item.Name,
-                        NormalizedName = item.Name.ToUpper(),
-                        ConcurrencyStamp = null
-                    });
-                }
+                    Id = Guid.NewGuid().ToString(),
+                    Name = item.Name,
+                    NormalizedName = item.Name.ToUpper(),
+                    ConcurrencyStamp = null
+                });
             }
             SaveChanges();
             trans.Commit();
@@ -130,10 +121,19 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         }
         if (!string.IsNullOrEmpty(query))
         {
-            queryable = queryable.Where(e => e.SearchVector.Matches(query) || e.Filename.StartsWith(query) || e.Filename.EndsWith(query));
+            if (AllowFileSearchVector)
+            {
+                queryable = queryable.Where(e => e.SearchVector.Matches(query) || e.Filename.StartsWith(query) || e.Filename.EndsWith(query));
+            }
+            else
+            {
+                queryable = queryable.Where(e => e.Filename == query || e.Filename.StartsWith(query) || e.Filename.EndsWith(query));
+            }
         }
         return queryable;
     }
+
+    protected bool AllowFileSearchVector = false;
 
     public async Task<FileModel?> GetFileAsync(string id, bool includeAuthor = false, bool includePreview = false, bool includeImageInfo = false, bool asNoTracking = false)
     {
@@ -185,17 +185,17 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
             .FirstOrDefault(e => e.Id == user.Id);
         if (r == null)
         {
-            using var ctx = CreateSession();
-            using var transaction = ctx.Database.BeginTransaction();
+            using var transaction = Database.BeginTransaction();
             try
             {
                 r = new UserSettingModel()
                 {
                     Id = user.Id
                 };
-                ctx.UserSettings.Add(r);
-                ctx.SaveChanges();
+                var rs = Add(r);
+                SaveChanges();
                 transaction.Commit();
+                r = rs.Entity;
             }
             catch
             {
@@ -210,17 +210,17 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
         var r = await UserSettings.FirstOrDefaultAsync(e => e.Id == user.Id);
         if (r == null)
         {
-            await using var ctx = CreateSession();
-            await using var transaction = await ctx.Database.BeginTransactionAsync();
+            await using var transaction = await Database.BeginTransactionAsync();
             try
             {
                 r = new UserSettingModel()
                 {
                     Id = user.Id
                 };
-                await ctx.UserSettings.AddAsync(r);
-                await ctx.SaveChangesAsync();
+                var rs = await AddAsync(r);
+                await SaveChangesAsync();
                 await transaction.CommitAsync();
+                r = rs.Entity;
             }
             catch
             {
@@ -298,14 +298,10 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>, IDataProtectio
                 b.HasIndex(e => e.Filename).IsUnique(false);
                 b.HasIndex(e => e.MimeType).IsUnique(false);
 
-                b.HasGeneratedTsVectorColumn(
-                        p => p.SearchVector, "english", p => new
-                        {
-                            p.Filename,
-                            p.MimeType,
-                            p.ShortUrl
-                        })
-                    .HasIndex(p => p.SearchVector).HasMethod("GIN");
+                if (!AllowFileSearchVector)
+                {
+                    b.Ignore(e => e.SearchVector);
+                }
 
                 b.HasOne(e => e.CreatedByUser)
                     .WithOne()
