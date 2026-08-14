@@ -9,7 +9,7 @@ public class FilePreviewModel
     public FilePreviewModel()
     {
         Id = Guid.Empty.ToString();
-        CreatedAt = DateTimeOffset.UtcNow;
+        CreatedAt = DateTime.UtcNow;
     }
     
     [Required]
@@ -42,5 +42,5 @@ public class FilePreviewModel
     /// <summary>
     /// When the preview was created at
     /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

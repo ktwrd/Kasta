@@ -143,7 +143,7 @@ public class LinkShortenerWebService
                 : vanity;
             result = new ShortLinkModel
             {
-                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = user.Id,
                 Destination = url,
                 ShortLink = shortLink,

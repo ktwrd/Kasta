@@ -108,7 +108,7 @@ public class AuditService
         var auditModel = new AuditModel()
         {
             CreatedBy = user.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = DateTime.UtcNow,
             Kind = AuditEventKind.Delete,
             EntityName = tableName,
             PrimaryKey = pkSelect(obj)
@@ -133,7 +133,7 @@ public class AuditService
         var auditModel = new AuditModel()
         {
             CreatedBy = user.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = DateTime.UtcNow,
             Kind = AuditEventKind.Insert,
             EntityName = tableName,
             PrimaryKey = pkSelect(obj)

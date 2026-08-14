@@ -123,7 +123,7 @@ public class ApiFileController : Controller
             DeleteUrl = $"{FeatureFlags.Endpoint}/api/v1/File/{data.Id}/Delete",
             Filename = data.Filename,
             FileSize = data.Size,
-            CreatedAtTimestamp = data.CreatedAt.ToUnixTimeSeconds()
+            CreatedAtTimestamp = new DateTimeOffset(data.CreatedAt).ToUnixTimeSeconds()
         });
     }
     

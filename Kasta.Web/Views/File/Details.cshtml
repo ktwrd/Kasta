@@ -35,7 +35,6 @@
         codeBlockClass = $"language-{fileExtension}";
         ViewData["Highlight"] = true;
     }
-
 }
 
 <div class="row">
@@ -115,7 +114,7 @@
         <div class="row mt-1">
             <div class="col-md-12 text-center">
                 <i class="bi bi-calendar"></i>
-                @TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt.UtcDateTime, targetTimezone)
+                @TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt, targetTimezone)
             </div>
         </div>
     </div>
@@ -128,7 +127,7 @@
         <meta name="twitter:card" content="summary_image_large" />
         <meta property="og:type" content="website"/>
         <meta id="embed-title" property="og:title" content="@Model.File.Filename (@PrettySize.Bytes(Model.File.Size))" />
-        <meta id="embed-desc" property="og:description" content="@TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt.UtcDateTime, targetTimezone)" />
+        <meta id="embed-desc" property="og:description" content="@TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt, targetTimezone)" />
         @if (Model.File.MimeType?.StartsWith("image/") ?? false)
         {
             <meta id="embed-image" property="og:image" content="@downloadUrl">

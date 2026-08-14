@@ -12,7 +12,7 @@ public class SystemMailboxMessageModel
         Id = Guid.NewGuid().ToString();
         Subject = "System Message";
         Message = "";
-        CreatedAt = DateTimeOffset.UtcNow;
+        CreatedAt = DateTime.UtcNow;
         Seen = false;
         IsDeleted = false;
     }
@@ -34,7 +34,7 @@ public class SystemMailboxMessageModel
     public const int MessageMaxLength = 8192;
     
     [Required]
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     
     [DefaultValue(false)]
     public bool Seen { get; set; }

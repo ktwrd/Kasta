@@ -59,6 +59,7 @@ public class FileModel
     [AuditIgnore]
     public S3FileInformationModel? S3FileInformation { get; set; }
     
+    // TODO add method in repository for searching instead of queries referencing a SearchVector (that doesn't exist for Sqlite)
     [AuditIgnore]
     public NpgsqlTsVector SearchVector { get; set; }
 }

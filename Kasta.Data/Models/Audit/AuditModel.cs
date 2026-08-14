@@ -27,7 +27,7 @@ public class AuditModel
     public UserModel CreatedByUser { get; set; }
 
     [Required]
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     
     [Required]
     [MaxLength(200)]

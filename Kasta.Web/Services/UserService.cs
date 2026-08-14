@@ -72,9 +72,10 @@ public class UserService
         await using var trans = await _db.Database.BeginTransactionAsync();
         try
         {
+            var now = DateTime.UtcNow;
             await _db.UserApiKeys.Where(e => e.Id == apiKey.Id && !e.IsDeleted)
                 .ExecuteUpdateAsync(e => e
-                    .SetProperty(p => p.LastUsed, DateTimeOffset.UtcNow));
+                    .SetProperty(p => p.LastUsed, now));
             await _db.SaveChangesAsync();
             await trans.CommitAsync();
         }
@@ -211,7 +212,7 @@ public class UserService
         {
             var userAgent = GetUserAgentFromContext(httpContext);
             var userIp = "";
-            var now = DateTimeOffset.UtcNow;
+            var now = DateTime.UtcNow;
 
             await _db.UserApiKeys.Where(e => e.Id == apiKeyModel.Id && !e.IsDeleted)
                 .ExecuteUpdateAsync(e => e
@@ -272,7 +273,7 @@ public class UserService
         {
             var userAgent = GetUserAgentFromContext(httpContext);
             var userIp = "";
-            var now = DateTimeOffset.UtcNow;
+            var now = DateTime.UtcNow;
 
             await _db.UserApiKeys.Where(e => e.UserId == user.Id && !e.IsDeleted)
                 .ExecuteUpdateAsync(e => e
