@@ -13,12 +13,12 @@
 @{
     UserLimitModel? userLimit = null;
     var appTitle = SystemSettings.EnableCustomBranding ? SystemSettings.CustomBrandingTitle : "Kasta";
-    string bootstrapThemeAttributeValue = "auto";
-    string currentTheme = "";
-    bool isAdmin = false;
-    bool enableNavbar = true;
-    bool showMailbox = false;
-    bool showUserAdmin = false;
+    var bootstrapThemeAttributeValue = "auto";
+    var currentTheme = "";
+    var isAdmin = false;
+    var enableNavbar = true;
+    var showMailbox = false;
+    var showUserAdmin = false;
     if (SignInManager.IsSignedIn(User))
     {
         var user = await UserManager.GetUserAsync(User);
@@ -52,7 +52,7 @@
     }
 
     var versionString = string.Empty;
-    var ver = typeof(Kasta.Web.Program).Assembly.GetName().Version;
+    var ver = typeof(Startup).Assembly.GetName().Version;
     if (ver != null)
     {
         versionString = ver.ToString();
