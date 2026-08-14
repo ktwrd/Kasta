@@ -48,7 +48,7 @@ Task RunServer(string[] args)
             webBuilder.UseKestrel(opts => opts.FromConfiguration(cfg));
             if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
             {
-                webBuilder.UseSentry(opts =>
+                webBuilder.UseSentry(static opts =>
                 {
                     SetSentryOptions(opts);
                     opts.MinimumBreadcrumbLevel = LogLevel.Trace;
@@ -79,11 +79,9 @@ static void InitializeNLog()
         LogManager.Setup().LoadConfigurationFromAssemblyResource(typeof(Program).Assembly, "nlog.config");
     }
 
-    if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
-    {
-        Console.WriteLine(prefix + " Enabling Sentry Integration: " + FeatureFlags.SentryDsn);
-        LogManager.Configuration?.AddSentry(SetSentryOptions);
-    }
+    if (string.IsNullOrEmpty(FeatureFlags.SentryDsn)) return;
+    Console.WriteLine(prefix + " Enabling Sentry Integration: " + FeatureFlags.SentryDsn);
+    LogManager.Configuration?.AddSentry(SetSentryOptions);
 }
 static void SetSentryOptions(SentryOptions opts)
 {
@@ -91,6 +89,7 @@ static void SetSentryOptions(SentryOptions opts)
     opts.Release = typeof(Program).Assembly.GetName().Version?.ToString();
     opts.SendDefaultPii = true;
     opts.AttachStacktrace = true;
+    opts.EnableLogs = true;
     opts.DiagnosticLevel = SentryLevel.Debug;
     opts.TracesSampleRate = 1.0;
 #if DEBUG
@@ -180,7 +179,7 @@ static void CheckConfiguration()
         else
         {
             logger.Info($"Configuration file found! ({FeatureFlags.XmlConfigLocation})");
-    }
+        }
 #if !DEBUG
     }
     catch (Exception ex)
