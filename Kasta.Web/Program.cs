@@ -12,22 +12,18 @@ namespace Kasta.Web;
 
 public static class Program
 {
-    public static bool IsDevelopment
-    {
-        get
-        {
-            return string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "development", StringComparison.InvariantCultureIgnoreCase);
-        }
-    }
-    public static bool IsDocker { get; private set; }
     public static void Main(string[] args)
     {
-        IsDocker = args.Any(e => string.Equals("docker", e, StringComparison.OrdinalIgnoreCase));
-        if (IsDocker)
+#if DEBUG
+        FeatureFlags.SetEnvironment(FeatureFlags.EnvironmentValueDevelopment);
+#endif
+        FeatureFlags.EnsureEnvironmentValue();
+        if (args.Any(e => string.Equals("docker", e, StringComparison.OrdinalIgnoreCase)))
         {
-            Environment.SetEnvironmentVariable("_KASTA_RUNNING_IN_DOCKER", "true");
+            Environment.SetEnvironmentVariable(FeatureFlags.Keys.RunningInDocker, "true");
         }
-        if (IsDevelopment || FeatureFlags.ShowPrivateInformationWithAspNet)
+        if (FeatureFlags.IsDevelopmentEnvironment ||
+            FeatureFlags.ShowPrivateInformationWithAspNet)
         {
             IdentityModelEventSource.ShowPII = true;
             IdentityModelEventSource.LogCompleteSecurityArtifact = true;
@@ -41,7 +37,8 @@ public static class Program
     private static void RunServer(ref string[] args)
     {
         var h = Host.CreateDefaultBuilder(args)
-            .UseNLog().ConfigureWebHostDefaults(webBuilder =>
+            .UseNLog()
+            .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
                 
@@ -65,7 +62,7 @@ public static class Program
     {
         const string prefix = "[InitializeNLog]";
         var relativeConfigurationLocation = Path.Combine(Environment.CurrentDirectory, "nlog.config");
-        if (IsDocker)
+        if (FeatureFlags.RunningInDocker)
         {
             relativeConfigurationLocation = Path.GetFullPath("/app/nlog.config");
         }
@@ -128,7 +125,7 @@ public static class Program
             //
             // This is here just to be sure that the creation of the config
             // directory will not fail.
-            if (IsDocker)
+            if (FeatureFlags.RunningInDocker)
             {
                 if (!Directory.Exists("/config"))
                 {
@@ -139,7 +136,7 @@ public static class Program
             logger.Info($"Using File: {FeatureFlags.XmlConfigLocation}");
             if (string.IsNullOrEmpty(FeatureFlags.XmlConfigLocation))
             {
-                logger.Error($"Environment Variable \"{FeatureFlags.Keys.XmlConfigLocation}\" has not been set!!!");
+                logger.Error($"Environment Variable \"{FeatureFlags.Keys.XmlConfigLocation}\" CANNOT be null or whitespace?!?!");
                 Environment.Exit(1);
                 return;
             }
@@ -157,7 +154,7 @@ public static class Program
             if (!File.Exists(FeatureFlags.XmlConfigLocation))
             {
                 var selfType = typeof(Program);
-                logger.Warn("Configuration file does not exist!! Creating a blank one, PLEASE POPULATE IT !!!");
+                logger.Warn($"Configuration file does not exist!! Creating a blank one, PLEASE POPULATE IT !!!\nLocation: {FeatureFlags.XmlConfigLocation}");
                 File.WriteAllText(FeatureFlags.XmlConfigLocation, string.Empty);
                 if (TryGetExampleConfigurationStream(out var exampleConfigStream))
                 {
