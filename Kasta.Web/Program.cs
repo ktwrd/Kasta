@@ -22,7 +22,7 @@ public static class Program
     public static bool IsDocker { get; private set; }
     public static void Main(string[] args)
     {
-        IsDocker = args.FirstOrDefault() == "docker";
+        IsDocker = args.Any(e => string.Equals("docker", e, StringComparison.OrdinalIgnoreCase));
         if (IsDocker)
         {
             Environment.SetEnvironmentVariable("_KASTA_RUNNING_IN_DOCKER", "true");
@@ -43,8 +43,7 @@ public static class Program
         var h = Host.CreateDefaultBuilder(args)
             .UseNLog().ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder
-                    .UseStartup<Startup>();
+                webBuilder.UseStartup<Startup>();
                 
                 var cfg = KastaConfig.Instance;
                 webBuilder.UseKestrel(opts => opts.FromConfiguration(cfg));
@@ -66,6 +65,10 @@ public static class Program
     {
         const string prefix = "[InitializeNLog]";
         var relativeConfigurationLocation = Path.Combine(Environment.CurrentDirectory, "nlog.config");
+        if (IsDocker)
+        {
+            relativeConfigurationLocation = Path.GetFullPath("/app/nlog.config");
+        }
         if (File.Exists(relativeConfigurationLocation))
         {
             Console.WriteLine(prefix + " Loading configuration from " + relativeConfigurationLocation);
