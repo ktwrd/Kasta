@@ -40,7 +40,7 @@ public class FilePreviewModel
     public string MimeType { get; set; }
 
     /// <summary>
-    /// When the preview was created at
+    /// When the preview was created at (UTC)
     /// </summary>
     public DateTime CreatedAt { get; set; }
 }

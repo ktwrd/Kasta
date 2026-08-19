@@ -24,7 +24,7 @@ public class ShortLinkModel
     public string Id { get; set; }
 
     /// <summary>
-    /// Time when this record was created (UTC)
+    /// When this record was created (UTC)
     /// </summary>
     public DateTime CreatedAt { get; set; }
 

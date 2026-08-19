@@ -27,5 +27,8 @@ public class ChunkUploadSessionModel
     [AuditIgnore]
     public FileModel File { get; set; }
 
+    /// <summary>
+    /// When this record was created (UTC)
+    /// </summary>
     public DateTime CreatedAt { get; set; }
 }

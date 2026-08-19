@@ -57,7 +57,7 @@ public class UserApiKeyModel
     public string Token { get; set; }
     
     /// <summary>
-    /// Time when this Api Key was last used
+    /// When this Api Key was last used (UTC)
     /// </summary>
     public DateTime? LastUsed { get; set; }
 
@@ -68,7 +68,7 @@ public class UserApiKeyModel
     public string? CreatedByUserId { get; set; }
     
     /// <summary>
-    /// Time when this API Key was created (UTC)
+    /// When this API Key was created (UTC)
     /// </summary>
     public DateTime CreatedAt { get; set; }
     
@@ -89,7 +89,12 @@ public class UserApiKeyModel
 
     [MaxLength(DatabaseHelper.GuidLength)]
     public string? DeletedByUserId { get; set; }
+    /// <summary>
+    /// When this Api Key was deleted (UTC)
+    /// </summary>
     public DateTime? DeletedAt { get; set; }
+    
+    // TODO refactor this to be user session info stored in the database (e.g: ips used, user agents used, tz, approx location, etc...)
     [MaxLength(500)]
     public string? DeletedByUserAgent { get; set; }
     [MaxLength(100)]

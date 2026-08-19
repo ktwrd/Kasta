@@ -26,6 +26,9 @@ public class AuditModel
     [AuditIgnore]
     public UserModel CreatedByUser { get; set; }
 
+    /// <summary>
+    /// When this record was created (UTC)
+    /// </summary>
     [Required]
     public DateTime CreatedAt { get; set; }
     

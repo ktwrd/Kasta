@@ -49,6 +49,9 @@ public class FileModel
     [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }
 
+    /// <summary>
+    /// When this file was created (UTC)
+    /// </summary>
     public DateTime CreatedAt { get; set; }
     
     [AuditIgnore]
