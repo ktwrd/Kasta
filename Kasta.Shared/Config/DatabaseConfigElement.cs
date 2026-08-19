@@ -5,9 +5,16 @@ namespace Kasta.Shared;
 
 public class DatabaseConfigElement
 {
-    [DefaultValue(DatabaseProviderKind.Postgres)]
     [XmlAttribute("Provider")]
-    public DatabaseProviderKind Provider { get; set; } = DatabaseProviderKind.Postgres;
+    public DatabaseProviderKind? Provider { get; set; }
+
+    public DatabaseProviderKind GetProvider()
+    {
+        if (Provider.HasValue) return Provider.Value;
+        if (UseLegacyPostgresSettings())
+            return DatabaseProviderKind.Postgres;
+        return DatabaseProviderKind.Sqlite;
+    }
     
     [XmlElement("Sqlite")]
     public SqliteDatabaseConfig? Sqlite { get; set; }
@@ -42,7 +49,7 @@ public class DatabaseConfigElement
     /// </summary>
     public bool UseLegacyPostgresSettings()
     {
-        if (Provider != DatabaseProviderKind.Postgres) return false;
+        if (Provider.HasValue && Provider.Value != DatabaseProviderKind.Postgres) return false;
         if (Postgres != null) return false;
         return LegacyPgHost != null
                || LegacyPgPort != null
