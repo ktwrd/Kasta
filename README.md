@@ -26,7 +26,7 @@ It is recommended to use Docker to make updating very easy. The following docker
 ```yml
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_PASSWORD: changeme123
       POSTGRES_USER: kasta
