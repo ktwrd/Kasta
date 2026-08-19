@@ -9,7 +9,9 @@ public static class DatabaseHelper
     public const string EmptyGuid = "00000000-0000-0000-0000-000000000000";
     public const int GuidLength = 36;
 
-    public static string ToConnectionString(this PostgresDatabaseConfig element)
+    public static string ToConnectionString(
+        this PostgresDatabaseConfig element,
+        bool includeErrorDetail = false)
     {
         var b = new NpgsqlConnectionStringBuilder
         {
@@ -18,6 +20,7 @@ public static class DatabaseHelper
             Username = element.Username,
             Password = element.Password,
             Database = element.Name,
+            IncludeErrorDetail = includeErrorDetail,
             ApplicationName = "Kasta"
         };
         return b.ToString();
@@ -30,9 +33,6 @@ public static class DatabaseHelper
             DataSource = element.GetLocation(),
             Pooling = true
         };
-        var s = b.ToString();
-        // if (!s.EndsWith(';')) s += ';';
-        // s += "Journal Mode=Wal";
-        return s;
+        return b.ToString();
     }
 }

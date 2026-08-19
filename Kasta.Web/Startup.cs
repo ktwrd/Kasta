@@ -54,7 +54,7 @@ public class Startup
             app.UseExceptionHandler("/Error");
         }
         
-        if (isDev || KastaConfig.Instance.DatabaseProvider == KastaConfig2025.DatabaseProviderKind.Sqlite)
+        if (isDev || KastaConfig.Instance.Database.Provider == DatabaseConfigElement.DatabaseProviderKind.Sqlite)
         {
             using var scope = app.ApplicationServices.CreateScope();
             var services = scope.ServiceProvider;
@@ -296,7 +296,8 @@ public class Startup
     private void ConfigureDatabaseServices(IServiceCollection services)
     {
         // Add services to the container.
-        if (KastaConfig.Instance.DatabaseProvider == KastaConfig2025.DatabaseProviderKind.Postgres)
+        if (KastaConfig.Instance.Database.Provider == DatabaseConfigElement.DatabaseProviderKind.Postgres ||
+            KastaConfig.Instance.Database.UseLegacyPostgresSettings())
         {
             ConfigureDatabase<PostgresDbContext>(services);
         }
@@ -334,10 +335,10 @@ public class Startup
         });
         var cfg = KastaConfig.Instance;
         
-        var connectionString = cfg.DatabaseProvider == KastaConfig2025.DatabaseProviderKind.Postgres
-            ? cfg.Database.ToConnectionString()
-            : cfg.SqliteDatabase.ToConnectionString();
-        if (cfg.DatabaseProvider == KastaConfig2025.DatabaseProviderKind.Postgres)
+        var connectionString = cfg.Database.Provider == DatabaseConfigElement.DatabaseProviderKind.Postgres
+            ? cfg.Database.GetPostgres().ToConnectionString()
+            : cfg.Database.GetSqlite().ToConnectionString();
+        if (cfg.Database.Provider == DatabaseConfigElement.DatabaseProviderKind.Postgres)
         {
             options.UseNpgsql(connectionString);
         }

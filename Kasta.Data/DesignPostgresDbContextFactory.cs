@@ -9,9 +9,11 @@ public class DesignPostgresDbContextFactory : IDesignTimeDbContextFactory<Postgr
     PostgresDbContext IDesignTimeDbContextFactory<PostgresDbContext>.CreateDbContext(string[] args)
     {
         var builder = new DbContextOptionsBuilder<PostgresDbContext>();
-        var connectionString = KastaConfig.Instance.Database.ToConnectionString();
-        if (!connectionString.Trim().EndsWith(';')) connectionString += ';';
-        connectionString += "Include Error Detail=true";
+        var connectionString = KastaConfig.Instance.Database
+            .GetPostgres()
+            .ToConnectionString(
+                includeErrorDetail: true);
+        
         builder.UseNpgsql(connectionString);
 
         return new PostgresDbContext(builder.Options);

@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Kasta>
+    
+    <!-- ==== Database Configuration ==== -->
+    <!-- NOTE: This has changed in Kasta 0.11
+               Previous versions will still work, but they may stop working properly in the future! -->
+    <Database Provider="Postgres">
+        <!--
+            "Name" is the name of your database
+            
+            NOTE: You must have an existing database & account created on the instance that Kasta is using
+            
+            The Postgres element is optional if you're using the same credentials in the docker compose example file.
+            You just need the Provider attribute set to Postgres.
+        -->
+        <Postgres Host="db" Port="5432" Name="kasta">
+            <Username>kasta</Username>
+            <Password>changeme123</Password>
+        </Postgres>
+    </Database>
+    
     <!-- ==== External Authentication Configuration -->
     <Auth>
         <!-- Authentik Example. If you're not using oauth, then keep this commented out. -->
@@ -20,16 +39,6 @@
         -->
     </Auth>
 
-    <!-- PostgreSQL Connection Settings. "Name" attribute is the name of your database.
-        NOTE: You must already have an existing database & account created on the instance
-               that Kasta is using. -->
-    <!-- If you're using the exact same credentials in docker-compose.example.yml,
-         then you don't need to change anything for this section. -->
-    <Database Host="db" Port="5432" Name="kasta">
-        <Username>kasta</Username>
-        <Password>changeme123</Password>
-    </Database>
-
     <!-- AWS S3 Configuration.-->
     <S3>
         <!-- Your S3 Service URL. (make sure that ur bucket isn't in this!!) -->
@@ -43,7 +52,8 @@
         <ForcePathStyle>true</ForcePathStyle>
         -->
     </S3>
-    <LocalFileStorage Enabled="false" />
+    <!-- Or you can store files locally for Kasta (Directory is required when enabled!) -->
+    <LocalFileStorage Enabled="false" Directory="D:\cool server data\Kasta" />
 
     <!-- Database Caching Options.
         Note: If nothing is defined in the Cache element, then
