@@ -3,12 +3,17 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @model NotAuthorizedViewModel?
 @{
-    bool isAlert = false;
+    var isAlert = false;
+    var isHtmx = false;
     if (HttpContextAccessor.HttpContext != null)
     {
+        isHtmx = HttpContextAccessor.HttpContext.IsHtmxRequest();
         Model?.Update(HttpContextAccessor.HttpContext);
-        isAlert = (Model?.IsAlert ?? false)
-            || HttpContextAccessor.HttpContext.IsHtmxRequest();
+        isAlert = Model?.IsAlert == true || isHtmx;
+    }
+    if (isHtmx)
+    {
+        Layout = null;
     }
 }
 
