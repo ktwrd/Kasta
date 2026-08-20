@@ -1,16 +1,25 @@
-﻿using System.ComponentModel;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
 namespace Kasta.Shared;
 
 public class DatabaseConfigElement
 {
     [XmlAttribute("Provider")]
-    public DatabaseProviderKind? Provider { get; set; }
+    public string? ProviderXmlValue { get; set; }
 
+    public DatabaseProviderKind? ParseProvider()
+    {
+        if (!string.IsNullOrWhiteSpace(ProviderXmlValue) &&
+            Enum.TryParse<DatabaseProviderKind>(ProviderXmlValue, out var enumValue))
+            return enumValue;
+        return null;
+    }
+    
     public DatabaseProviderKind GetProvider()
     {
-        if (Provider.HasValue) return Provider.Value;
+        if (!string.IsNullOrWhiteSpace(ProviderXmlValue) &&
+            Enum.TryParse<DatabaseProviderKind>(ProviderXmlValue, out var enumValue))
+            return enumValue;
         if (UseLegacyPostgresSettings())
             return DatabaseProviderKind.Postgres;
         return DatabaseProviderKind.Sqlite;
@@ -26,7 +35,14 @@ public class DatabaseConfigElement
     [XmlAttribute("Host")]
     public string? LegacyPgHost { get; set; }
     [XmlAttribute("Port")]
-    public int? LegacyPgPort { get; set; }
+    public string? LegacyPgPortValue { get; set; }
+
+    [XmlIgnore]
+    public int? LegacyPgPort
+    {
+        get => int.TryParse(LegacyPgPortValue, out var v) ? v : null;
+        set => LegacyPgPortValue = value?.ToString("D");
+    }
     [XmlAttribute("Name")]
     public string? LegacyPgName { get; set; }
     [XmlElement("Username")]
@@ -36,7 +52,7 @@ public class DatabaseConfigElement
     #endregion
 
     /// <summary>
-    /// Returns false if <see cref="Provider"/> isn't <see cref="DatabaseProviderKind.Postgres"/>
+    /// Returns false if <see cref="ProviderXmlValue"/> isn't <see cref="DatabaseProviderKind.Postgres"/>
     /// or if <see cref="Postgres"/> isn't null
     /// or all of the following properties are null:
     /// <list type="bullet">
@@ -49,7 +65,8 @@ public class DatabaseConfigElement
     /// </summary>
     public bool UseLegacyPostgresSettings()
     {
-        if (Provider.HasValue && Provider.Value != DatabaseProviderKind.Postgres) return false;
+        var provider = ParseProvider();
+        if (provider.HasValue && provider.Value != DatabaseProviderKind.Postgres) return false;
         if (Postgres != null) return false;
         return LegacyPgHost != null
                || LegacyPgPort != null

@@ -358,7 +358,7 @@ public class Startup
     private static void ConfigureAuthenticationServices(IServiceCollection services)
     {
         var cfg = KastaConfig.Instance;
-        if (cfg.Auth?.OAuth.Count < 1) return;
+        if (cfg.Auth == null || cfg.Auth.OAuth.Count < 1) return;
         
         var auth = services.AddAuthentication()
             .AddCookie(JwtBearerDefaults.AuthenticationScheme);
