@@ -1,7 +1,6 @@
 ﻿using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -34,9 +33,6 @@ partial class Startup
                 .AddRoles<IdentityRole>()
                 .AddUserManager<CustomUserManager<UserModel>>()
                 .AddEntityFrameworkStores<KastaDbContext>();
-        
-        services.AddDataProtection()
-                .PersistKeysToDbContext<KastaDbContext>();
     }
 
     private void ConfigureDatabase<TContextService>(IServiceCollection services)
