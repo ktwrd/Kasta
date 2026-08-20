@@ -69,16 +69,20 @@ partial class Startup
         }
 
         // added in v0.9.2
-        Task EnsureHttpsRedirect(RedirectContext ctx)
+        options.Events.OnRedirectToIdentityProvider += OpenIdEnsureHttpsRedirect;
+        options.Events.OnRedirectToIdentityProviderForSignOut += OpenIdEnsureHttpsRedirect;
+    }
+
+    // added in v0.9.2
+    private static Task OpenIdEnsureHttpsRedirect(RedirectContext ctx)
+    {
+        const string http = "http://";
+        const string https = "https://";
+        if (KastaConfig.Instance.Endpoint.StartsWith(https, StringComparison.OrdinalIgnoreCase) &&
+            ctx.ProtocolMessage.RedirectUri.StartsWith(http, StringComparison.OrdinalIgnoreCase))
         {
-            if (KastaConfig.Instance.Endpoint.StartsWith("https://") &&
-                ctx.ProtocolMessage.RedirectUri.StartsWith("http://"))
-            {
-                ctx.ProtocolMessage.RedirectUri = "https://" + ctx.ProtocolMessage.RedirectUri[7..];
-            }
-            return Task.CompletedTask;
+            ctx.ProtocolMessage.RedirectUri = https + ctx.ProtocolMessage.RedirectUri[https.Length..];
         }
-        options.Events.OnRedirectToIdentityProvider += EnsureHttpsRedirect;
-        options.Events.OnRedirectToIdentityProviderForSignOut += EnsureHttpsRedirect;
+        return Task.CompletedTask;
     }
 }
