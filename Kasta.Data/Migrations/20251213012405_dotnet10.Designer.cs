@@ -12,7 +12,7 @@ using NpgsqlTypes;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20251213012405_dotnet10")]
     partial class dotnet10
     {

@@ -26,8 +26,11 @@ public class AuditModel
     [AuditIgnore]
     public UserModel CreatedByUser { get; set; }
 
+    /// <summary>
+    /// When this record was created (UTC)
+    /// </summary>
     [Required]
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     
     [Required]
     [MaxLength(200)]

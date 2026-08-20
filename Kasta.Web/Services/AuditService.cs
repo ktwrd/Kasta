@@ -9,11 +9,11 @@ namespace Kasta.Web.Services;
 public class AuditService
 {
     private readonly Logger _log = LogManager.GetCurrentClassLogger();
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
 
     public AuditService(IServiceProvider services)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
     }
 
     public class AuditCollectionItem
@@ -108,7 +108,7 @@ public class AuditService
         var auditModel = new AuditModel()
         {
             CreatedBy = user.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = DateTime.UtcNow,
             Kind = AuditEventKind.Delete,
             EntityName = tableName,
             PrimaryKey = pkSelect(obj)
@@ -133,7 +133,7 @@ public class AuditService
         var auditModel = new AuditModel()
         {
             CreatedBy = user.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = DateTime.UtcNow,
             Kind = AuditEventKind.Insert,
             EntityName = tableName,
             PrimaryKey = pkSelect(obj)
@@ -152,12 +152,12 @@ public class AuditService
             Entries = entries
         };
     }
-    public async Task InsertAuditData(ApplicationDbContext db, AuditCollectionItem data)
+    public async Task InsertAuditData(KastaDbContext db, AuditCollectionItem data)
     {
         await db.Audit.AddAsync(data.Model);
         await db.AuditEntries.AddRangeAsync(data.Entries.ToArray());
     }
-    public async Task InsertAuditData(ApplicationDbContext db, List<AuditCollectionItem> data)
+    public async Task InsertAuditData(KastaDbContext db, List<AuditCollectionItem> data)
     {
         foreach (var i in data)
         {

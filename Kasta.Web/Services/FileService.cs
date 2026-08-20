@@ -13,22 +13,24 @@ namespace Kasta.Web.Services;
 public class FileService
 {
     private readonly Logger _log = LogManager.GetCurrentClassLogger();
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly AuditService _auditService;
     private readonly MailboxService _mailbox;
     private readonly SystemSettingsProxy _systemSettings;
     private readonly GenericFileService _genericFileService;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
     public FileService(IServiceProvider services)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _auditService = services.GetRequiredService<AuditService>();
         _mailbox = services.GetRequiredService<MailboxService>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
         _genericFileService = services.GetRequiredService<GenericFileService>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
     }
     public async Task DeleteFile(UserModel user, FileModel file)
     {
-        await using var ctx = _db.CreateSession();
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
         string? previewLocation = null;
         try
@@ -103,7 +105,7 @@ public class FileService
 
     public async Task<long> RecalculateSpaceUsed(UserModel user)
     {
-        await using var ctx = _db.CreateSession();
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
         long fileCount = 0;
         try
@@ -323,7 +325,7 @@ public class FileService
                 return;
             }
 
-            await using var ctx = _db.CreateSession();
+            await using var ctx = await _dbFactory.CreateDbContextAsync();
             using var trans = await ctx.Database.BeginTransactionAsync();
             logger.Debug($"Created transaction ({trans.TransactionId})");
 

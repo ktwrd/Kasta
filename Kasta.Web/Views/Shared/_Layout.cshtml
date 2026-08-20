@@ -8,17 +8,17 @@
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
 @inject SystemSettingsProxy SystemSettings
-@inject ApplicationDbContext _db
+@inject KastaDbContext Database
 @inject IHttpContextAccessor ctx
 @{
     UserLimitModel? userLimit = null;
     var appTitle = SystemSettings.EnableCustomBranding ? SystemSettings.CustomBrandingTitle : "Kasta";
-    string bootstrapThemeAttributeValue = "auto";
-    string currentTheme = "";
-    bool isAdmin = false;
-    bool enableNavbar = true;
-    bool showMailbox = false;
-    bool showUserAdmin = false;
+    var bootstrapThemeAttributeValue = "auto";
+    var currentTheme = "";
+    var isAdmin = false;
+    var enableNavbar = true;
+    var showMailbox = false;
+    var showUserAdmin = false;
     if (SignInManager.IsSignedIn(User))
     {
         var user = await UserManager.GetUserAsync(User);
@@ -26,7 +26,7 @@
         userLimit = user?.Limit;
         if (user != null)
         {
-            var settings = await _db.GetUserSettingsAsync(user);
+            var settings = await Database.GetUserSettingsAsync(user);
             if (!string.IsNullOrEmpty(settings.ThemeName))
             {
                 currentTheme = settings.ThemeName.Trim().ToLower();
@@ -51,29 +51,22 @@
         }
     }
 
-    string versionString = "";
-    var ver = typeof(Kasta.Web.Program).Assembly.GetName().Version;
+    var versionString = string.Empty;
+    var ver = typeof(Startup).Assembly.GetName().Version;
     if (ver != null)
     {
-        if (ver.Revision > 0 && ver.Build > 0 && ver.Minor > 0)
-        {
-            versionString = ver.ToString();
-        }
-        else if (ver.Revision <= 0 && ver.Build > 0 && ver.Minor > 0)
+        versionString = ver.ToString();
+        if (ver is { Revision: <= 0, Build: > 0, Minor: > 0 })
         {
             versionString = $"{ver.Major}.{ver.Minor}.{ver.Build}";
         }
-        else if (ver.Revision <= 0 && ver.Build <= 0 && ver.Minor > 0)
+        else if (ver is { Revision: <= 0, Build: <= 0, Minor: > 0 })
         {
             versionString = $"{ver.Major}.{ver.Minor}";
         }
-        else if (ver.Revision <= 0 && ver.Build <= 0 && ver.Minor <= 0)
+        else if (ver is { Revision: <= 0, Build: <= 0, Minor: <= 0 })
         {
             versionString = $"{ver.Major}";
-        }
-        else
-        {
-            versionString = ver.ToString();
         }
         versionString = $"v{versionString}";
     }
@@ -208,7 +201,7 @@
 <div class="container-xl">
     @if (enableNavbar && isAdmin)
     {
-        var pendingMigrations = await _db.Database.GetPendingMigrationsAsync();
+        var pendingMigrations = await Database.Database.GetPendingMigrationsAsync();
         @if (pendingMigrations.Any())
         {
             <partial name="_PendingMigrationsPartial" />

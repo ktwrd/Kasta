@@ -20,7 +20,7 @@
         }
     }
 
-    var createdAtString = TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedAt.UtcDateTime, targetTimezone)
+    var createdAtString = TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedAt, targetTimezone)
         .ToString("yyyy/MM/dd HH:mm:ss");
 }
 

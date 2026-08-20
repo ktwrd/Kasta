@@ -12,7 +12,7 @@ using NpgsqlTypes;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241216040440_Create_ShortLinkModel")]
     partial class Create_ShortLinkModel
     {

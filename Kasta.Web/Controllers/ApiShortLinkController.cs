@@ -18,7 +18,8 @@ namespace Kasta.Web.Controllers;
 [ApiController]
 public class ApiShortLinkController : Controller
 {
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
     private readonly ShortUrlService _shortUrlService;
     private readonly LinkShortenerWebService _linkShortenerWebService;
     private readonly SystemSettingsProxy _systemSettingsProxy;
@@ -28,7 +29,8 @@ public class ApiShortLinkController : Controller
 
     public ApiShortLinkController(IServiceProvider services, ILogger<ApiShortLinkController> logger)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
         _shortUrlService = services.GetRequiredService<ShortUrlService>();
         _linkShortenerWebService = services.GetRequiredService<LinkShortenerWebService>();
         _systemSettingsProxy = services.GetRequiredService<SystemSettingsProxy>();
@@ -148,7 +150,7 @@ public class ApiShortLinkController : Controller
             model.IsVanity = true;
         }
 
-        await using (var ctx = _db.CreateSession())
+        await using (var ctx = await _dbFactory.CreateDbContextAsync())
         {
             await using var trans = await ctx.Database.BeginTransactionAsync();
             try

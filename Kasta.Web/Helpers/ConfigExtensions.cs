@@ -11,108 +11,102 @@ public static class ConfigExtensions
 {
     public static void FromConfiguration(this KestrelServerOptions opts, KastaConfig config)
     {
-        ApplyLimits();
-        
-        
-        void ApplyLimits()
+        var limits = config.Kestrel?.Limits;
+        if (limits == null) return;
+        if (limits.MaxResponseBufferSize != null)
         {
-            var limits = config.Kestrel?.Limits;
-            if (limits == null) return;
-            if (limits.MaxResponseBufferSize != null)
+            if (limits.MaxResponseBufferSize == -1)
             {
-                if (limits.MaxResponseBufferSize == -1)
-                {
-                    opts.Limits.MaxResponseBufferSize = -1;
-                }
-                else
-                {
-                    opts.Limits.MaxResponseBufferSize = limits.MaxResponseBufferSize.Value;
-                }
+                opts.Limits.MaxResponseBufferSize = -1;
             }
-            if (limits.MaxRequestBufferSize != null)
+            else
             {
-                if (limits.MaxRequestBufferSize == -1)
-                {
-                    opts.Limits.MaxRequestBufferSize = null;
-                }
-                else
-                {
-                    opts.Limits.MaxRequestBufferSize = limits.MaxRequestBufferSize.Value;
-                }
+                opts.Limits.MaxResponseBufferSize = limits.MaxResponseBufferSize.Value;
             }
-            if (limits.MaxRequestLineSize != null && limits.MaxRequestLineSize.HasValue)
+        }
+        if (limits.MaxRequestBufferSize != null)
+        {
+            if (limits.MaxRequestBufferSize == -1)
             {
-                opts.Limits.MaxRequestLineSize = limits.MaxRequestLineSize.Value;
+                opts.Limits.MaxRequestBufferSize = null;
             }
-            if (limits.MaxRequestHeadersTotalSize != null && limits.MaxRequestHeadersTotalSize.HasValue)
+            else
             {
-                opts.Limits.MaxRequestHeadersTotalSize = limits.MaxRequestHeadersTotalSize.Value;
+                opts.Limits.MaxRequestBufferSize = limits.MaxRequestBufferSize.Value;
             }
-            if (limits.MaxRequestHeaderCount != null && limits.MaxRequestHeaderCount.HasValue)
+        }
+        if (limits.MaxRequestLineSize != null && limits.MaxRequestLineSize.HasValue)
+        {
+            opts.Limits.MaxRequestLineSize = limits.MaxRequestLineSize.Value;
+        }
+        if (limits.MaxRequestHeadersTotalSize != null && limits.MaxRequestHeadersTotalSize.HasValue)
+        {
+            opts.Limits.MaxRequestHeadersTotalSize = limits.MaxRequestHeadersTotalSize.Value;
+        }
+        if (limits.MaxRequestHeaderCount != null && limits.MaxRequestHeaderCount.HasValue)
+        {
+            opts.Limits.MaxRequestHeaderCount = limits.MaxRequestHeaderCount.Value;
+        }
+        if (limits.MaxRequestBodySize != null)
+        {
+            if (limits.MaxRequestBodySize == -1)
             {
-                opts.Limits.MaxRequestHeaderCount = limits.MaxRequestHeaderCount.Value;
+                opts.Limits.MaxRequestBodySize = null;
             }
-            if (limits.MaxRequestBodySize != null)
+            else
             {
-                if (limits.MaxRequestBodySize == -1)
-                {
-                    opts.Limits.MaxRequestBodySize = null;
-                }
-                else
-                {
-                    opts.Limits.MaxRequestBodySize = limits.MaxRequestBodySize.Value;
-                }
+                opts.Limits.MaxRequestBodySize = limits.MaxRequestBodySize.Value;
             }
-            if (limits.KeepAliveTimeout != null)
+        }
+        if (limits.KeepAliveTimeout != null)
+        {
+            opts.Limits.KeepAliveTimeout = limits.KeepAliveTimeout.ToTimeSpan();
+        }
+        if (limits.RequestHeadersTimeout != null)
+        {
+            opts.Limits.RequestHeadersTimeout = limits.RequestHeadersTimeout.ToTimeSpan();
+        }
+        if (limits.MaxConcurrentConnections != null)
+        {
+            if (limits.MaxConcurrentConnections == -1)
             {
-                opts.Limits.KeepAliveTimeout = limits.KeepAliveTimeout.ToTimeSpan();
+                opts.Limits.MaxConcurrentConnections = null;
             }
-            if (limits.RequestHeadersTimeout != null)
+            else
             {
-                opts.Limits.RequestHeadersTimeout = limits.RequestHeadersTimeout.ToTimeSpan();
+                opts.Limits.MaxConcurrentConnections = limits.MaxConcurrentConnections.Value;
             }
-            if (limits.MaxConcurrentConnections != null)
+        }
+        if (limits.MaxConcurrentUpgradedConnections != null)
+        {
+            if (limits.MaxConcurrentUpgradedConnections == -1)
             {
-                if (limits.MaxConcurrentConnections == -1)
-                {
-                    opts.Limits.MaxConcurrentConnections = null;
-                }
-                else
-                {
-                    opts.Limits.MaxConcurrentConnections = limits.MaxConcurrentConnections.Value;
-                }
+                opts.Limits.MaxConcurrentUpgradedConnections = null;
             }
-            if (limits.MaxConcurrentUpgradedConnections != null)
+            else
             {
-                if (limits.MaxConcurrentUpgradedConnections == -1)
-                {
-                    opts.Limits.MaxConcurrentUpgradedConnections = null;
-                }
-                else
-                {
-                    opts.Limits.MaxConcurrentUpgradedConnections = limits.MaxConcurrentUpgradedConnections.Value;
-                }
+                opts.Limits.MaxConcurrentUpgradedConnections = limits.MaxConcurrentUpgradedConnections.Value;
             }
+        }
 
-            if (limits.EnforceMinRequestBodyDataRate == false)
-            {
-                opts.Limits.MinRequestBodyDataRate = null;
-            }
-            else if (limits.MinRequestBodyDataRate != null)
-            {
-                var dataRate = limits.MinRequestBodyDataRate;
-                opts.Limits.MinRequestBodyDataRate = new MinDataRate(dataRate.BytesPerSecond, dataRate.GracePeriod.ToTimeSpan());
-            }
+        if (limits.EnforceMinRequestBodyDataRate == false)
+        {
+            opts.Limits.MinRequestBodyDataRate = null;
+        }
+        else if (limits.MinRequestBodyDataRate != null)
+        {
+            var dataRate = limits.MinRequestBodyDataRate;
+            opts.Limits.MinRequestBodyDataRate = new MinDataRate(dataRate.BytesPerSecond, dataRate.GracePeriod.ToTimeSpan());
+        }
 
-            if (limits.EnforceMinResponseDataRate == false)
-            {
-                opts.Limits.MinResponseDataRate = null;
-            }
-            else if (limits.MinResponseDataRate != null)
-            {
-                var dataRate = limits.MinResponseDataRate;
-                opts.Limits.MinResponseDataRate = new MinDataRate(dataRate.BytesPerSecond, dataRate.GracePeriod.ToTimeSpan());
-            }
+        if (limits.EnforceMinResponseDataRate == false)
+        {
+            opts.Limits.MinResponseDataRate = null;
+        }
+        else if (limits.MinResponseDataRate != null)
+        {
+            var dataRate = limits.MinResponseDataRate;
+            opts.Limits.MinResponseDataRate = new MinDataRate(dataRate.BytesPerSecond, dataRate.GracePeriod.ToTimeSpan());
         }
     }
 
@@ -126,7 +120,7 @@ public static class ConfigExtensions
 #endif
             return;
         }
-
+        
         if (cfg.Sentry.SampleRate.HasValue)
         {
             if (cfg.Sentry.SampleRate < 0.0f)
@@ -174,6 +168,35 @@ public static class ConfigExtensions
                 opts.TracesSampleRate = cfg.Sentry.TracesSampleRate.Value % 1.0f;
             }
         }
+
+        if (cfg.Sentry.DiagnosticLevel.HasValue)
+        {
+            opts.DiagnosticLevel = cfg.Sentry.DiagnosticLevel.Value.Parse();
+        }
+
+        if (cfg.Sentry.MaxBreadcrumbs.HasValue)
+        {
+            opts.MaxBreadcrumbs = cfg.Sentry.MaxBreadcrumbs.Value;
+        }
+
+        if (cfg.Sentry.EnableLogs.HasValue)
+        {
+            opts.EnableLogs = cfg.Sentry.EnableLogs.Value;
+        }
+        if (cfg.Sentry.EnableMetrics.HasValue)
+        {
+            opts.EnableLogs = cfg.Sentry.EnableMetrics.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(cfg.Sentry.CacheDirectoryPath))
+        {
+            opts.CacheDirectoryPath = cfg.Sentry.CacheDirectoryPath;
+        }
+
+        if (cfg.Sentry.DisableFileWrite.HasValue)
+        {
+            opts.DisableFileWrite = cfg.Sentry.DisableFileWrite.Value;
+        }
     }
 
     public static void FromConfiguration(this SentryNLogOptions opts) => opts.FromConfiguration(KastaConfig.Instance);
@@ -181,7 +204,6 @@ public static class ConfigExtensions
     {
         var section = cfg.Sentry?.NLog;
         if (section == null) return;
-
 
         if (section.MinimumEventLevel.HasValue) opts.MinimumEventLevel = section.MinimumEventLevel.Value.Parse();
         if (section.MinimumBreadcrumbLevel.HasValue) opts.MinimumBreadcrumbLevel = section.MinimumBreadcrumbLevel.Value.Parse();

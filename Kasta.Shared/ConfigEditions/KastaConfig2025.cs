@@ -10,7 +10,7 @@ public class KastaConfig2025
     public AuthConfigElement? Auth { get; set; }
 
     [XmlElement("Database")]
-    public PostgresDatabaseConfig Database { get; set; } = new();
+    public DatabaseConfigElement Database { get; set; } = new();
 
     [XmlElement("S3")]
     public S3StorageConfig? S3 { get; set; } = new();

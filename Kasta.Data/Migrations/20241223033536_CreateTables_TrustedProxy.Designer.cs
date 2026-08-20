@@ -12,7 +12,7 @@ using NpgsqlTypes;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241223033536_CreateTables_TrustedProxy")]
     partial class CreateTables_TrustedProxy
     {

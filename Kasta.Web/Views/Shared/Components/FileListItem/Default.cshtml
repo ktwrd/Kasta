@@ -92,7 +92,7 @@
         @PrettySize.Bytes(Model.File.Size)
     </td>
     <td>
-        @TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt.UtcDateTime, targetTimezone)
+        @TimeZoneInfo.ConvertTimeFromUtc(Model.File.CreatedAt, targetTimezone)
     </td>
     <td>
         <div class="btn-group">

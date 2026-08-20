@@ -12,7 +12,7 @@ namespace Kasta.Web.Services;
 
 public class FileWebService
 {
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly S3Service _s3;
     private readonly SignInManager<UserModel> _signInManager;
     private readonly UserManager<UserModel> _userManager;
@@ -22,7 +22,7 @@ public class FileWebService
     
     public FileWebService(IServiceProvider services, ILogger<FileWebService> logger)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _s3 = services.GetRequiredService<S3Service>();
         _signInManager = services.GetRequiredService<SignInManager<UserModel>>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();

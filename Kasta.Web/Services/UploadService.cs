@@ -2,6 +2,7 @@ using Kasta.Data;
 using Kasta.Data.Models;
 using Kasta.Shared;
 using Kasta.Web.Models.Api.Request;
+using Microsoft.EntityFrameworkCore;
 using NLog;
 
 namespace Kasta.Web.Services;
@@ -9,21 +10,23 @@ namespace Kasta.Web.Services;
 public class UploadService
 {
     private readonly Logger _log = LogManager.GetCurrentClassLogger();
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly ShortUrlService _shortUrlService;
     private readonly FileService _fileService;
     private readonly GenericFileService _genericFileService;
     private readonly PreviewService _previewService;
     private readonly KastaConfig _cfg;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
 
     public UploadService(IServiceProvider services)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _shortUrlService = services.GetRequiredService<ShortUrlService>();
         _fileService = services.GetRequiredService<FileService>();
         _genericFileService = services.GetRequiredService<GenericFileService>();
         _previewService = services.GetRequiredService<PreviewService>();
         _cfg = services.GetRequiredService<KastaConfig>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
     }
 
     public const int ChunkLimit = 1024 * 1024;
@@ -43,7 +46,7 @@ public class UploadService
             CreatedByUserId = user.Id,
         };
 
-        await using var ctx = _db.CreateSession();
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
         try
         {

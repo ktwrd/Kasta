@@ -12,7 +12,7 @@ using Kasta.Data;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241127104317_UserModel_Column_ThemeName")]
     partial class UserModel_Column_ThemeName
     {

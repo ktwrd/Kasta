@@ -26,7 +26,7 @@ It is recommended to use Docker to make updating very easy. The following docker
 ```yml
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_PASSWORD: changeme123
       POSTGRES_USER: kasta
@@ -81,7 +81,7 @@ server {
     access_log  /var/log/nginx/access.log;
     client_max_body_size 500M;
 
-    # Fix for 520 Cloudflare errorr (see section above)
+    # Fix for 520 Cloudflare error (see section above)
     large_client_header_buffers 4 32k;
 
     location / {
@@ -102,6 +102,22 @@ server {
     return 301 https://$http_host$request_uri;
 }
 ```
+
+## Contributing
+
+When creating new database migrations, both Sqlite and PostgreSQL migrations need to be made. So it runs properly, please put a `config.xml` file in the `Kasta.Data` directory with your configured PostgreSql database for creating the migrations for `PostgresDbContext`.
+
+Creating migrations for `SqliteDbContext` requires no config file.
+
+```bash
+cd ./Kasta.Data
+dotnet ef migrations add $migration_name --context PostgresDbContext --output-dir Migrations
+dotnet ef migrations add $migration_name --context SqliteDbContext --output-dir SqliteMigrations
+```
+
+The `PostgresDbContext` has the output directory of `Migrations` since Kasta currently is a Postgres-First project, where Sqlite is only recommended for having a lightweight development environment.
+
+It's also recommended to use local file storage when running a development instance of Kasta, but in production an S3-compatible server is strongly recommended (e.g: SeaweedFS, RustFS, Cloudflare r2, etc...)
 
 ## Footnotes
 [^1]: Kasta has only been tested with AWS S3 and MinIO (LAN Deployment). When using an S3 Compatible Service (that isn't AWS S3), then make sure that the `ForcePathStyle` element in your S3 configuration is set to `true` (which is nested in the `S3` element in `config.example.xml`).

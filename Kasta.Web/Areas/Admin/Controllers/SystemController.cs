@@ -17,7 +17,8 @@ namespace Kasta.Web.Areas.Admin.Controllers;
 public class SystemController : Controller
 {
     private readonly SystemSettingsProxy _systemSettingsProxy;
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
     private readonly IEasyCachingProvider _cache;
     private readonly FileService _fileService;
     private readonly ILogger<SystemController> _logger;
@@ -25,7 +26,8 @@ public class SystemController : Controller
     public SystemController(IServiceProvider services, ILogger<SystemController> logger)
     {
         _systemSettingsProxy = services.GetRequiredService<SystemSettingsProxy>();
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
         _cache = services.GetRequiredService<IEasyCachingProvider>();
         _fileService = services.GetRequiredService<FileService>();
 
@@ -90,7 +92,7 @@ public class SystemController : Controller
     public async Task<IActionResult> SaveSettingsComponent(
         [FromForm] SystemSettingsViewModel data)
     {
-        await using var ctx = _db.CreateSession();
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
 
         var refreshTimezone = false;

@@ -12,7 +12,7 @@ using NpgsqlTypes;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241206124629_UserModel_ClientCascadeDelete")]
     partial class UserModel_ClientCascadeDelete
     {

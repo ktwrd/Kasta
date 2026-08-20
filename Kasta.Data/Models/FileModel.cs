@@ -10,7 +10,7 @@ public class FileModel
     public FileModel()
     {
         Id = Guid.NewGuid().ToString();
-        CreatedAt = DateTimeOffset.UtcNow;
+        CreatedAt = DateTime.UtcNow;
     }
 
     [Required]
@@ -49,7 +49,10 @@ public class FileModel
     [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    /// <summary>
+    /// When this file was created (UTC)
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
     
     [AuditIgnore]
     public FilePreviewModel? Preview { get; set; }
@@ -59,6 +62,7 @@ public class FileModel
     [AuditIgnore]
     public S3FileInformationModel? S3FileInformation { get; set; }
     
+    // TODO add method in repository for searching instead of queries referencing a SearchVector (that doesn't exist for Sqlite)
     [AuditIgnore]
     public NpgsqlTsVector SearchVector { get; set; }
 }

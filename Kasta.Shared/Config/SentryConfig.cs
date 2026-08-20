@@ -46,7 +46,22 @@ public class SentryConfig
 
     [XmlElement("DiagnosticLevel")]
     public XmlSentryLevel? DiagnosticLevel { get; set; }
-
+    
+    [XmlElement("MaxBreadcrumbs")]
+    public int? MaxBreadcrumbs { get; set; }
+    
+    [XmlElement("EnableLogs")]
+    public bool? EnableLogs { get; set; }
+    
+    [XmlElement("EnableMetrics")]
+    public bool? EnableMetrics { get; set; }
+    
+    [XmlElement("CacheDirectoryPath")]
+    public string? CacheDirectoryPath { get; set; }
+    
+    [XmlElement("DisableFileWrite")]
+    public bool? DisableFileWrite { get; set; }
+    
     /// <summary>
     /// The level of the event sent to Sentry.
     /// </summary>

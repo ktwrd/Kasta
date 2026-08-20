@@ -9,7 +9,7 @@ public class ChunkUploadSessionModel
     public ChunkUploadSessionModel()
     {
         Id = Guid.NewGuid().ToString();
-        CreatedAt = DateTimeOffset.UtcNow;
+        CreatedAt = DateTime.UtcNow;
     }
     [Required]
     [MaxLength(DatabaseHelper.GuidLength)]
@@ -27,5 +27,8 @@ public class ChunkUploadSessionModel
     [AuditIgnore]
     public FileModel File { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    /// <summary>
+    /// When this record was created (UTC)
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
 }

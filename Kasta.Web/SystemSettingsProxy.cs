@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Kasta.Web;
 
 /// <summary>
-/// Proxy class for easily accessing global settings defined in <see cref="ApplicationDbContext.Preferences"/>
+/// Proxy class for easily accessing global settings defined in <see cref="KastaDbContext.Preferences"/>
 /// </summary>
 public class SystemSettingsProxy
 {
@@ -14,23 +14,23 @@ public class SystemSettingsProxy
     {
         return $"{nameof(SystemSettingsProxy)} {key}";
     }
-    internal record SystemSettingsProxyCacheValue(string Key, string? Value, string ValueKind)
+    internal sealed record SystemSettingsProxyCacheValue(string Key, string? Value, string ValueKind)
     {
         public string GetKey() => GetCacheKey(Key);
     };
     private readonly IEasyCachingProvider _caching;
-    private readonly ApplicationDbContext _db;
-    public SystemSettingsProxy(ApplicationDbContext db, IEasyCachingProvider cachingProvider)
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
+    public SystemSettingsProxy(IDbContextFactory<KastaDbContext> dbContextFactory, IEasyCachingProvider cachingProvider)
     {
-        _db = db;
+        _dbFactory = dbContextFactory;
         _caching = cachingProvider;
     }
 
     public void EnsureInitialized()
     {
-        var existingNames = _db.Preferences.Select(e => e.Key).ToList();
-        using var ctx = _db.CreateSession();
-        using var trans = ctx.Database.BeginTransaction();
+        using var db = _dbFactory.CreateDbContext(); 
+        var existingNames = db.Preferences.AsNoTracking().Select(e => e.Key).ToArray();
+        // using var trans = db.Database.BeginTransaction();
         foreach (var prop in GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
             var defaultValueProp = typeof(DefaultValues).GetField(prop.Name);
@@ -57,33 +57,28 @@ public class SystemSettingsProxy
 
     private void UpdateOrInsert(string key, string value, string valueKind, bool enforceValueKind = false)
     {
-        using var ctx = _db.CreateSession();
-        var trans = ctx.Database.BeginTransaction();
+        using var db = _dbFactory.CreateDbContext(); 
+        using var trans = db.Database.BeginTransaction();
         try
         {
-            if (ctx.Preferences.Any(e => e.Key == key))
+            var model = db.Preferences.FirstOrDefault(e => e.Key == key);
+            if (model == null)
             {
-                if (enforceValueKind)
-                {
-                    ctx.Preferences.Where(e => e.Key == key && e.ValueKind == valueKind)
-                        .ExecuteUpdate(e => e.SetProperty(v => v.Value, value));
-                }
-                else
-                {
-                    ctx.Preferences.Where(e => e.Key == key)
-                        .ExecuteUpdate(e => e.SetProperty(v => v.Value, value));
-                }
-            }
-            else
-            {
-                ctx.Preferences.Add(new Data.Models.PreferencesModel()
+                db.Add(new Data.Models.PreferencesModel()
                 {
                     Value = value,
                     Key = key,
                     ValueKind = valueKind
                 });
             }
-            ctx.SaveChanges();
+            else
+            {
+                if (!enforceValueKind || model.ValueKind == valueKind)
+                {
+                    model.Value = value;
+                }
+            }
+            db.SaveChanges();
             trans.Commit();
             var cacheValue = new SystemSettingsProxyCacheValue(key, value, valueKind);
             _caching.Set(cacheValue.GetKey(), cacheValue, TimeSpan.FromSeconds(30));
@@ -103,14 +98,19 @@ public class SystemSettingsProxy
     }
     private string? ReadDatabaseValue(string key, string valueKind, bool enforceValueKind = false)
     {
+        using var db = _dbFactory.CreateDbContext();
         if (enforceValueKind)
         {
-            return _db.Preferences.Where(e => e.Key == key && e.ValueKind == valueKind)
+            return db.Preferences
+                .AsNoTracking()
+                .Where(e => e.Key == key && e.ValueKind == valueKind)
                 .Select(e => e.Value)
                 .FirstOrDefault();
         }
         
-        return _db.Preferences.Where(e => e.Key == key)
+        return db.Preferences
+            .AsNoTracking()
+            .Where(e => e.Key == key)
             .Select(e => e.Value)
             .FirstOrDefault();
     }

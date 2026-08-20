@@ -35,7 +35,7 @@
     {
         <tr id="apikey-@apiKey.Id">
             <td>@apiKey.Purpose</td>
-            <td>@TimeZoneInfo.ConvertTimeFromUtc(apiKey.CreatedAt.UtcDateTime, targetTimezone)</td>
+            <td>@TimeZoneInfo.ConvertTimeFromUtc(apiKey.CreatedAt, targetTimezone)</td>
             <td>
                 @(apiKey.CreatedByUser?.Email ?? apiKey.CreatedByUser?.UserName ?? apiKey.CreatedByUser?.Id)
             </td>

@@ -20,14 +20,14 @@ public class AccountManageController : Controller
     private readonly ILogger<AccountManageController> _logger;
     private readonly UserManager<UserModel> _userManager;
     private readonly UserService _userService;
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
 
     public AccountManageController(IServiceProvider services, ILogger<AccountManageController> logger)
     {
         _logger = logger;
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _userService = services.GetRequiredService<UserService>();
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
     }
 
     private async Task<ApiKeysViewModel> GetApiKeysViewModel()

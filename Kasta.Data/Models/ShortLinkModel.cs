@@ -10,7 +10,7 @@ public class ShortLinkModel
     public ShortLinkModel()
     {
         Id = Guid.NewGuid().ToString();
-        CreatedAt = DateTimeOffset.UtcNow;
+        CreatedAt = DateTime.UtcNow;
         Destination = "";
         IsVanity = false;
         CreatedByUser = null;
@@ -24,9 +24,9 @@ public class ShortLinkModel
     public string Id { get; set; }
 
     /// <summary>
-    /// Time when this record was created (UTC)
+    /// When this record was created (UTC)
     /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// User Id that created this record (FK to <see cref="UserModel.Id"/>

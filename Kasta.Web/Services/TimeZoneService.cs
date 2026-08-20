@@ -13,14 +13,14 @@ public class TimeZoneService : IDisposable
     {
         RefreshDatabase?.Invoke();
     }
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly SystemSettingsProxy _systemSettings;
 
     private readonly ILogger<TimeZoneService> _logger;
     public TimeZoneService(IServiceProvider services, ILogger<TimeZoneService> logger)
     {
         _logger = logger;
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
         RefreshDatabase += EnsureMaxmind;
         EnsureMaxmind();

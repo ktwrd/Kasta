@@ -11,7 +11,7 @@ public class UserApiKeyModel
     {
         Id = Guid.NewGuid().ToString();
         UserId = Guid.Empty.ToString();
-        CreatedAt = DateTimeOffset.UtcNow;
+        CreatedAt = DateTime.UtcNow;
         Token = GenerateToken();
         CreatedByUserId = null;
         User = null!;
@@ -57,9 +57,9 @@ public class UserApiKeyModel
     public string Token { get; set; }
     
     /// <summary>
-    /// Time when this Api Key was last used
+    /// When this Api Key was last used (UTC)
     /// </summary>
-    public DateTimeOffset? LastUsed { get; set; }
+    public DateTime? LastUsed { get; set; }
 
     /// <summary>
     /// <see cref="UserModel.Id"/> that created this Api Key.
@@ -68,9 +68,9 @@ public class UserApiKeyModel
     public string? CreatedByUserId { get; set; }
     
     /// <summary>
-    /// Time when this API Key was created (UTC)
+    /// When this API Key was created (UTC)
     /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     
     /// <summary>
     /// User Agent that created this Api Key
@@ -89,7 +89,12 @@ public class UserApiKeyModel
 
     [MaxLength(DatabaseHelper.GuidLength)]
     public string? DeletedByUserId { get; set; }
-    public DateTimeOffset? DeletedAt { get; set; }
+    /// <summary>
+    /// When this Api Key was deleted (UTC)
+    /// </summary>
+    public DateTime? DeletedAt { get; set; }
+    
+    // TODO refactor this to be user session info stored in the database (e.g: ips used, user agents used, tz, approx location, etc...)
     [MaxLength(500)]
     public string? DeletedByUserAgent { get; set; }
     [MaxLength(100)]

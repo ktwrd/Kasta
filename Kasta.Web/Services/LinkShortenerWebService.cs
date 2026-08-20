@@ -10,19 +10,21 @@ namespace Kasta.Web.Services;
 
 public class LinkShortenerWebService
 {
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly UserService _userService;
     private readonly UserManager<UserModel> _userManager;
     private readonly SystemSettingsProxy _systemSettings;
     private readonly ShortUrlService _shortUrlService;
+    private readonly IDbContextFactory<KastaDbContext> _dbFactory;
 
     public LinkShortenerWebService(IServiceProvider services)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _userService = services.GetRequiredService<UserService>();
         _userManager = services.GetRequiredService<UserManager<UserModel>>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
         _shortUrlService = services.GetRequiredService<ShortUrlService>();
+        _dbFactory = services.GetRequiredService<IDbContextFactory<KastaDbContext>>();
     }
 
     public async Task<DeleteShortenedLinkResult> Delete<T>(
@@ -61,7 +63,7 @@ public class LinkShortenerWebService
             return DeleteShortenedLinkResult.NotAuthorized;
         }
 
-        await using var ctx = _db.CreateSession();
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
         await using var trans = await ctx.Database.BeginTransactionAsync();
         try
         {
@@ -141,7 +143,7 @@ public class LinkShortenerWebService
                 : vanity;
             result = new ShortLinkModel
             {
-                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = user.Id,
                 Destination = url,
                 ShortLink = shortLink,

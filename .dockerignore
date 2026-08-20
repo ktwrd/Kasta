@@ -23,6 +23,13 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/config.xml
+**/*.sqlite
+**/*.sqlite-wal
+**/*.sqlite-shm
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/nuget.config
 dist
 private
 README.md

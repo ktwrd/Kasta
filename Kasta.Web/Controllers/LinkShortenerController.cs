@@ -18,7 +18,7 @@ namespace Kasta.Web.Controllers;
 [Route("~/[controller]")]
 public class LinkShortenerController : Controller
 {
-    private readonly ApplicationDbContext _db;
+    private readonly KastaDbContext _db;
     private readonly SystemSettingsProxy _systemSettings;
     private readonly LinkShortenerWebService _linkShortenerWebService;
 
@@ -26,7 +26,7 @@ public class LinkShortenerController : Controller
 
     public LinkShortenerController(IServiceProvider services, ILogger<LinkShortenerController> logger)
     {
-        _db = services.GetRequiredService<ApplicationDbContext>();
+        _db = services.GetRequiredService<KastaDbContext>();
         _systemSettings = services.GetRequiredService<SystemSettingsProxy>();
         _linkShortenerWebService = services.GetRequiredService<LinkShortenerWebService>();
 

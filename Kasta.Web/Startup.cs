@@ -20,6 +20,8 @@ using NLog;
 using System.IO.Compression;
 using System.Net;
 using EasyCaching.Core.Configurations;
+using Kasta.Shared.ConfigEditions;
+using Microsoft.EntityFrameworkCore.Internal;
 using Vivet.AspNetCore.RequestTimeZone.Extensions;
 
 namespace Kasta.Web;
@@ -41,7 +43,8 @@ public class Startup
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         // Configure the HTTP request pipeline.
-        if (env.IsDevelopment() || _env.IsDevelopment())
+        var isDev = env.IsDevelopment() || _env.IsDevelopment();
+        if (isDev)
         {
             app.UseDeveloperExceptionPage();
             app.UseMigrationsEndPoint();
@@ -49,36 +52,42 @@ public class Startup
         else
         {
             app.UseExceptionHandler("/Error");
+        }
+        
+        if (isDev || KastaConfig.Instance.Database.GetProvider() == DatabaseConfigElement.DatabaseProviderKind.Sqlite)
+        {
             using var scope = app.ApplicationServices.CreateScope();
             var services = scope.ServiceProvider;
-
             // TODO migrate this to FluentScheduler, and attempt to run this every minute (and instantly).
             // if this then fails SPECIFICALLY because it can't connect to the database, then silently fail
             // otherwise, catastrophically fail.
-            var context = services.GetRequiredService<ApplicationDbContext>();
+            var context = services.GetRequiredService<KastaDbContext>();
             var migrations = context.Database.GetPendingMigrations().ToList();
+            var logger = LogManager.GetCurrentClassLogger();
             if (migrations.Count > 0)
             {
-                var logger = LogManager.GetCurrentClassLogger();
                 logger.Info("Applying the following migrations:"
-                    + Environment.NewLine
-                    + string.Join(Environment.NewLine, migrations.Select(e => "- " + e)));
-                context.Database.Migrate();
+                            + Environment.NewLine
+                            + string.Join(Environment.NewLine, migrations.Select(e => "- " + e)));
             }
+            context.Database.Migrate();
+            context.SaveChanges();
+            logger.Info("Finished applying migrations");
         }
 
         // TODO configure this as a scheduled task with FluentScheduler to run instantly, and every hour
+        var dbContextFactory = app.ApplicationServices.GetRequiredService<IDbContextFactory<KastaDbContext>>();
+        using var db = dbContextFactory.CreateDbContext();
+        try
+        {
+            db.EnsureInitialRoles();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to ensure initial roles\n{ex}");
+        }
         using (var scope = app.ApplicationServices.CreateScope())
         {
-            using var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().CreateSession();
-            try
-            {
-                ctx.EnsureInitialRoles();
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Failed to ensure initial roles\n{ex}");
-            }
             try
             {
                 scope.ServiceProvider.GetRequiredService<SystemSettingsProxy>()
@@ -160,11 +169,11 @@ public class Startup
             options.Filters.Add(new BlockUserRegisterAttribute());
         });
         services.AddHttpContextAccessor();
-        services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
+        services.AddDataProtection().PersistKeysToDbContext<KastaDbContext>();
         services.AddRequestTimeZone(opts =>
         {
             var cfg = KastaConfig.Instance;
-            opts.Id = string.IsNullOrEmpty(cfg.DefaultTimezone?.Trim())
+            opts.DefaultTimeZone = string.IsNullOrEmpty(cfg.DefaultTimezone?.Trim())
                 ? "UTC"
                 : cfg.DefaultTimezone;
             opts.RequestTimeZoneProviders.Add(new IPAddressRequestTimeZoneProvider());
@@ -287,24 +296,15 @@ public class Startup
     private void ConfigureDatabaseServices(IServiceCollection services)
     {
         // Add services to the container.
-        services.AddDbContextPool<ApplicationDbContext>(
-            options =>
-            {
-                options.ConfigureWarnings(
-                    w => {
-                        if (FeatureFlags.SuppressPendingModelChangesWarning) {
-                            w.Ignore(RelationalEventId.PendingModelChangesWarning);
-                        }
-                    });
-                var cfg = KastaConfig.Instance;
-                var connectionString = cfg.Database.ToConnectionString();
-                options.UseNpgsql(connectionString);
-
-                if (_env.IsDevelopment())
-                {
-                    options.EnableSensitiveDataLogging();
-                }
-            });
+        if (KastaConfig.Instance.Database.GetProvider() == DatabaseConfigElement.DatabaseProviderKind.Postgres ||
+            KastaConfig.Instance.Database.UseLegacyPostgresSettings())
+        {
+            ConfigureDatabase<PostgresDbContext>(services);
+        }
+        else
+        {
+            ConfigureDatabase<SqliteDbContext>(services);
+        }
         services.AddDatabaseDeveloperPageExceptionFilter();
 
         services.AddDefaultIdentity<UserModel>(
@@ -316,14 +316,49 @@ public class Startup
                 })
                 .AddRoles<IdentityRole>()
                 .AddUserManager<CustomUserManager<UserModel>>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<KastaDbContext>();
+    }
+
+    private void ConfigureDatabase<TContextService>(IServiceCollection services)
+        where TContextService : KastaDbContext
+    {
+        services.AddDbContextPool<KastaDbContext, TContextService>(ConfigureApplicationDbContext)
+                .AddPooledDbContextFactory<KastaDbContext>(ConfigureApplicationDbContext);
+    }
+
+    private void ConfigureApplicationDbContext(DbContextOptionsBuilder options)
+    {
+        options.ConfigureWarnings(w => {
+            if (FeatureFlags.SuppressPendingModelChangesWarning) {
+                w.Ignore(RelationalEventId.PendingModelChangesWarning);
+            }
+        });
+        var cfg = KastaConfig.Instance;
+        
+        var connectionString = cfg.Database.GetProvider() == DatabaseConfigElement.DatabaseProviderKind.Postgres
+            ? cfg.Database.GetPostgres().ToConnectionString()
+            : cfg.Database.GetSqlite().ToConnectionString();
+        if (cfg.Database.GetProvider() == DatabaseConfigElement.DatabaseProviderKind.Postgres)
+        {
+            options.UseNpgsql(connectionString);
+        }
+        else
+        {
+            options.AddInterceptors(new SqliteWalInterceptor());
+            options.UseSqlite(connectionString);
+        }
+
+        if (_env.IsDevelopment())
+        {
+            options.EnableSensitiveDataLogging();
+        }
     }
     
     #region Authentication
     private static void ConfigureAuthenticationServices(IServiceCollection services)
     {
         var cfg = KastaConfig.Instance;
-        if (cfg.Auth?.OAuth.Count < 1) return;
+        if (cfg.Auth == null || cfg.Auth.OAuth.Count < 1) return;
         
         var auth = services.AddAuthentication()
             .AddCookie(JwtBearerDefaults.AuthenticationScheme);

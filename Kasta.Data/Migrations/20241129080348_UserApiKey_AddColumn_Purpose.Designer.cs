@@ -12,7 +12,7 @@ using NpgsqlTypes;
 
 namespace Kasta.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(PostgresDbContext))]
     [Migration("20241129080348_UserApiKey_AddColumn_Purpose")]
     partial class UserApiKey_AddColumn_Purpose
     {

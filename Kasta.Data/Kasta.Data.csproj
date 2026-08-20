@@ -12,6 +12,7 @@
     <PackageReference Include="MaxMind.GeoIP2" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="NLog" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
       <PrivateAssets>all</PrivateAssets>

@@ -13,6 +13,8 @@
         <RepositoryUrl>https://github.com/ktwrd/Kasta</RepositoryUrl>
         <Copyright>Copyright (c) Kate Ward</Copyright>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <EnableCompressionInSingleFile>True</EnableCompressionInSingleFile>
+        <IncludeNativeLibrariesForSelfExtract>True</IncludeNativeLibrariesForSelfExtract>
     </PropertyGroup>
 
     <ItemGroup>
