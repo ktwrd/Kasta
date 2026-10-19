@@ -10,7 +10,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
     <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
-    <PackageVersion Include="Vivet.AspNetCore.RequestTimeZone" Version="10.0.4" />
+    <PackageVersion Include="Vivet.AspNetCore.RequestTimeZone" Version="10.0.8" />
     <!-- ASP.NET - Auth -->
     <PackageVersion Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
