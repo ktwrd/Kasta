@@ -29,7 +29,7 @@
     <PackageVersion Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" Version="5.3.11" />
     <PackageVersion Include="MessagePack" Version="2.5.198" />
     <!-- Storage -->
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.104.4" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.104.5" />
     <!-- Geolocation Network Data -->
     <PackageVersion Include="MaxMind.GeoIP2" Version="6.1.0" />
     <PackageVersion Include="GeoTimeZone" Version="6.1.0" />
