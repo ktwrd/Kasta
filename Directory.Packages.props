@@ -34,7 +34,7 @@
     <PackageVersion Include="MaxMind.GeoIP2" Version="6.1.0" />
     <PackageVersion Include="GeoTimeZone" Version="6.1.0" />
     <!-- Content parsing/manupliation -->
-    <PackageVersion Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.14.0" />
+    <PackageVersion Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.17.2" />
     <PackageVersion Include="Markdig" Version="1.2.0" />
     <PackageVersion Include="MimeTypes" Version="2.5.2" />
     <!-- Logging/Error Tracing -->
