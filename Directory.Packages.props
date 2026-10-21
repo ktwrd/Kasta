@@ -35,7 +35,7 @@
     <PackageVersion Include="GeoTimeZone" Version="6.1.0" />
     <!-- Content parsing/manupliation -->
     <PackageVersion Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.17.2" />
-    <PackageVersion Include="Markdig" Version="1.2.0" />
+    <PackageVersion Include="Markdig" Version="1.4.2" />
     <PackageVersion Include="MimeTypes" Version="2.5.2" />
     <!-- Logging/Error Tracing -->
     <PackageVersion Include="NLog" Version="6.2.2" />
