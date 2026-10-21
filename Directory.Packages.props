@@ -39,7 +39,7 @@
     <PackageVersion Include="MimeTypes" Version="2.5.2" />
     <!-- Logging/Error Tracing -->
     <PackageVersion Include="NLog" Version="6.2.2" />
-    <PackageVersion Include="NLog.Web.AspNetCore" Version="6.1.3" />
+    <PackageVersion Include="NLog.Web.AspNetCore" Version="6.2.2" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.6.0" />
     <PackageVersion Include="Sentry.NLog" Version="6.6.0" />
     <!-- Unit Testing -->
