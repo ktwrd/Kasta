@@ -43,7 +43,7 @@
     <PackageVersion Include="Sentry.AspNetCore" Version="6.6.0" />
     <PackageVersion Include="Sentry.NLog" Version="6.6.0" />
     <!-- Unit Testing -->
-    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.15.0" />
