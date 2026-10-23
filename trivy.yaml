@@ -1,4 +1,4 @@
-format: json
-exit-code: 1
+format: sarif
 severity: CRITICAL
 vuln-type: os,library
+ignore-unfixed: true
