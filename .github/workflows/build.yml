@@ -113,7 +113,7 @@ jobs:
         run: dotnet publish Kasta.Web --configuration Release -p:PublishSingleFile=true -p:ReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CopyOutputSymbolsToPublishDirectory=false --self-contained --runtime ${{ matrix.runtime }} --output dist
       
       - name: Upload Binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Kasta-${{matrix.runtime}}
           path: dist
@@ -243,7 +243,7 @@ jobs:
           echo "VERSION=$(git describe --tags --abbrev=0).$([[ $GITHUB_REF = refs/tags/* ]] && echo 0 || echo 65534)+$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Download ${{ matrix.runtime }} Binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Kasta-${{ matrix.runtime }}
           path: dist/${{ matrix.runtime }}
