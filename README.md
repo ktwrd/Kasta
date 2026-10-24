@@ -6,7 +6,8 @@
 A Simple self-hostable File Sharing Service written in C#. Supports displaying media (image, video, audio), [ShareX](https://github.com/ShareX/ShareX) config generation, [rustgrab](https://github.com/ktwrd/rustgrab) support, and stores files with pretty much any S3-compatible service.
 
 >[!IMPORTANT]
-> Kasta is not production-ready and is currently in Alpha, because of this, Kasta is not production-ready for a multi-user scenario, and the configuration file format is subject to change.
+> Kasta is currently in Alpha!
+> Many things are subject to change, and features may not be fully complete.
 
 ![Screenshot of the Kasta web application, displaying a list of uploaded images with their; filename, date created, file size, sharing status, and file size.](https://kate.pet/img/blog/firefox_1506_K10H17LkIG.png)
 
