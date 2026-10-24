@@ -5,6 +5,9 @@
 
 A Simple self-hostable File Sharing Service written in C#. Supports displaying media (image, video, audio), [ShareX](https://github.com/ShareX/ShareX) config generation, [rustgrab](https://github.com/ktwrd/rustgrab) support, and stores files with pretty much any S3-compatible service.
 
+>[!IMPORTANT]
+> Kasta is not production-ready and is currently in Alpha, because of this, Kasta is not production-ready for a multi-user scenario, and the configuration file format is subject to change.
+
 ![Screenshot of the Kasta web application, displaying a list of uploaded images with their; filename, date created, file size, sharing status, and file size.](https://kate.pet/img/blog/firefox_1506_K10H17LkIG.png)
 
 ## Features
@@ -14,12 +17,12 @@ A Simple self-hostable File Sharing Service written in C#. Supports displaying m
 - Config Generator for [ShareX](https://github.com/ShareX/ShareX) and [rustgrab](https://github.com/ktwrd/rustgrab)
 - Compatible with AWS S3 and S3-Compatible Services (like Cloudflare R2, MinIO, and Wasabi[^1])
 - Web File Upload
-- Audit Logging
+- Audit Logging[^2]
 - Per-user storage quota & file size limits
 - Public & Private uploads
 - Image Preview Generation (including image info like file type, compression, interlacing, and dimensions)
-- Text File Preview
-- Link Shortener
+- Text File Preview[^3]
+- Link Shortener[^4]
 
 ## Installing
 It is recommended to use Docker to make updating very easy. The following docker compose file is the recommended setup, along with copying `config.example.xml` to `config.xml` and change the settings in there so it fits your needs.
@@ -121,3 +124,6 @@ It's also recommended to use local file storage when running a development insta
 
 ## Footnotes
 [^1]: Kasta has only been tested with AWS S3 and MinIO (LAN Deployment). When using an S3 Compatible Service (that isn't AWS S3), then make sure that the `ForcePathStyle` element in your S3 configuration is set to `true` (which is nested in the `S3` element in `config.example.xml`).
+[^2]: Audit logging has not been fully implemented, but complete audit logging and webhooks are planned in a future release.
+[^3]: Currently the text file preview has a hard-coded file size & extension limit. In the future, this will be fully configurable in the frontend.
+[^4]: The Link Shortener is a bit buggy right now, and the text is not that legible with dark themes. This will be fixed in a future release.
