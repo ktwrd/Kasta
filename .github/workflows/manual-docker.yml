@@ -40,7 +40,7 @@ jobs:
           
       - name: Build and push Docker images
         id: push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           file: Dockerfile
           push: true
@@ -51,7 +51,7 @@ jobs:
       - if: ${{ github.event.inputs.latest == 'true' }}
         name: Mark Docker Image as Latest
         id: push-latest
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           file: Dockerfile
           push: true
