@@ -195,16 +195,15 @@ public class UserService
             .Include(e => e.User)
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == apiKey && !e.IsDeleted);
-        if (apiKeyModel == null)
+
+        var isAdmin = await _userManager.IsInRoleAsync(currentUser, RoleKind.Administrator);
+
+        // Return the same "not found" result for a missing key and a key the
+        // current user is not permitted to see, so callers cannot use the
+        // response to enumerate valid Api Key identifiers belonging to others.
+        if (apiKeyModel == null || (!isAdmin && apiKeyModel.UserId != currentUser.Id))
         {
             return DeleteApiKeyError.ApiKeyNotFound;
-        }
-
-
-        if (!await _userManager.IsInRoleAsync(currentUser, RoleKind.Administrator)
-            && apiKeyModel.UserId !=  currentUser.Id)
-        {
-            return DeleteApiKeyError.NotAuthorizedToDeleteOtherPeoplesKeys;
         }
         
         await using var trans = await _db.Database.BeginTransactionAsync();
