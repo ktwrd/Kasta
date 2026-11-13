@@ -40,8 +40,8 @@
     <!-- Logging/Error Tracing -->
     <PackageVersion Include="NLog" Version="6.2.2" />
     <PackageVersion Include="NLog.Web.AspNetCore" Version="6.3.0" />
-    <PackageVersion Include="Sentry.AspNetCore" Version="6.13.0" />
-    <PackageVersion Include="Sentry.NLog" Version="6.13.0" />
+    <PackageVersion Include="Sentry.AspNetCore" Version="7.0.0" />
+    <PackageVersion Include="Sentry.NLog" Version="7.0.0" />
     <!-- Unit Testing -->
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.1" />
