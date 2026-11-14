@@ -32,7 +32,7 @@
     <PackageVersion Include="AWSSDK.S3" Version="4.1.0" />
     <!-- Geolocation Network Data -->
     <PackageVersion Include="MaxMind.GeoIP2" Version="6.1.0" />
-    <PackageVersion Include="GeoTimeZone" Version="6.1.0" />
+    <PackageVersion Include="GeoTimeZone" Version="7.0.0" />
     <!-- Content parsing/manupliation -->
     <PackageVersion Include="Magick.NET-Q16-HDRI-AnyCPU" Version="15.1.0" />
     <PackageVersion Include="Markdig" Version="1.6.0" />
