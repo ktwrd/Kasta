@@ -98,7 +98,8 @@ public class ProfileController : Controller
         var apiKeyResult = await _userService.CreateApiKeyAsync(new()
         {
             UserId = currentUser.Id,
-            Purpose = "ShareX Config (generated via profile)"
+            Purpose = "ShareX Config (generated via profile)",
+            HttpContext = HttpContext
         });
 
         if (apiKeyResult.IsFailure)
@@ -171,7 +172,8 @@ public class ProfileController : Controller
         var apiKeyResult = await _userService.CreateApiKeyAsync(new()
         {
             UserId = currentUser.Id,
-            Purpose = "rustgrab Config (generated via profile)"
+            Purpose = "rustgrab Config (generated via profile)",
+            HttpContext = HttpContext
         });
 
         if (apiKeyResult.IsFailure)
@@ -220,6 +222,7 @@ public class ProfileController : Controller
     [HttpGet]
     public async Task<IActionResult> DeleteAllApiKeys()
     {
+        // TODO Migrate to UserService.DeleteAllApiKeysAsync
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null)
         {
