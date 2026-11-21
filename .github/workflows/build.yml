@@ -4,8 +4,6 @@ on:
   push:
     branches: [ main ]
     tags: "v[0-9]+.[0-9]+.[0-9]+(\\.[0-9]+)"
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 env:
@@ -19,12 +17,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -43,12 +41,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Pre-build
@@ -91,12 +89,12 @@ jobs:
           - "osx-arm64"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -115,7 +113,7 @@ jobs:
         run: dotnet publish Kasta.Web --configuration Release -p:PublishSingleFile=true -p:ReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -p:CopyOutputSymbolsToPublishDirectory=false --self-contained --runtime ${{ matrix.runtime }} --output dist
       
       - name: Upload Binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Kasta-${{matrix.runtime}}
           path: dist
@@ -130,14 +128,15 @@ jobs:
       contents: read
       attestations: write
       id-token: write
+      security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set Environment Variables
         run: |
@@ -147,16 +146,16 @@ jobs:
           echo "BUILD_DATE=$(date --iso-8601=s)" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -164,7 +163,7 @@ jobs:
 
       - name: Build & Publish DEV Image
         if: "!startsWith(github.ref, 'refs/tags/')"
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           # linux/arm64 builds are disabled due to funky errors
           platforms: linux/amd64
@@ -182,15 +181,20 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'ghcr.io/ktwrd/kasta:${{ github.sha }}'
-          format: 'table'
-          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
           ignore-unfixed: true
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-results.sarif'
 
       - name: Build & Publish LATEST Image
         if: startsWith(github.ref, 'refs/tags/')
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           # linux/arm64 builds are disabled due to funky errors
           platforms: linux/amd64
@@ -229,7 +233,7 @@ jobs:
           - "osx-arm64"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -239,7 +243,7 @@ jobs:
           echo "VERSION=$(git describe --tags --abbrev=0).$([[ $GITHUB_REF = refs/tags/* ]] && echo 0 || echo 65534)+$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Download ${{ matrix.runtime }} Binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Kasta-${{ matrix.runtime }}
           path: dist/${{ matrix.runtime }}
@@ -253,7 +257,7 @@ jobs:
           zip -r ../../Kasta-${{ env.TAG }}-${{ matrix.runtime }}.zip .
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |

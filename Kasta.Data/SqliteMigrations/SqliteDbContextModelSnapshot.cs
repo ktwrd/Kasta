@@ -15,7 +15,7 @@ namespace Kasta.Data.SqliteMigrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.13");
 
             modelBuilder.Entity("Kasta.Data.Models.Audit.AuditEntryModel", b =>
                 {
@@ -170,9 +170,6 @@ namespace Kasta.Data.SqliteMigrations
                         .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("S3FileInformationId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("ShortUrl")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -188,8 +185,6 @@ namespace Kasta.Data.SqliteMigrations
                     b.HasIndex("Filename");
 
                     b.HasIndex("MimeType");
-
-                    b.HasIndex("S3FileInformationId");
 
                     b.ToTable("File", (string)null);
                 });
@@ -695,9 +690,11 @@ namespace Kasta.Data.SqliteMigrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProviderKey")
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProviderDisplayName")
@@ -735,9 +732,11 @@ namespace Kasta.Data.SqliteMigrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LoginProvider")
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Value")
@@ -791,7 +790,9 @@ namespace Kasta.Data.SqliteMigrations
                 {
                     b.HasOne("Kasta.Data.Models.FileModel", "File")
                         .WithOne("ImageInfo")
-                        .HasForeignKey("Kasta.Data.Models.FileImageInfoModel", "Id");
+                        .HasForeignKey("Kasta.Data.Models.FileImageInfoModel", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("File");
                 });
@@ -799,16 +800,10 @@ namespace Kasta.Data.SqliteMigrations
             modelBuilder.Entity("Kasta.Data.Models.FileModel", b =>
                 {
                     b.HasOne("Kasta.Data.Models.UserModel", "CreatedByUser")
-                        .WithOne()
-                        .HasForeignKey("Kasta.Data.Models.FileModel", "CreatedByUserId");
-
-                    b.HasOne("Kasta.Data.Models.S3FileInformationModel", "S3FileInformation")
                         .WithMany()
-                        .HasForeignKey("S3FileInformationId");
+                        .HasForeignKey("CreatedByUserId");
 
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("S3FileInformation");
                 });
 
             modelBuilder.Entity("Kasta.Data.Models.FilePreviewModel", b =>
@@ -834,8 +829,10 @@ namespace Kasta.Data.SqliteMigrations
             modelBuilder.Entity("Kasta.Data.Models.S3FileInformationModel", b =>
                 {
                     b.HasOne("Kasta.Data.Models.FileModel", "File")
-                        .WithOne()
-                        .HasForeignKey("Kasta.Data.Models.S3FileInformationModel", "Id");
+                        .WithOne("S3FileInformation")
+                        .HasForeignKey("Kasta.Data.Models.S3FileInformationModel", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("File");
                 });
@@ -968,6 +965,8 @@ namespace Kasta.Data.SqliteMigrations
                     b.Navigation("ImageInfo");
 
                     b.Navigation("Preview");
+
+                    b.Navigation("S3FileInformation");
                 });
 
             modelBuilder.Entity("Kasta.Data.Models.S3FileInformationModel", b =>

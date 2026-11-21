@@ -232,16 +232,15 @@ public class KastaDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyCo
     }
     public async Task<UserModel?> GetUserAsync(string id)
     {
-        var item = await Users.Where(e => e.Id == id)
+        return await Users
             .Include(e => e.Limit)
             .Include(e => e.ApiKeys)
             .Include(e => e.Settings)
-            .FirstOrDefaultAsync();
-        return item;
+            .FirstOrDefaultAsync(e => e.Id == id);
     }
     public async Task<bool> UserExistsAsync(string id)
     {
-        return await Users.Where(e => e.Id == id).AnyAsync();
+        return await Users.AsNoTracking().AnyAsync(e => e.Id == id);
     }
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -265,63 +264,46 @@ public class KastaDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyCo
             .ToTable(PreferencesModel.TableName)
             .HasKey(b => b.Key);
 
-        builder.Entity<UserModel>(
-            b =>
-            {
-                b.HasOne(e => e.Limit)
-                    .WithOne(e => e.User)
-                    .HasForeignKey<UserLimitModel>(e => e.UserId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired(false);
-                b.HasOne(e => e.Settings)
-                    .WithOne(e => e.User)
-                    .HasForeignKey<UserSettingModel>(e => e.Id)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired(false);
-                b.HasMany(e => e.ApiKeys)
-                    .WithOne(e => e.User)
-                    .HasForeignKey(e => e.UserId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired(true);
-            });
+        builder.Entity<UserModel>(b =>
+        {
+            b.HasOne(e => e.Limit)
+                .WithOne(e => e.User)
+                .HasForeignKey<UserLimitModel>(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
+            b.HasOne(e => e.Settings)
+                .WithOne(e => e.User)
+                .HasForeignKey<UserSettingModel>(e => e.Id)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
+        });
         builder.Entity<FileImageInfoModel>(b =>
         {
             b.ToTable(FileImageInfoModel.TableName);
             b.HasKey(e => e.Id);
+
+            b.HasOne(e => e.File)
+                .WithOne(e => e.ImageInfo)
+                .HasForeignKey<FileImageInfoModel>(e => e.Id);
         });
-        builder.Entity<FileModel>(
-            b =>
+        builder.Entity<FileModel>(b =>
+        {
+            b.ToTable(FileModel.TableName);
+            b.HasKey(e => e.Id);
+            b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
+            b.HasIndex(e => e.Filename).IsUnique(false);
+            b.HasIndex(e => e.MimeType).IsUnique(false);
+
+            if (!AllowFileSearchVector)
             {
-                b.ToTable(FileModel.TableName);
-                b.HasKey(e => e.Id);
-                b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
-                b.HasIndex(e => e.Filename).IsUnique(false);
-                b.HasIndex(e => e.MimeType).IsUnique(false);
+                b.Ignore(e => e.SearchVector);
+            }
 
-                if (!AllowFileSearchVector)
-                {
-                    b.Ignore(e => e.SearchVector);
-                }
-
-                b.HasOne(e => e.CreatedByUser)
-                    .WithOne()
-                    .HasForeignKey<FileModel>(e => e.CreatedByUserId)
-                    .IsRequired(false);
-                b.HasOne(e => e.ImageInfo)
-                    .WithOne(e => e.File)
-                    .HasForeignKey<FileImageInfoModel>(e => e.Id)
-                    .IsRequired(false);
-                
-                b.HasOne(e => e.Preview)
-                    .WithOne(e => e.File)
-                    .HasForeignKey<FilePreviewModel>(e => e.Id)
-                    .IsRequired(false);
-                
-                b.HasOne(e => e.S3FileInformation)
-                    .WithOne(e => e.File)
-                    .HasForeignKey<S3FileInformationModel>(e => e.Id)
-                    .IsRequired(false);
-            });
+            b.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .IsRequired(false);
+        });
         builder.Entity<ShortLinkModel>(b =>
         {
             b.ToTable(ShortLinkModel.TableName);
@@ -337,18 +319,21 @@ public class KastaDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyCo
         builder.Entity<UserApiKeyModel>(b =>
         {
             b.ToTable(UserApiKeyModel.TableName)
-             .HasKey(e => e.Id);
+                .HasKey(e => e.Id);
             b.HasIndex(e => e.Token).IsUnique(true);
-            b.HasIndex(e => e.UserId).IsUnique(false);
-            b.HasIndex(e => e.CreatedByUserId).IsUnique(false);
+            
+            b.HasOne(e => e.User)
+                .WithMany(e => e.ApiKeys)
+                .HasForeignKey(e => e.UserId)
+                .IsRequired();
+            
             b.HasOne(e => e.CreatedByUser)
                 .WithMany()
-                .HasForeignKey(e => e.CreatedByUserId)
-                .IsRequired(false);
+                .HasForeignKey(e => e.CreatedByUserId);
+            
             b.HasOne(e => e.DeletedByUser)
                 .WithMany()
-                .HasForeignKey(e => e.DeletedByUserId)
-                .IsRequired(false);
+                .HasForeignKey(e => e.DeletedByUserId);
         });
         builder.Entity<S3FileInformationModel>(
             b =>
@@ -361,7 +346,7 @@ public class KastaDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyCo
                     .HasForeignKey(e => e.FileId)
                     .IsRequired(true);
                 b.HasOne(e => e.File)
-                    .WithOne()
+                    .WithOne(e => e.S3FileInformation)
                     .HasForeignKey<S3FileInformationModel>(e => e.Id);
             });
         builder.Entity<ChunkUploadSessionModel>(
@@ -380,9 +365,16 @@ public class KastaDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyCo
                     .OnDelete(DeleteBehavior.Restrict)
                     .IsRequired(true);
             });
-        builder.Entity<FilePreviewModel>()
-            .ToTable(FilePreviewModel.TableName)
-            .HasKey(e => e.Id);
+        builder.Entity<FilePreviewModel>(b =>
+        {
+            b.ToTable(FilePreviewModel.TableName)
+                .HasKey(e => e.Id);
+                
+            b.HasOne(e => e.File)
+                .WithOne(e => e.Preview)
+                .HasForeignKey<FilePreviewModel>(e => e.Id)
+                .IsRequired(false);
+        });
         builder.Entity<S3FileChunkModel>()
             .ToTable(S3FileChunkModel.TableName)
             .HasKey(e => e.Id);

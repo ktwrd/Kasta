@@ -2,8 +2,13 @@
 ![GitHub Release](https://img.shields.io/github/v/release/ktwrd/kasta)
 ![GitHub branch check runs](https://img.shields.io/github/check-runs/ktwrd/kasta/main) 
 ![GitHub License](https://img.shields.io/github/license/ktwrd/kasta)
+[![brainmade.org](https://img.shields.io/badge/brainmade.org-FFFFFF?style=plastic&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iNzkiIHZpZXdCb3g9IjAgMCA2NyA3OSIgZmlsbD0ibm9uZSI%2BPHBhdGggZmlsbD0iIzAwMCIgZD0iTTUyLjYxMiA3OC43ODJIMjMuMzNhMi41NTkgMi41NTkgMCAwIDEtMi41Ni0yLjU1OHYtNy42NzdoLTcuOTczYTIuNTYgMi41NiAwIDAgMS0yLjU2LTIuNTZWNTUuMzE1bC04LjgyLTQuMzk3YTIuNTU5IDIuNTU5IDAgMCAxLS45ODYtMy43MWw5LjgwNy0xNC43MTR2LTQuMzVDMTAuMjQgMTIuNTk5IDIyLjg0MyAwIDM4LjM4OCAwIDUzLjkzMiAwIDY2LjUzNCAxMi42IDY2LjUzOCAyOC4xNDNjLS42MzIgMjcuODI0LTEwLjc2IDIzLjUxNi0xMS4xOCAzNC4wNDVsLS4xODcgMTQuMDM1YTIuNTkgMi41OSAwIDAgMS0uNzUgMS44MSAyLjU1IDIuNTUgMCAwIDEtMS44MDkuNzVabS0yNi43MjMtNS4xMTdoMjQuMTY0bC4yODYtMTQuNTQyYy0uMjYzLTYuNjU2IDExLjcxNi04LjI0MyAxMS4wOC0zMC43MzQtLjM1OC0xMi43MTMtMTAuMzEzLTIzLjI3MS0yMy4wMzEtMjMuMjcxLTEyLjcxOCAwLTIzLjAyOSAxMC4zMDctMjMuMDMyIDIzLjAyNXY1LjExN2MwIC41MDYtLjE1IDEtLjQzIDEuNDJsLTguNjMgMTIuOTQxIDcuNjQ1IDMuODJhMi41NTkgMi41NTkgMCAwIDEgMS40MTUgMi4yOTF2OS42OTdoNy45NzRhMi41NTkgMi41NTkgMCAwIDEgMi41NiAyLjU1OXY3LjY3N1oiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNNDAuMzcyIDU4LjIyMlYzOC45MzRjLjExOCAwIC4yMzcuMDE4LjM1NS4wMTggOS43NjktLjAxMiAxNy4wNS05LjAxMiAxNS4wMjItMTguNTY3YTIuMzY2IDIuMzY2IDAgMCAwLTEuODIxLTEuODIyYy04LjEwNi0xLjczLTE2LjEyMSAzLjI5Mi0xOC4wOTggMTEuMzQxLS4wMjQtLjAyNC0uMDQzLS4wNS0uMDY2LS4wNzNhMTUuMzIzIDE1LjMyMyAwIDAgMC0xNC4wNi00LjE3IDIuMzY1IDIuMzY1IDAgMCAwLTEuODIxIDEuODJjLTIuMDI4IDkuNTU1IDUuMjUyIDE4LjU1NCAxNS4wMiAxOC41NjguMjM2IDAgLjQ5Mi0uMDI4LjczOC0uMDR2MTIuMjEzaDQuNzMxWm0yLjgzOS0zMi4xNDNhMTAuNjQ2IDEwLjY0NiAwIDAgMSA4LjEyNC0zLjEwNmMuMzUgNi4zNC00Ljg4OCAxMS41NzctMTEuMjI4IDExLjIzYTEwLjU4IDEwLjU4IDAgMCAxIDMuMTA0LTguMTI0Wk0yNy40MDMgMzguMTkzYTEwLjYwNyAxMC42MDcgMCAwIDEtMy4xMTgtOC4xMjNjNi4zNDQtLjM1OCAxMS41ODcgNC44ODYgMTEuMjI4IDExLjIzLTMuMDIzLjE2OS01Ljk3My0uOTYxLTguMTEtMy4xMDdaIi8%2BPC9zdmc%2B)](https://brainmade.org/)
 
 A Simple self-hostable File Sharing Service written in C#. Supports displaying media (image, video, audio), [ShareX](https://github.com/ShareX/ShareX) config generation, [rustgrab](https://github.com/ktwrd/rustgrab) support, and stores files with pretty much any S3-compatible service.
+
+>[!IMPORTANT]
+> Kasta is currently in Alpha!
+> Many things are subject to change, and features may not be fully complete.
 
 ![Screenshot of the Kasta web application, displaying a list of uploaded images with their; filename, date created, file size, sharing status, and file size.](https://kate.pet/img/blog/firefox_1506_K10H17LkIG.png)
 
@@ -14,12 +19,12 @@ A Simple self-hostable File Sharing Service written in C#. Supports displaying m
 - Config Generator for [ShareX](https://github.com/ShareX/ShareX) and [rustgrab](https://github.com/ktwrd/rustgrab)
 - Compatible with AWS S3 and S3-Compatible Services (like Cloudflare R2, MinIO, and Wasabi[^1])
 - Web File Upload
-- Audit Logging
+- Audit Logging[^2]
 - Per-user storage quota & file size limits
 - Public & Private uploads
 - Image Preview Generation (including image info like file type, compression, interlacing, and dimensions)
-- Text File Preview
-- Link Shortener
+- Text File Preview[^3]
+- Link Shortener[^4]
 
 ## Installing
 It is recommended to use Docker to make updating very easy. The following docker compose file is the recommended setup, along with copying `config.example.xml` to `config.xml` and change the settings in there so it fits your needs.
@@ -121,3 +126,6 @@ It's also recommended to use local file storage when running a development insta
 
 ## Footnotes
 [^1]: Kasta has only been tested with AWS S3 and MinIO (LAN Deployment). When using an S3 Compatible Service (that isn't AWS S3), then make sure that the `ForcePathStyle` element in your S3 configuration is set to `true` (which is nested in the `S3` element in `config.example.xml`).
+[^2]: Audit logging has not been fully implemented, but complete audit logging and webhooks are planned in a future release.
+[^3]: Currently the text file preview has a hard-coded file size & extension limit. In the future, this will be fully configurable in the frontend.
+[^4]: The Link Shortener is a bit buggy right now, and the text is not that legible with dark themes. This will be fixed in a future release.

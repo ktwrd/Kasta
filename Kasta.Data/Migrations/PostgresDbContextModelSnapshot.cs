@@ -18,7 +18,7 @@ namespace Kasta.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -176,9 +176,6 @@ namespace Kasta.Data.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<string>("S3FileInformationId")
-                        .HasColumnType("character varying(36)");
-
                     b.Property<NpgsqlTsVector>("SearchVector")
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
@@ -201,8 +198,6 @@ namespace Kasta.Data.Migrations
                     b.HasIndex("Filename");
 
                     b.HasIndex("MimeType");
-
-                    b.HasIndex("S3FileInformationId");
 
                     b.HasIndex("SearchVector");
 
@@ -718,10 +713,12 @@ namespace Kasta.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("text");
@@ -758,10 +755,12 @@ namespace Kasta.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("Value")
                         .HasColumnType("text");
@@ -814,7 +813,9 @@ namespace Kasta.Data.Migrations
                 {
                     b.HasOne("Kasta.Data.Models.FileModel", "File")
                         .WithOne("ImageInfo")
-                        .HasForeignKey("Kasta.Data.Models.FileImageInfoModel", "Id");
+                        .HasForeignKey("Kasta.Data.Models.FileImageInfoModel", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("File");
                 });
@@ -822,16 +823,10 @@ namespace Kasta.Data.Migrations
             modelBuilder.Entity("Kasta.Data.Models.FileModel", b =>
                 {
                     b.HasOne("Kasta.Data.Models.UserModel", "CreatedByUser")
-                        .WithOne()
-                        .HasForeignKey("Kasta.Data.Models.FileModel", "CreatedByUserId");
-
-                    b.HasOne("Kasta.Data.Models.S3FileInformationModel", "S3FileInformation")
                         .WithMany()
-                        .HasForeignKey("S3FileInformationId");
+                        .HasForeignKey("CreatedByUserId");
 
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("S3FileInformation");
                 });
 
             modelBuilder.Entity("Kasta.Data.Models.FilePreviewModel", b =>
@@ -857,8 +852,10 @@ namespace Kasta.Data.Migrations
             modelBuilder.Entity("Kasta.Data.Models.S3FileInformationModel", b =>
                 {
                     b.HasOne("Kasta.Data.Models.FileModel", "File")
-                        .WithOne()
-                        .HasForeignKey("Kasta.Data.Models.S3FileInformationModel", "Id");
+                        .WithOne("S3FileInformation")
+                        .HasForeignKey("Kasta.Data.Models.S3FileInformationModel", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("File");
                 });
@@ -991,6 +988,8 @@ namespace Kasta.Data.Migrations
                     b.Navigation("ImageInfo");
 
                     b.Navigation("Preview");
+
+                    b.Navigation("S3FileInformation");
                 });
 
             modelBuilder.Entity("Kasta.Data.Models.S3FileInformationModel", b =>

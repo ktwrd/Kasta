@@ -1,85 +1,87 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <UserSecretsId>aspnet-Kasta-be2e7886-b576-461b-9096-e78871b03d07</UserSecretsId>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>Kasta.Web</RootNamespace>
-        <AssemblyVersion>0.10.0.0</AssemblyVersion>
-        <Version>$(AssemblyVersion)</Version>
-        <FileVersion>$(AssemblyVersion)</FileVersion>
-        <RepositoryUrl>https://github.com/ktwrd/Kasta</RepositoryUrl>
-        <Copyright>Copyright (c) Kate Ward</Copyright>
-        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-        <EnableCompressionInSingleFile>True</EnableCompressionInSingleFile>
-        <IncludeNativeLibrariesForSelfExtract>True</IncludeNativeLibrariesForSelfExtract>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-Kasta-be2e7886-b576-461b-9096-e78871b03d07</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <RootNamespace>Kasta.Web</RootNamespace>
+    
+    <AssemblyVersion>0.10.0.0</AssemblyVersion>
+    <Version>$(AssemblyVersion)</Version>
+    <FileVersion>$(AssemblyVersion)</FileVersion>
+    
+    <RepositoryUrl>https://github.com/ktwrd/Kasta</RepositoryUrl>
+    <Copyright>Copyright (c) Kate Ward</Copyright>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <EnableCompressionInSingleFile>True</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>True</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="AspNet.Security.OAuth.GitHub" />
-        <PackageReference Include="AWSSDK.S3" />
-        <PackageReference Include="EasyCaching.InMemory" />
-        <PackageReference Include="EasyCaching.Redis" />
-        <PackageReference Include="EasyCaching.Serialization.MessagePack" />
-        <PackageReference Include="EFCoreSecondLevelCacheInterceptor" />
-        <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" />
-        <PackageReference Include="HtmlSanitizer" />
-        <PackageReference Include="MessagePack" />
-        <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" />
-        <PackageReference Include="Markdig" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
-        <PackageReference Include="MimeTypes" />
-        <PackageReference Include="NeoSmart.PrettySize" />
-        <PackageReference Include="NLog" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-        <PackageReference Include="NLog.Web.AspNetCore" />
-        <PackageReference Include="Sentry.AspNetCore" />
-        <PackageReference Include="Sentry.NLog" />
-        <PackageReference Include="Vivet.AspNetCore.RequestTimeZone" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AspNet.Security.OAuth.GitHub" />
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="EasyCaching.InMemory" />
+    <PackageReference Include="EasyCaching.Redis" />
+    <PackageReference Include="EasyCaching.Serialization.MessagePack" />
+    <PackageReference Include="EFCoreSecondLevelCacheInterceptor" />
+    <PackageReference Include="EFCoreSecondLevelCacheInterceptor.EasyCaching.Core" />
+    <PackageReference Include="HtmlSanitizer" />
+    <PackageReference Include="MessagePack" />
+    <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
+    <PackageReference Include="MimeTypes" />
+    <PackageReference Include="NeoSmart.PrettySize" />
+    <PackageReference Include="NLog" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="NLog.Web.AspNetCore" />
+    <PackageReference Include="Sentry.AspNetCore" />
+    <PackageReference Include="Sentry.NLog" />
+    <PackageReference Include="Vivet.AspNetCore.RequestTimeZone" />
+  </ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<Content Remove="app-licenses.json" />
-		<EmbeddedResource Include="app-licenses.json" />
-	</ItemGroup>
-	
-    <ItemGroup>
-      <EmbeddedResource Include="..\config.example.xml">
-        <Link>config.example.xml</Link>
-      </EmbeddedResource>
-      <Content Remove="nlog.config" />
-      <EmbeddedResource Include="nlog.config" />
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <Content Remove="app-licenses.json" />
+    <EmbeddedResource Include="app-licenses.json" />
+  </ItemGroup>
 
-      <EmbeddedResource Include="ThirdPartyLibraryInfo\**\*">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
-      <None Remove="ThirdPartyLibraryInfo\**\*" />
-    </ItemGroup>
-    <Target Name="CopyAfterBuild" AfterTargets="AfterBuild">
-        <Copy SourceFiles="..\LICENSE.txt" DestinationFolder="$(OutDir)" />
-        <Copy SourceFiles="..\config.example.xml" DestinationFolder="$(OutDir)" />
-        <Copy SourceFiles="..\.env.example" DestinationFolder="$(OutDir)" />
-    </Target>
-    <Target Name="CopyOnPublish" AfterTargets="Publish">
-        <Copy SourceFiles="..\LICENSE.txt" DestinationFolder="$(PublishDir)" />
-        <Copy SourceFiles="..\config.example.xml" DestinationFolder="$(PublishDir)" />
-        <Copy SourceFiles="..\.env.example" DestinationFolder="$(PublishDir)" />
-    </Target>
+  <ItemGroup>
+    <EmbeddedResource Include="..\config.example.xml">
+      <Link>config.example.xml</Link>
+    </EmbeddedResource>
+    <Content Remove="nlog.config" />
+    <EmbeddedResource Include="nlog.config" />
 
-    <ItemGroup>
-      <ProjectReference Include="..\Kasta.Data\Kasta.Data.csproj" />
-      <ProjectReference Include="..\Kasta.Shared\Kasta.Shared.csproj" />
-    </ItemGroup>
+    <EmbeddedResource Include="ThirdPartyLibraryInfo\**\*">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <None Remove="ThirdPartyLibraryInfo\**\*" />
+  </ItemGroup>
+  <Target Name="CopyAfterBuild" AfterTargets="AfterBuild">
+    <Copy SourceFiles="..\LICENSE.txt" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="..\config.example.xml" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="..\.env.example" DestinationFolder="$(OutDir)" />
+  </Target>
+  <Target Name="CopyOnPublish" AfterTargets="Publish">
+    <Copy SourceFiles="..\LICENSE.txt" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="..\config.example.xml" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="..\.env.example" DestinationFolder="$(PublishDir)" />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kasta.Data\Kasta.Data.csproj" />
+    <ProjectReference Include="..\Kasta.Shared\Kasta.Shared.csproj" />
+  </ItemGroup>
 
 </Project>
