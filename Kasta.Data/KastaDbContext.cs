@@ -320,12 +320,12 @@ public class KastaDbContext : IdentityDbContext<UserModel>, IDataProtectionKeyCo
         {
             b.ToTable(UserApiKeyModel.TableName)
                 .HasKey(e => e.Id);
-            b.HasIndex(e => e.Token).IsUnique(true);
+            
+            b.HasIndex(e => e.Token).IsUnique();
             
             b.HasOne(e => e.User)
                 .WithMany(e => e.ApiKeys)
-                .HasForeignKey(e => e.UserId)
-                .IsRequired();
+                .HasForeignKey(e => e.UserId);
             
             b.HasOne(e => e.CreatedByUser)
                 .WithMany()

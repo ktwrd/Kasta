@@ -3,26 +3,26 @@ using Vivet.AspNetCore.RequestTimeZone.Providers.Interfaces;
 
 namespace Kasta.Web.Services;
 
-public class IPAddressRequestTimeZoneProvider : IRequestTimeZoneProvider
+public class IpAddressRequestTimeZoneProvider : IRequestTimeZoneProvider
 {
-    public Task<ProviderTimeZoneResult> DetermineProviderTimeZoneResult(HttpContext ctx)
+    public Task<ProviderTimeZoneResult?> DetermineProviderTimeZoneResult(HttpContext ctx)
     {
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
         return Task.Run(() =>
         {
             var service = ctx.RequestServices.GetRequiredService<TimeZoneService>();
             var ip = service.FindIpAddress(ctx);
-            if (string.IsNullOrEmpty(ip))
+            if (string.IsNullOrWhiteSpace(ip))
             {
-                return default(ProviderTimeZoneResult);
+                return null;
             }
-            var tzinfo = service.FromIpAddress(ip);
-            if (tzinfo != null)
+            
+            var timeZoneInfo = service.FromIpAddress(ip);
+            if (timeZoneInfo != null)
             {
-                return new ProviderTimeZoneResult(tzinfo.Id);
+                return new ProviderTimeZoneResult(timeZoneInfo.Id);
             }
-            return default(ProviderTimeZoneResult);
+
+            return null;
         });
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
     }
 }

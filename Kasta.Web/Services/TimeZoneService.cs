@@ -25,7 +25,7 @@ public class TimeZoneService : IDisposable
         RefreshDatabase += EnsureMaxmind;
         EnsureMaxmind();
     }
-    private bool _disposed = false;
+    private bool _disposed;
     public void Dispose()
     {
         if (_disposed) return;
@@ -68,54 +68,51 @@ public class TimeZoneService : IDisposable
         }
 
         _disposed = true;
+        GC.SuppressFinalize(this);
     }
 
     public TimeZoneInfo? FromCoordinates(double latitude, double longitude)
     {
         var result = TimeZoneLookup.GetTimeZone(latitude, longitude);
         var resultValue = result.Result.Trim();
-        if (resultValue.Equals("utc", StringComparison.InvariantCultureIgnoreCase))
+        if (resultValue.Equals("utc", StringComparison.OrdinalIgnoreCase))
         {
             return TimeZoneInfo.Utc;
         }
 
-        foreach (var tz in TimeZoneInfo.GetSystemTimeZones())
+        var systemTimezones = TimeZoneInfo.GetSystemTimeZones();
+        var tzResult = systemTimezones.FirstOrDefault(tz => Check(tz, resultValue));
+        if (tzResult != null) return tzResult;
+        
+        foreach (var tz in systemTimezones)
         {
-            if (Check(tz, resultValue))
-            {
-                return tz;
-            }
-            foreach (var inner in result.AlternativeResults)
-            {
-                if (Check(tz, inner.Trim()))
-                {
-                    return tz;
-                }
-            }
+            if (!result.AlternativeResults.Any(inner => Check(tz, inner.Trim()))) continue;
+            tzResult = tz;
+            break;
         }
-        return null;
+        return tzResult;
 
         bool Check(TimeZoneInfo tz, string req)
         {
-            if (tz.Id.Equals(req, StringComparison.InvariantCultureIgnoreCase))
+            if (tz.Id.Equals(req, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
-            if (tz.StandardName.Equals(req, StringComparison.InvariantCultureIgnoreCase))
+            if (tz.StandardName.Equals(req, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
-            if (TimeZoneInfo.TryConvertIanaIdToWindowsId(req, out var win))
+            if (TimeZoneInfo.TryConvertIanaIdToWindowsId(req, out var win) &&
+                tz.Id.Equals(win, StringComparison.OrdinalIgnoreCase))
             {
-                if (tz.Id.Equals(win, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return true;
-                }
+                return true;
             }
             return false;
         }
     }
-    private readonly Lock _ensureMaxmindLock = new();
+    
+    private readonly SemaphoreSlim _maxmindLock = new(1, 1);
+    
     private void EnsureMaxmind()
     {
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -124,29 +121,32 @@ public class TimeZoneService : IDisposable
             return;
         }
         _ensureMaxmindLast = now;
-        var disable = _systemSettings.EnableGeoIp == false;
+        var disable = !_systemSettings.EnableGeoIp;
         if (disable && _geoIpDatabase == null)
         {
             _geoIpDatabaseLocation = null;
             return;
         }
+        
         if (_systemSettings.EnableGeoIp)
         {
-            if (string.IsNullOrEmpty(_systemSettings.GeoIpDatabaseLocation))
-            {
-                disable = true;
-            }
-            else if (!File.Exists(_systemSettings.GeoIpDatabaseLocation))
+            if (string.IsNullOrEmpty(_systemSettings.GeoIpDatabaseLocation) ||
+                !File.Exists(_systemSettings.GeoIpDatabaseLocation))
             {
                 disable = true;
             }
             else
             {
-                if (_geoIpDatabaseLocation != _systemSettings.GeoIpDatabaseLocation)
+                if (!string.Equals(_geoIpDatabaseLocation, _systemSettings.GeoIpDatabaseLocation, StringComparison.OrdinalIgnoreCase))
                 {
                     try
-                    { _geoIpDatabase?.Dispose(); }
-                    catch {}
+                    {
+                        _geoIpDatabase?.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "Failed to dispose existing GeoIP database");
+                    }
 
                     _geoIpDatabase = new DatabaseReader(_systemSettings.GeoIpDatabaseLocation);
                     _geoIpDatabaseLocation = _systemSettings.GeoIpDatabaseLocation;
@@ -154,19 +154,21 @@ public class TimeZoneService : IDisposable
             }
         }
 
-        if (disable)
+        if (!disable) return;
+        
+        if (_geoIpDatabase != null)
         {
-            if (_geoIpDatabase != null)
+            try
             {
-                try
-                {
-                    _geoIpDatabase.Dispose();
-                }
-                catch {}
-                _geoIpDatabase = null;
+                _geoIpDatabase.Dispose();
             }
-            _geoIpDatabaseLocation = null;
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Failed to dispose existing GeoIP database (on disable)");
+            }
+            _geoIpDatabase = null;
         }
+        _geoIpDatabaseLocation = null;
     }
 
     private DatabaseReader? _geoIpDatabase;
@@ -175,9 +177,14 @@ public class TimeZoneService : IDisposable
 
     public TimeZoneInfo? FromIpAddress(string address)
     {
-        lock (_ensureMaxmindLock)
+        _maxmindLock.Wait();
+        try
         {
             EnsureMaxmind();
+        }
+        finally
+        {
+            _maxmindLock.Release();
         }
         if (_geoIpDatabase == null) return null;
 

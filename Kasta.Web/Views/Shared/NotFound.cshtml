@@ -1,7 +1,11 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @model NotFoundViewModel
 @{
-    if (HttpContextAccessor.HttpContext?.IsHtmxRequest() != true)
+    if (HttpContextAccessor.HttpContext?.IsHtmxRequest() == true)
+    {
+        Layout = null;
+    }
+    else
     {
         ViewData["Title"] = "Not Found";
         Layout = "_Layout";

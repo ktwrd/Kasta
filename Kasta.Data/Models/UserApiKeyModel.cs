@@ -102,7 +102,7 @@ public class UserApiKeyModel
 
     #region Property Accessors
     [AuditIgnore]
-    public UserModel User { get; set; }
+    public UserModel? User { get; set; }
     [AuditIgnore]
     public UserModel? CreatedByUser { get; set; }
     [AuditIgnore]

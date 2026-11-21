@@ -5,7 +5,7 @@ namespace Kasta.Web;
 
 public class DBNullFormatter : IMessagePackFormatter<DBNull>
 {
-    public static DBNullFormatter Instance = new();
+    public static readonly DBNullFormatter Instance = new();
 
     private DBNullFormatter()
     {

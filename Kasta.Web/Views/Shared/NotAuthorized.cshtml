@@ -1,8 +1,11 @@
-@using Kasta.Web.Models
 @inject IHttpContextAccessor HttpContextAccessor
 @model NotAuthorizedViewModel?
 @{
-    if (HttpContextAccessor.HttpContext?.IsHtmxRequest() != true)
+    if (HttpContextAccessor.HttpContext?.IsHtmxRequest() == true)
+    {
+        Layout = null;
+    }
+    else
     {
         ViewData["Title"] = "Not Authorized";
         Layout = "_Layout";

@@ -3,11 +3,9 @@ using Kasta.Web;
 using Microsoft.IdentityModel.Logging;
 using NLog;
 using NLog.Web;
-using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using Trace = System.Diagnostics.Trace;
-using MinDataRate = Microsoft.AspNetCore.Server.Kestrel.Core.MinDataRate;
 using Kasta.Web.Helpers;
 using Sentry.NLog;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 #if DEBUG
 FeatureFlags.SetEnvironment(FeatureFlags.EnvironmentValueDevelopment);
@@ -15,13 +13,12 @@ FeatureFlags.SetEnvironment(FeatureFlags.EnvironmentValueDevelopment);
 FeatureFlags.EnsureEnvironmentValue();
 if (args.Any(e => string.Equals("docker", e, StringComparison.OrdinalIgnoreCase)))
 {
-Environment.SetEnvironmentVariable(FeatureFlags.Keys.RunningInDocker, "true");
+    Environment.SetEnvironmentVariable(FeatureFlags.Keys.RunningInDocker, "true");
 }
-if (FeatureFlags.IsDevelopmentEnvironment ||
-FeatureFlags.ShowPrivateInformationWithAspNet)
+if (FeatureFlags.IsDevelopmentEnvironment || FeatureFlags.ShowPrivateInformationWithAspNet)
 {
-IdentityModelEventSource.ShowPII = true;
-IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+    IdentityModelEventSource.ShowPII = true;
+    IdentityModelEventSource.LogCompleteSecurityArtifact = true;
 }
 
 InitializeNLog();
@@ -43,19 +40,17 @@ Task RunServer(string[] args)
         .ConfigureWebHostDefaults(webBuilder =>
         {
             webBuilder.UseStartup<Startup>();
+            webBuilder.CaptureStartupErrors(true);
             
-            var cfg = KastaConfig.Instance;
-            webBuilder.UseKestrel(opts => opts.FromConfiguration(cfg));
-            if (!string.IsNullOrEmpty(FeatureFlags.SentryDsn))
+            webBuilder.UseKestrel(static opts => opts.FromConfiguration(KastaConfig.Instance));
+            if (string.IsNullOrWhiteSpace(FeatureFlags.SentryDsn)) return;
+            webBuilder.UseSentry(static opts =>
             {
-                webBuilder.UseSentry(static opts =>
-                {
-                    SetSentryOptions(opts);
-                    opts.MinimumBreadcrumbLevel = LogLevel.Trace;
-                    opts.MinimumEventLevel = LogLevel.Warning;
-                    opts.MaxRequestBodySize = Sentry.Extensibility.RequestSize.Always;
-                });
-            }
+                SetSentryOptions(opts);
+                opts.MinimumBreadcrumbLevel = LogLevel.Trace;
+                opts.MinimumEventLevel = LogLevel.Warning;
+                opts.MaxRequestBodySize = Sentry.Extensibility.RequestSize.Always;
+            });
         });
     return h.RunConsoleAsync();
 }
@@ -174,7 +169,6 @@ static void CheckConfiguration()
                 logger.Fatal($"Couldn't find embedded resource {selfType.Namespace}.config.example.xml");
             }
             Environment.Exit(1);
-            return;
         }
         else
         {
@@ -195,7 +189,8 @@ static bool TryGetExampleConfigurationStream(out Stream? stream)
     stream = null;
 
     var current = typeof(Program);
-    var resourceName = current.Assembly.GetManifestResourceNames().FirstOrDefault(e => e.Trim().EndsWith(".config.example.xml", StringComparison.OrdinalIgnoreCase));
+    var resourceName = current.Assembly.GetManifestResourceNames()
+        .FirstOrDefault(e => e.Trim().EndsWith(".config.example.xml", StringComparison.OrdinalIgnoreCase));
     if (resourceName == null) return false;
 
     stream = current.Assembly.GetManifestResourceStream(resourceName);
