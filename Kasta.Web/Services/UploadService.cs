@@ -4,12 +4,13 @@ using Kasta.Shared;
 using Kasta.Web.Models.Api.Request;
 using Microsoft.EntityFrameworkCore;
 using NLog;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Kasta.Web.Services;
 
-public class UploadService
+public partial class UploadService
 {
-    private readonly Logger _log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<UploadService> _logger;
     private readonly KastaDbContext _db;
     private readonly ShortUrlService _shortUrlService;
     private readonly FileService _fileService;
@@ -18,8 +19,9 @@ public class UploadService
     private readonly KastaConfig _cfg;
     private readonly IDbContextFactory<KastaDbContext> _dbFactory;
 
-    public UploadService(IServiceProvider services)
+    public UploadService(IServiceProvider services, ILogger<UploadService> logger)
     {
+        _logger = logger;
         _db = services.GetRequiredService<KastaDbContext>();
         _shortUrlService = services.GetRequiredService<ShortUrlService>();
         _fileService = services.GetRequiredService<FileService>();
@@ -33,7 +35,8 @@ public class UploadService
 
     public async Task<FileModel> UploadBasicAsync(UserModel user, Stream stream, string filename, long length)
     {
-        var fn = Path.GetFileName(filename) ?? "blob";
+        var fn = Path.GetFileName(filename);
+        if (string.IsNullOrWhiteSpace(fn)) fn = "blob";
         var id = Guid.NewGuid().ToString();
         var fileModel = new FileModel()
         {
@@ -45,6 +48,9 @@ public class UploadService
             ShortUrl = _shortUrlService.Generate(),
             CreatedByUserId = user.Id,
         };
+
+        LogUploadStart(
+            fn, length, user.NormalizedUserName ?? user.Id);
 
         await using var ctx = await _dbFactory.CreateDbContextAsync();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
@@ -92,14 +98,26 @@ public class UploadService
         }
         catch (Exception ex)
         {
+            LogUploadFailure(
+                ex,
+                user.NormalizedUserName ?? user.Id,
+                length);
             await transaction.RollbackAsync();
-            _log.Error(ex, $"Failed to upload file for user {user.UserName} ({user.Id})");
             throw;
         }
 
         await _fileService.RecalculateSpaceUsed(user);
         return fileModel;
     }
+
+    [LoggerMessage(LogLevel.Information, "Begin upload of {Filename} with size {FileSize} for User {CurrentUsername}")]
+    partial void LogUploadStart(string filename, long fileSize, string currentUsername);
+
+    [LoggerMessage(LogLevel.Information, "Generating File Image Info for {FileId}")]
+    partial void LogUploadCreateImageInfo(string fileId);
+
+    [LoggerMessage(LogLevel.Error, "Failed to upload file for {CurrentUsername} with size {FileSize}")]
+    partial void LogUploadFailure(Exception exception, string currentUsername, long fileSize);
     
     public async Task<ChunkUploadSessionModel> CreateSession(UserModel user, CreateUploadSessionRequest @params)
     {
