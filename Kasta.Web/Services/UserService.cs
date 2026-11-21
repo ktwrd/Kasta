@@ -123,6 +123,12 @@ public partial class UserService
 
     private async Task MarkApiKeyAsUsed(UserApiKeyModel apiKey)
     {
+        var targetUsername = await _db.Users
+           .AsNoTracking()
+           .Where(e => e.Id == apiKey.UserId)
+           .Select(e => e.NormalizedUserName)
+           .FirstOrDefaultAsync();
+        
         await using var trans = await _db.Database.BeginTransactionAsync();
         try
         {
@@ -134,16 +140,24 @@ public partial class UserService
             await _db.SaveChangesAsync();
             await trans.CommitAsync();
 
-            var userEmail = await _db.Users.Where(e => e.Id == apiKey.UserId).Select(e => e.NormalizedUserName).FirstOrDefaultAsync();
-            _logger.LogInformation("Used ApiKey {ApiKeyId} for User {Username} ({UserId})", apiKey.Id, userEmail, apiKey.UserId);
+            LogApiKeyUsed(apiKey.Id, targetUsername ?? apiKey.UserId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to mark Api Key {ApiKeyId} that it was used", apiKey.Id);
+            LogApiKeyUsedFailure(
+                ex,
+                apiKey.Id,
+                targetUsername ?? apiKey.UserId);
             await trans.RollbackAsync();
             throw;
         }
     }
+
+    [LoggerMessage(LogLevel.Information, "Used ApiKey {ApiKeyId} for User {TargetUsername}")]
+    partial void LogApiKeyUsed(string apiKeyId, string targetUsername);
+
+    [LoggerMessage(LogLevel.Information, "Failed to register that ApiKey {ApiKeyId} was used for User {TargetUsername}")]
+    partial void LogApiKeyUsedFailure(Exception exception, string apiKeyId, string targetUsername);
     #endregion
 
     public async Task<bool> IsAuthorized(HttpContext? httpContext, bool allowApiKey = true)
@@ -169,7 +183,6 @@ public partial class UserService
         }
 
         var targetUser = await _db.Users.FindAsync(options.UserId);
-        
         if (targetUser == null)
         {
             return CreateUserApiKeyErrorKind.UserNotFound;
@@ -178,7 +191,9 @@ public partial class UserService
         if (!await _userManager.IsInRoleAsync(currentUser, RoleKind.Administrator)
             && targetUser.Id != currentUser.Id)
         {
-            _logger.LogWarning("User {CurrentUsername} failed to create an ApiKey for User {TargetUsername} but is missing permission", currentUser.NormalizedUserName, targetUser.NormalizedUserName);
+            LogApiKeyCreateAttempt(
+                currentUsername: currentUser.NormalizedUserName ?? currentUser.Id,
+                targetUsername: targetUser.NormalizedUserName ?? targetUser.Id);
             return CreateUserApiKeyErrorKind.CannotCreateTokenForOtherUsers;
         }
 
@@ -223,6 +238,9 @@ public partial class UserService
         return await _db.UserApiKeys.AsNoTracking().SingleAsync(e => e.Id == model.Id);
     }
 
+    [LoggerMessage(LogLevel.Warning, "User {CurrentUsername} failed to create an ApiKey for User {TargetUsername} but is missing permission")]
+    partial void LogApiKeyCreateAttempt(string currentUsername, string targetUsername);
+
     [LoggerMessage(LogLevel.Information, "ApiKey {ApiKeyId} was created by User {CurrentUsername} for User {TargetUsername} with purpose: {Purpose}")]
     partial void LogApiKeyCreated(string apiKeyId, string currentUsername, string targetUsername, string? purpose);
 
@@ -256,8 +274,8 @@ public partial class UserService
         if (user == null) return DeleteAllApiKeysForUserError.NotLoggedIn;
         return await DeleteAllApiKeysForUser(
             httpContext,
-            deletedByUser: null,
-            user: user);
+            currentUser: null,
+            targetUser: user);
     }
 
     public async Task<UnitResult<DeleteApiKeyError>> DeleteApiKey(
@@ -270,19 +288,13 @@ public partial class UserService
         {
             return DeleteApiKeyError.InternalErrorMissingHttpContext;
         }
-
         var httpContext = httpContextValue.Value;
-        var userAgent = GetUserAgentFromContext(httpContext);
-        var userIp = httpContext.Connection.RemoteIpAddress?.ToString();
-        var now = DateTime.UtcNow;
-        
 
         currentUserValue = currentUserValue.Or(await GetCurrentUser(httpContext) ?? Maybe<UserModel>.None);
         if (currentUserValue.HasNoValue)
         {
             return DeleteApiKeyError.NotLoggedIn;
         }
-
         var currentUser = currentUserValue.Value;
 
         var apiKeyModel = await _db.UserApiKeys
@@ -301,6 +313,10 @@ public partial class UserService
         {
             return DeleteApiKeyError.NotAuthorizedToDeleteOtherPeoplesKeys;
         }
+        
+        var userAgent = GetUserAgentFromContext(httpContext);
+        var userIp = httpContext.Connection.RemoteIpAddress?.ToString();
+        var now = DateTime.UtcNow;
         
         await using var trans = await _db.Database.BeginTransactionAsync();
         try
@@ -351,19 +367,22 @@ public partial class UserService
         [Description("You do not have permission to delete other users Api Keys")]
         NotAuthorizedToDeleteOtherPeoplesKeys
     }
+    #endregion
     
+    #region DeleteAllApiKeysForUser
     public async Task<UnitResult<DeleteAllApiKeysForUserError>> DeleteAllApiKeysForUser(
         HttpContext? httpContext,
-        UserModel? deletedByUser,
-        UserModel user)
+        UserModel? currentUser,
+        UserModel targetUser)
     {
         httpContext ??= _httpContextAccessor.HttpContext;
         if (httpContext == null)
         {
             return DeleteAllApiKeysForUserError.InternalErrorMissingHttpContext;
         }
-        deletedByUser ??= await GetCurrentUser(httpContext);
-        if (deletedByUser == null)
+        
+        currentUser ??= await GetCurrentUser(httpContext);
+        if (currentUser == null)
         {
             return DeleteAllApiKeysForUserError.NotAuthorizedToDeleteOtherPeoplesKeys;
         }
@@ -372,13 +391,16 @@ public partial class UserService
         var userIp = httpContext.Connection.RemoteIpAddress?.ToString();
         var now = DateTime.UtcNow;
 
+        var currentUsername = currentUser?.NormalizedUserName ?? currentUser?.Id ?? "(none)";
+        var targetUsername = targetUser.NormalizedUserName ?? targetUser.Id;
+
         await using var trans = await _db.Database.BeginTransactionAsync();
         try
         {
-            await _db.UserApiKeys.Where(e => e.UserId == user.Id && !e.IsDeleted)
+            await _db.UserApiKeys.Where(e => e.UserId == targetUser.Id && !e.IsDeleted)
                 .ExecuteUpdateAsync(e => e
                     .SetProperty(p => p.IsDeleted, true)
-                    .SetProperty(p => p.DeletedByUserId, deletedByUser?.Id)
+                    .SetProperty(p => p.DeletedByUserId, currentUser?.Id)
                     .SetProperty(p => p.DeletedAt, now)
                     .SetProperty(p => p.DeletedByUserAgent, userAgent)
                     .SetProperty(p => p.DeletedByIpAddress, userIp));
@@ -388,23 +410,19 @@ public partial class UserService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "User {Username} ({UserId}) failed to delete all Api Keys for {TargetUsername} ({TargetUserId})",
-                deletedByUser,
-                deletedByUser?.Id,
-                user,
-                user.Id);
+            LogDeleteAllApiKeysForUserFailure(
+                ex,
+                targetUsername: targetUsername,
+                currentUsername: currentUsername);
             await trans.RollbackAsync();
             throw;
         }
 
+        LogDeleteAllApiKeysForUser(
+            currentUsername: currentUsername,
+            targetUsername: targetUsername);
         return UnitResult.Success<DeleteAllApiKeysForUserError>();
     }
-    #endregion
-
-    private static string? GetUserAgentFromContext(Maybe<HttpContext> httpContext)
-        => httpContext.Match<string?, HttpContext>(
-            ctx => string.Join("\n", ctx.Request.Headers.UserAgent.Select(e => e ?? string.Empty)),
-            () => null);
 
     public enum DeleteAllApiKeysForUserError
     {
@@ -415,4 +433,16 @@ public partial class UserService
         [Description("You do not have permission to delete other users Api Keys")]
         NotAuthorizedToDeleteOtherPeoplesKeys
     }
+
+    [LoggerMessage(LogLevel.Information, "User {CurrentUsername} deleted all API Keys for User {TargetUsername}")]
+    partial void LogDeleteAllApiKeysForUser(string currentUsername, string targetUsername);
+
+    [LoggerMessage(LogLevel.Error, "Failed to deleted all API Keys for User {TargetUsername} (PerformedBy:{CurrentUsername})")]
+    partial void LogDeleteAllApiKeysForUserFailure(Exception exception, string targetUsername, string currentUsername);
+    #endregion
+
+    private static string? GetUserAgentFromContext(Maybe<HttpContext> httpContext)
+        => httpContext.Match<string?, HttpContext>(
+            ctx => string.Join("\n", ctx.Request.Headers.UserAgent.Select(e => e ?? string.Empty)),
+            () => null);
 }
